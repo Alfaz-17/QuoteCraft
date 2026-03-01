@@ -183,9 +183,7 @@ export default function Home() {
 
           {/* Mobile Preview Content */}
           <div className="flex-1 bg-white overflow-y-auto pb-20">
-            <div style={{ zoom: 0.46 }}>
-              {isClient && <PreviewContainer data={state} isMobile={true} />}
-            </div>
+            {isClient && <PreviewContainer data={state} isMobile={true} />}
           </div>
         </div>
       )}
@@ -267,10 +265,8 @@ export default function Home() {
       </div>
 
       {/* ===== DESKTOP: Preview Panel ===== */}
-      <div className="hidden md:block flex-1 bg-slate-100 p-8 overflow-y-auto h-full">
-        <div style={{ zoom: 0.85 }} className="w-full flex justify-center">
-          {isClient && <PreviewContainer data={state} />}
-        </div>
+      <div className="hidden md:block flex-1 bg-slate-100 overflow-hidden h-full">
+        {isClient && <PreviewContainer data={state} />}
       </div>
     </main>
   );

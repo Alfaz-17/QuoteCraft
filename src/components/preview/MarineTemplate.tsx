@@ -23,8 +23,11 @@ export function MarineTemplate({ data }: TemplateProps) {
 
   return (
     <div
-      className="bg-white p-10 mx-auto min-h-[1123px] w-[794px] border border-gray-200 flex flex-col"
-      style={{ fontFamily: branding.font }}
+      className="bg-white p-[50px] mx-auto min-h-[1123px] w-[794px] flex flex-col border border-gray-100 shadow-sm"
+      style={{ 
+        fontFamily: branding.font,
+        boxSizing: "border-box"
+      }}
     >
       {/* Header - Centered Logo */}
       <div className="flex flex-col items-center mb-5">
@@ -166,7 +169,7 @@ export function MarineTemplate({ data }: TemplateProps) {
             <p>{company.email} | {company.phone}</p>
           </div>
           <div className="text-right">
-            <p>Website: {company.website || `www.${(company.email.split("@")[1] || "example.com")}`}</p>
+            {company.website && <p>Website: {company.website}</p>}
           </div>
         </div>
       </div>

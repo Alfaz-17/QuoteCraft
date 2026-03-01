@@ -110,6 +110,16 @@ export function PersonnelSection({
                   />
                 </div>
               </div>
+              <div className="space-y-1">
+                <Label htmlFor="companyWebsite">Website</Label>
+                <Input
+                  id="companyWebsite"
+                  value={company.website || ""}
+                  onChange={(e) => onUpdateCompany({ website: e.target.value })}
+                  onBlur={(e) => onUpdateCompany({ website: cleanText(e.target.value).toLowerCase() })}
+                  placeholder="e.g. www.spiceship.com"
+                />
+              </div>
             </div>
           </div>
         )}
