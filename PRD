@@ -1,0 +1,468 @@
+📘 PRODUCT REQUIREMENTS DOCUMENT (PRD)
+Product Name (Working Title)
+
+QuoteCraft – Custom Quotation & RFQ Builder
+
+1️⃣ Product Overview
+
+QuoteCraft is a browser-based tool that allows businesses to create fully customizable quotations, RFQs, and proforma invoices with branded layouts and downloadable PDF output — without requiring login or database storage in Version 1.
+
+The product focuses on:
+
+Fast document generation
+
+Full visual customization
+
+Clean professional PDF output
+
+Zero backend complexity
+
+2️⃣ Problem Statement
+
+Small and mid-size businesses:
+
+Use MS Word manually
+
+Re-edit the same format repeatedly
+
+Struggle with branding consistency
+
+Waste time formatting tables
+
+Generate low-quality PDFs
+
+There is no simple, customizable, instant quotation builder without heavy SaaS complexity.
+
+3️⃣ Goals (V1)
+Primary Goals
+
+Allow users to create professional quotations in under 5 minutes
+
+Allow full layout customization
+
+Generate high-quality downloadable PDF
+
+Run fully frontend (no backend)
+
+Non-Goals (V1)
+
+No user accounts
+
+No database storage
+
+No multi-user
+
+No document history
+
+No online sharing links
+
+4️⃣ Target Users
+Primary
+
+Marine suppliers
+
+Mechanical traders
+
+Export/import businesses
+
+Equipment suppliers
+
+Agencies
+
+Geography
+
+India
+
+UAE
+
+SME global market
+
+5️⃣ Core Features (MVP)
+🔹 5.1 Branding Customization Module
+Purpose
+
+Allow user to visually brand the quotation.
+
+Functional Requirements
+
+User can:
+
+Upload logo (PNG, JPG, SVG)
+
+Choose primary color
+
+Choose secondary color
+
+Choose font (Google Fonts dropdown)
+
+Select layout template (3 options)
+
+System Behavior
+
+Branding changes update live preview instantly
+
+Branding applied to generated PDF
+
+Store branding in local state
+
+Optionally persist in localStorage
+
+🔹 5.2 Document Information Module
+Fields
+
+Document Type (Dropdown)
+
+Quotation
+
+RFQ
+
+Proforma Invoice
+
+Document Number (Manual entry)
+
+Date (Date picker)
+
+Valid Until
+
+Reference
+
+Project Name (optional)
+
+🔹 5.3 Company & Client Section
+Company (Editable)
+
+Company Name
+
+Address
+
+Phone
+
+Email
+
+GST / VAT (optional)
+
+Client
+
+Client Name
+
+Company Name
+
+Address
+
+Email
+
+Country
+
+🔹 5.4 Dynamic Line Items Table
+Default Columns
+
+S.No (auto increment)
+
+Item Name
+
+Description
+
+Part Number
+
+Quantity
+
+Unit
+
+Unit Price
+
+Total (auto calculated)
+
+Functional Requirements
+
+User can:
+
+Add row
+
+Delete row
+
+Edit all cells
+
+Reorder rows (optional)
+
+Auto calculation:
+
+Row total = qty × unit price
+
+Subtotal = sum of rows
+
+🔹 5.5 Calculation Module
+Fields
+
+Subtotal (auto)
+
+Discount (optional % or fixed)
+
+Tax % (optional)
+
+Shipping charge (optional)
+
+Grand Total (auto)
+
+Rules
+
+Grand Total =
+
+(Subtotal - Discount) + Tax + Shipping
+
+Real-time calculation required.
+
+🔹 5.6 Terms & Conditions Module
+
+Rich text area
+
+Optional toggle:
+
+Show Delivery Terms
+
+Show Warranty
+
+Show Payment Terms
+
+Show Additional Notes
+
+User can fully customize text.
+
+🔹 5.7 Layout Templates
+
+V1 includes 3 templates:
+
+1. Classic Corporate
+
+Left logo
+
+Clean bordered table
+
+Blue accent
+
+2. Minimal Clean
+
+Center header
+
+No heavy borders
+
+Modern typography
+
+3. Technical / Industrial
+
+Bold section headings
+
+Structured grid
+
+Strong accent color blocks
+
+Templates differ only in:
+
+Header layout
+
+Table style
+
+Footer style
+
+Font weight usage
+
+🔹 5.8 Live Preview Panel
+
+Split screen layout:
+
+Left:
+
+Form builder
+
+Right:
+
+Real-time document preview
+
+Preview must:
+
+Match PDF layout exactly
+
+Reflect branding changes instantly
+
+🔹 5.9 PDF Generation
+Requirements
+
+Generate professional A4 PDF
+
+Maintain layout fidelity
+
+Preserve colors and fonts
+
+Include logo
+
+Support multi-page if rows overflow
+
+No watermark (or optional free watermark strategy)
+
+Implementation Options
+
+html2canvas + jsPDF
+OR
+
+@react-pdf/renderer (preferred for clean output)
+
+6️⃣ Technical Architecture (V1)
+Frontend Only
+
+Next.js (App Router)
+
+Tailwind CSS
+
+React Hook Form
+
+Zod validation
+
+Local React state
+
+Optional localStorage
+
+No:
+
+Backend API
+
+Database
+
+Auth system
+
+7️⃣ UX Requirements
+
+Clean SaaS-style interface
+
+Modern minimal UI
+
+Mobile responsive
+
+Form must not feel overwhelming
+
+Sections collapsible
+
+8️⃣ Performance Requirements
+
+Instant calculation updates
+
+PDF generation under 3 seconds
+
+No page reload
+
+Fully client-side execution
+
+9️⃣ Edge Cases
+
+Empty line items → disable PDF button
+
+Invalid quantity → show error
+
+Extremely long description → wrap text
+
+Large logo → auto-scale
+
+🔟 Monetization Strategy (V1)
+Option A – Free Tool to Validate Market
+
+Use for:
+
+Lead collection
+
+Build audience
+
+Option B – Freemium
+
+Free:
+
+1 template
+
+Watermark
+
+Paid:
+
+3 templates
+
+No watermark
+
+Custom color unlock
+
+1️⃣1️⃣ Future Roadmap (V2+)
+
+Add authentication
+
+Add database
+
+Save documents
+
+Client history
+
+GST auto calculation (India)
+
+VAT auto calculation (UAE)
+
+Shareable link
+
+E-signature
+
+Stripe subscription
+
+Multi-user teams
+
+AI-powered writing assistant
+
+1️⃣2️⃣ Success Metrics
+
+Time to generate document < 5 minutes
+
+PDF generation success rate > 99%
+
+80% users complete at least 1 document
+
+10% conversion to paid (if monetized)
+
+1️⃣3️⃣ Risks
+
+Many free competitors exist
+
+PDF formatting complexity
+
+Layout consistency challenges
+
+Mitigation:
+
+Focus on industry niche (Marine/Technical)
+
+Offer superior customization
+
+Add AI features later
+
+1️⃣4️⃣ MVP Development Timeline
+
+Week 1:
+
+UI layout
+
+Branding module
+
+Form builder
+
+Week 2:
+
+Dynamic table
+
+Calculation engine
+
+Week 3:
+
+Layout templates
+
+PDF generation
+
+Week 4:
+
+Polish + deploy
+
+🎯 Final Product Positioning
+
+"Create professional branded quotations in 2 minutes — no login required."
+
+If you want next, I c
