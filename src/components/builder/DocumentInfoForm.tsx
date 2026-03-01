@@ -22,32 +22,6 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
       <CardContent className="px-0 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="type" className="text-xs">Document Type</Label>
-            <Select value={data.type} onValueChange={(v: any) => onUpdate({ type: v })}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Select Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="quotation">Quotation</SelectItem>
-                <SelectItem value="rfq">RFQ</SelectItem>
-                <SelectItem value="proforma">Proforma Invoice</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="number" className="text-xs">Document Number</Label>
-            <Input
-              id="number"
-              value={data.number}
-              onChange={(e) => onUpdate({ number: e.target.value })}
-              placeholder="e.g. QT-1001"
-              className="h-9"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
             <Label htmlFor="date" className="text-xs">Date</Label>
             <Input id="date" type="date" value={data.date} onChange={(e) => onUpdate({ date: e.target.value })} className="h-9" />
           </div>
@@ -55,11 +29,6 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
             <Label htmlFor="validUntil" className="text-xs">Valid Until</Label>
             <Input id="validUntil" type="date" value={data.validUntil} onChange={(e) => onUpdate({ validUntil: e.target.value })} className="h-9" />
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="vessel" className="text-xs">Vessel Name</Label>
-          <Input id="vessel" value={data.vessel || ""} onChange={(e) => onUpdate({ vessel: e.target.value })} placeholder="Vessel Name (Optional)" className="h-9" />
         </div>
 
         {/* Machine Info - controlled by Settings toggle, no inline toggle here */}

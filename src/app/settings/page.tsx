@@ -7,17 +7,18 @@ import { TermsSection } from "@/components/builder/TermsSection";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Building2, Palette, FileText, LayoutGrid, Cpu, Plus, X, Eye, EyeOff } from "lucide-react";
+import { Settings, Building2, Palette, FileText, LayoutGrid, Cpu, Plus, X, Eye, EyeOff, Save, Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TableColumn } from "@/types/quotation.types";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function SettingsPage() {
   const { state, dispatch } = useQuotationState();
   const [newColName, setNewColName] = useState("");
+  const [saved, setSaved] = useState(false);
 
   const handleUpdateBranding = (updates: any) => dispatch({ type: "SET_BRANDING", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
   const handleUpdateCompany = (updates: any) => dispatch({ type: "SET_COMPANY", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -40,9 +41,15 @@ export default function SettingsPage() {
     setNewColName("");
   };
 
+  const handleSave = useCallback(() => {
+    localStorage.setItem("quoteDraft", JSON.stringify(state));
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }, [state]);
+
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50">
-      <header className="h-14 border-b bg-white flex items-center px-6 shrink-0">
+      <header className="h-14 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
             <Settings className="w-4 h-4" />
@@ -52,6 +59,26 @@ export default function SettingsPage() {
             <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Company & Builder Config</p>
           </div>
         </div>
+        <Button
+          onClick={handleSave}
+          className={`h-9 text-xs font-bold gap-1.5 shadow-md transition-all duration-300 ${
+            saved 
+              ? "bg-green-500 hover:bg-green-500 shadow-green-200" 
+              : "shadow-primary/20"
+          }`}
+        >
+          {saved ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              Saved!
+            </>
+          ) : (
+            <>
+              <Save className="w-3.5 h-3.5" />
+              Save Settings
+            </>
+          )}
+        </Button>
       </header>
 
       <ScrollArea className="flex-1">
@@ -131,7 +158,7 @@ export default function SettingsPage() {
 
           <Separator className="bg-primary/10" />
 
-          {/* Parts Table - Dynamic Columns Config */}
+          {/* Parts Table */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-primary">
@@ -149,7 +176,6 @@ export default function SettingsPage() {
                 <CardDescription className="text-[10px]">Add, remove, rename, or toggle visibility of columns</CardDescription>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
-                {/* Column List */}
                 <div className="space-y-2">
                   {state.tableColumns.map(col => (
                     <div key={col.id} className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${col.visible ? "bg-white" : "bg-muted/30 opacity-60"}`}>
@@ -170,7 +196,6 @@ export default function SettingsPage() {
                     </div>
                   ))}
                 </div>
-                {/* Add New Column */}
                 <div className="flex gap-2">
                   <Input
                     placeholder="New column name..."
