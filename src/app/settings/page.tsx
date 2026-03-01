@@ -55,7 +55,7 @@ export default function SettingsPage() {
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="max-w-3xl mx-auto p-6 space-y-6">
+        <div className="max-w-3xl mx-auto p-4 md:p-6 pb-24 md:pb-6 space-y-6">
 
           {/* Visual Branding */}
           <section className="space-y-3">

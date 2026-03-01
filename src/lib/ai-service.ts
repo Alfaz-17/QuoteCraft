@@ -8,11 +8,17 @@ export const aiModel = genAI.getGenerativeModel({
 
 export async function analyzeLogoColors(imageBase64: string) {
   const prompt = `
-    Analyze this company logo and extract the primary and secondary branding colors.
-    Return ONLY a JSON object with two fields: "primary" and "secondary".
-    Both should be hex codes (e.g., "#2563EB").
-    Focus on colors that look professional for a marine/shipping company.
-    If the logo is black and white, suggest a professional blue or navy as primary.
+    Analyze this company logo image carefully and extract the EXACT dominant colors visible in the logo.
+    
+    Rules:
+    - Extract the ACTUAL colors from the logo, do NOT invent or suggest different colors.
+    - "primary" should be the most dominant/prominent color in the logo.
+    - "secondary" should be the second most prominent color in the logo.
+    - "textColor" should be a dark color suitable for body text that complements the logo palette. Pick a dark shade from the logo if available, otherwise use a dark neutral.
+    - If the logo only has one color, use a slightly lighter or darker shade as secondary.
+    - Return ONLY a valid JSON object with three fields: "primary", "secondary", and "textColor".
+    - All values must be hex color codes (e.g., "#2563EB").
+    - Do NOT add any text, explanation, or markdown — just the raw JSON object.
   `;
 
   try {
@@ -31,10 +37,10 @@ export async function analyzeLogoColors(imageBase64: string) {
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
-    return { primary: "#2563eb", secondary: "#64748b" };
+    return { primary: "#2563eb", secondary: "#64748b", textColor: "#1e293b" };
   } catch (error) {
     console.error("AI Logo Analysis Error:", error);
-    return { primary: "#2563eb", secondary: "#64748b" };
+    return { primary: "#2563eb", secondary: "#64748b", textColor: "#1e293b" };
   }
 }
 

@@ -15,6 +15,7 @@ export const initialState: QuotationState = {
     logo: null,
     primaryColor: "#2563eb",
     secondaryColor: "#64748b",
+    textColor: "#1e293b",
     font: "Inter",
     layout: "marine",
   },

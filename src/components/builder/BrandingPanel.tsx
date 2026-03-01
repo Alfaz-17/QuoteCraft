@@ -27,7 +27,8 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
       if (data.primary && data.secondary) {
         onUpdate({ 
           primaryColor: data.primary, 
-          secondaryColor: data.secondary 
+          secondaryColor: data.secondary,
+          ...(data.textColor && { textColor: data.textColor }),
         });
       }
     } catch (error) {
@@ -61,7 +62,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
           <Input id="logo" type="file" accept="image/*" onChange={handleLogoUpload} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="primaryColor">Primary Color</Label>
             <div className="flex gap-2">
@@ -94,6 +95,24 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                 type="text"
                 value={branding.secondaryColor}
                 onChange={(e) => onUpdate({ secondaryColor: e.target.value })}
+                className="flex-1"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="textColor">Text Color</Label>
+            <div className="flex gap-2">
+              <Input
+                id="textColor"
+                type="color"
+                value={branding.textColor}
+                onChange={(e) => onUpdate({ textColor: e.target.value })}
+                className="w-12 h-10 p-1"
+              />
+              <Input
+                type="text"
+                value={branding.textColor}
+                onChange={(e) => onUpdate({ textColor: e.target.value })}
                 className="flex-1"
               />
             </div>

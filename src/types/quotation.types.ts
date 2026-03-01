@@ -14,6 +14,7 @@ export interface QuotationBranding {
   logo: string | null;
   primaryColor: string;
   secondaryColor: string;
+  textColor: string;
   font: string;
   layout: "classic" | "minimal" | "technical" | "marine";
 }

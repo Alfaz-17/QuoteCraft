@@ -150,30 +150,6 @@ export function MarineTemplate({ data }: TemplateProps) {
         </div>
       )}
 
-      {/* Checklist */}
-      {data.showChecklist && (
-        <div className="mb-5 text-[10px] space-y-1.5">
-          <p className="font-bold italic text-xs">*Please ensure the following in your Commercial offer:</p>
-          <ul className="ml-3 space-y-0.5 text-gray-700">
-            {[
-              "Delivery time and availability",
-              "Country of origin and manufacturer",
-              "OEM or genuine/high quality parts confirmation",
-              "Warranty terms",
-              "Packing and Handling charges",
-              "Shipping terms (EXW, FOB, CIF, etc.)",
-              "Unit and total prices",
-              "Payment terms",
-              "Quotation validity",
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-1.5">
-                <span style={{ color: primaryColor }}>✓</span> {item}
-              </li>
-            ))}
-          </ul>
-          <p className="font-bold uppercase text-xs tracking-tight pt-2">Kindly acknowledge the receipt of RFQ</p>
-        </div>
-      )}
 
       {/* Footer Logo */}
       <div className="mt-auto">

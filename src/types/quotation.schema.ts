@@ -15,6 +15,7 @@ export const brandingSchema = z.object({
   logo: z.string().nullable(),
   primaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid color format"),
   secondaryColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid color format"),
+  textColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid color format"),
   font: z.string(),
   layout: z.enum(["classic", "minimal", "technical", "marine"]),
 });

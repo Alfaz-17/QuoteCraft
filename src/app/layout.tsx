@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Providers } from "./providers";
 
 export default function RootLayout({
   children,
@@ -29,13 +30,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex min-h-screen bg-slate-50/30">
-          <Sidebar />
-          <div className="flex-1 flex flex-col">
-            {children}
+        <Providers>
+          <div className="flex min-h-screen bg-slate-50/30">
+            <Sidebar />
+            <div className="flex-1 flex flex-col">
+              {children}
+            </div>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
   );
 }
+

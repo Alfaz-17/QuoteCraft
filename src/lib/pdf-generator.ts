@@ -164,32 +164,7 @@ export const generateProfessionalPDF = (data: QuotationState) => {
     contentY += 6 + splitTerms.length * 4;
   }
 
-  // 9. Checklist
-  if (data.showChecklist && contentY < 250) {
-    contentY += 5;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(0, 0, 0);
-    doc.text("*Please ensure the following in your Commercial offer:", 15, contentY);
-    const checks = [
-      "Delivery time and availability",
-      "Country of origin and manufacturer",
-      "OEM or genuine parts confirmation",
-      "Warranty terms",
-      "Packing and Handling charges",
-      "Shipping terms (EXW, FOB, CIF)",
-      "Unit and total prices",
-      "Payment terms",
-      "Quotation validity",
-    ];
-    doc.setFont("helvetica", "normal");
-    checks.forEach((item, idx) => {
-      doc.text(`  - ${item}`, 18, contentY + 5 + idx * 4);
-    });
-    contentY += 5 + checks.length * 4 + 5;
-    doc.setFont("helvetica", "bold");
-    doc.text("KINDLY ACKNOWLEDGE THE RECEIPT OF RFQ", 15, contentY);
-  }
+
 
   // 10. Footer Logo
   if (data.branding.logo && contentY < 260) {

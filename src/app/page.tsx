@@ -98,7 +98,7 @@ export default function Home() {
   const visibleTabs = allTabs.filter(t => t.visible);
 
   return (
-    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row">
+    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-16 md:pb-0">
       {/* Mobile Header */}
       <div className="md:hidden p-3 border-b bg-white flex justify-between items-center z-20">
         <h1 className="font-bold text-base">QuoteCraft</h1>
@@ -138,15 +138,15 @@ export default function Home() {
 
         <ScrollArea className="flex-1 px-4 md:px-5 py-5">
           <Tabs defaultValue="document" className="w-full">
-            <TabsList className={`grid grid-cols-${visibleTabs.length} mb-5 h-11 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm`}>
+            <TabsList className="grid mb-5 h-11 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
               {visibleTabs.map(tab => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-xs gap-1.5"
+                  className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-[11px] gap-1"
                 >
-                  <tab.icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <tab.icon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
