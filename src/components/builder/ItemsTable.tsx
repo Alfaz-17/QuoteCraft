@@ -3,7 +3,7 @@
 import { LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Sparkles, Loader2, Settings2, X, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Settings2, X, Eye, EyeOff } from "lucide-react";
 import { calculateRowTotal } from "@/utils/calculations";
 import { COMMON_MARINE_PARTS } from "@/constants/marine-parts";
 import { useState } from "react";
@@ -29,31 +29,12 @@ export function ItemsTable({
   onDeleteColumn,
   onUpdateColumn,
 }: ItemsTableProps) {
-  const [polishingId, setPolishingId] = useState<string | null>(null);
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [newColumnLabel, setNewColumnLabel] = useState("");
 
   const visibleColumns = tableColumns.filter(c => c.visible);
 
-  const handlePolish = async (id: string, description: string) => {
-    if (!description) return;
-    setPolishingId(id);
-    try {
-      const response = await fetch("/api/ai/polish-item", {
-        method: "POST",
-        body: JSON.stringify({ description }),
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await response.json();
-      if (data.polished) {
-        onUpdate(id, { description: data.polished });
-      }
-    } catch (error) {
-      console.error("Polishing failed:", error);
-    } finally {
-      setPolishingId(null);
-    }
-  };
+
 
   const handleAddColumn = () => {
     if (!newColumnLabel.trim()) return;
@@ -171,30 +152,14 @@ export function ItemsTable({
               />
             </div>
 
-            {/* Description with AI polish */}
+            {/* Description */}
             {item.description !== undefined && (
-              <div className="relative group/polish">
-                <Input
-                  placeholder="Description (optional)"
-                  value={item.description || ""}
-                  onChange={e => onUpdate(item.id, { description: e.target.value })}
-                  className="h-8 text-xs text-muted-foreground pr-8"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handlePolish(item.id, item.description || "")}
-                  disabled={polishingId === item.id || !item.description}
-                  className="absolute right-0.5 top-0.5 h-7 w-7 opacity-0 group-hover/polish:opacity-100 transition-opacity"
-                  title="AI Polish"
-                >
-                  {polishingId === item.id ? (
-                    <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                  ) : (
-                    <Sparkles className="w-3 h-3 text-primary" />
-                  )}
-                </Button>
-              </div>
+              <Input
+                placeholder="Description (optional)"
+                value={item.description || ""}
+                onChange={e => onUpdate(item.id, { description: e.target.value })}
+                className="h-8 text-xs text-muted-foreground"
+              />
             )}
 
             {/* Dynamic fields grid */}

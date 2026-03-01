@@ -7,18 +7,17 @@ import { TermsSection } from "@/components/builder/TermsSection";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Building2, Palette, FileText, LayoutGrid, Cpu, Plus, X, Eye, EyeOff, Save, Check } from "lucide-react";
+import { Settings, Building2, Palette, FileText, LayoutGrid, Cpu, Plus, X, Eye, EyeOff, Check } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TableColumn } from "@/types/quotation.types";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 
 export default function SettingsPage() {
   const { state, dispatch } = useQuotationState();
   const [newColName, setNewColName] = useState("");
-  const [saved, setSaved] = useState(false);
 
   const handleUpdateBranding = (updates: any) => dispatch({ type: "SET_BRANDING", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
   const handleUpdateCompany = (updates: any) => dispatch({ type: "SET_COMPANY", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -41,11 +40,7 @@ export default function SettingsPage() {
     setNewColName("");
   };
 
-  const handleSave = useCallback(() => {
-    localStorage.setItem("quoteDraft", JSON.stringify(state));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }, [state]);
+
 
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50">
@@ -59,26 +54,10 @@ export default function SettingsPage() {
             <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Company & Builder Config</p>
           </div>
         </div>
-        <Button
-          onClick={handleSave}
-          className={`h-9 text-xs font-bold gap-1.5 shadow-md transition-all duration-300 ${
-            saved 
-              ? "bg-green-500 hover:bg-green-500 shadow-green-200" 
-              : "shadow-primary/20"
-          }`}
-        >
-          {saved ? (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              Saved!
-            </>
-          ) : (
-            <>
-              <Save className="w-3.5 h-3.5" />
-              Save Settings
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+          <Check className="w-3.5 h-3.5" />
+          <span className="text-[10px] font-bold">Auto-saved</span>
+        </div>
       </header>
 
       <ScrollArea className="flex-1">

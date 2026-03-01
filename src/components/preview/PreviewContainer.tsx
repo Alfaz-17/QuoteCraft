@@ -5,12 +5,21 @@ import { MarineTemplate } from "./MarineTemplate";
 
 interface PreviewContainerProps {
   data: QuotationState;
+  isMobile?: boolean;
 }
 
-export function PreviewContainer({ data }: PreviewContainerProps) {
+export function PreviewContainer({ data, isMobile }: PreviewContainerProps) {
+  if (isMobile) {
+    return (
+      <div className="w-full bg-white shadow-2xl">
+        <MarineTemplate data={data} />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full bg-slate-100 p-8 h-full overflow-y-auto flex justify-center">
-      <div className="transform scale-[0.6] origin-top md:scale-[0.8] lg:scale-[0.85] xl:scale-100 shadow-2xl transition-all duration-500">
+    <div className="w-full h-full flex justify-center p-8 bg-slate-100 overflow-visible">
+      <div className="shadow-2xl transition-all duration-500 bg-white">
         <MarineTemplate data={data} />
       </div>
     </div>
