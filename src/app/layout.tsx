@@ -15,6 +15,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "QuoteCraft | Professional Marine Quotation Generator",
   description: "Create branded, professional PDF quotations for marine spare parts and ship supplies in minutes. Built for marine exporters and trading companies.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 import { Sidebar } from "@/components/layout/Sidebar";
