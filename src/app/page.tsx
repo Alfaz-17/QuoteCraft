@@ -423,30 +423,6 @@ export default function Home() {
               <FilePlus className="w-3.5 h-3.5" />
               New
             </Button>
-            {session ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="h-8 text-xs text-destructive rounded-full hover:bg-red-50"
-                title={`Logged in as ${session.user?.name || session.user?.email}`}
-              >
-                <LogOut className="w-3.5 h-3.5 mr-1" />
-                Sign Out
-              </Button>
-            ) : (
-              <Button
-                variant="default"
-                size="sm"
-                className="h-8 text-xs font-bold rounded-full shadow-sm"
-                asChild
-              >
-                <Link href="/login">
-                  <LogIn className="w-3.5 h-3.5 mr-1" />
-                  Sign In
-                </Link>
-              </Button>
-            )}
           </div>
         </div>
 
