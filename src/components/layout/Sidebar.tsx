@@ -34,7 +34,7 @@ export function Sidebar() {
             <Ship className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">MarineQuote</h1>
+            <h1 className="text-xl font-bold tracking-tight text-slate-800">QuoteCraft</h1>
             <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-widest">Premium RFQs</p>
           </div>
         </div>

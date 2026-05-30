@@ -5,7 +5,7 @@ export interface LineItem {
   partNumber?: string;
   quantity: number;
   unit: string;
-  itemType?: string;
+  condition?: string;
   unitPrice: number;
   [key: string]: string | number | undefined; // Allow dynamic fields
 }
@@ -60,6 +60,18 @@ export interface TableColumn {
   width?: string;
 }
 
+export type Currency = "USD" | "EUR" | "GBP" | "AED" | "INR" | "SGD" | "JPY";
+
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  AED: "AED ",
+  INR: "₹",
+  SGD: "S$",
+  JPY: "¥",
+};
+
 export interface QuotationState {
   branding: QuotationBranding;
   documentInfo: DocumentInfo;
@@ -69,6 +81,11 @@ export interface QuotationState {
   items: LineItem[];
   tableColumns: TableColumn[];
   terms: string;
+  currency: Currency;
+  discount: number; // flat amount
+  discountType: "flat" | "percent";
+  taxPercent: number;
+  shippingCharge: number;
   showChecklist?: boolean;
   showMachineInfo?: boolean;
   showCustomerDetails?: boolean;

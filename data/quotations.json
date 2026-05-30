@@ -1,0 +1,196 @@
+[
+  {
+    "id": "xv206jat18kbck1q6rtis",
+    "userId": "buva5v47aasrxho9f770d",
+    "number": "QT-1001",
+    "type": "rfq",
+    "date": "2026-03-01",
+    "validUntil": "2026-03-31",
+    "vessel": "",
+    "reference": "",
+    "scope": "MAIN ENGINE SPARES",
+    "make": "",
+    "model": "",
+    "introText": "We hereby invite you to submit your best quotation for the items listed below. Kindly review the specifications and provide your detailed Commercial Proposal at your earliest convenience.",
+    "company": {
+      "name": "Aura Marine Solutions",
+      "address": "123 Port St, Maritime Hub, UAE",
+      "phone": "+971 50 123 4567",
+      "email": "info@auramarine.com",
+      "website": "spciemarine.com"
+    },
+    "client": {
+      "name": "Alfaz Bilakhiya",
+      "companyName": "Corona Marine",
+      "address": "",
+      "attn": ""
+    },
+    "items": [
+      {
+        "id": "1780138189478",
+        "itemName": "itesm",
+        "description": "",
+        "partNumber": "12",
+        "quantity": 21,
+        "unit": "pcs",
+        "condition": "new",
+        "unitPrice": 1000
+      }
+    ],
+    "terms": "1. Delivery: 3-5 working days\n2. Warranty: 1 year standard\n3. Payment: 50% advance, 50% on delivery\n\n",
+    "currency": "USD",
+    "discount": 0,
+    "discountType": "percent",
+    "taxPercent": 0,
+    "shippingCharge": 0,
+    "createdAt": "2026-05-30T10:43:31.221Z",
+    "updatedAt": "2026-05-30T11:09:11.210Z"
+  },
+  {
+    "id": "key6b1m4g43oi9c0gaenw",
+    "userId": "buva5v47aasrxho9f770d",
+    "number": "QT-1020",
+    "type": "quotation",
+    "date": "2026-05-30",
+    "validUntil": "2026-06-29",
+    "vessel": "",
+    "reference": "",
+    "scope": "",
+    "make": "",
+    "model": "",
+    "introText": "",
+    "company": {
+      "name": "Aura Marine Solutions",
+      "address": "123 Port St, Maritime Hub, UAE",
+      "phone": "+971 50 123 4567",
+      "email": "info@auramarine.com",
+      "website": "spciemarine.com"
+    },
+    "client": {
+      "name": "Alfaz Bilakhiya",
+      "companyName": "",
+      "address": "navapara",
+      "attn": ""
+    },
+    "items": [
+      {
+        "id": "1780141386153",
+        "itemName": "MOTIVE RING",
+        "description": "",
+        "partNumber": "G-B58-203",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 100
+      },
+      {
+        "id": "1780141386154",
+        "itemName": "SPRING",
+        "description": "",
+        "partNumber": "G-B58-019",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 500
+      },
+      {
+        "id": "1780141386155",
+        "itemName": "MOTIVE RING SEAT",
+        "description": "",
+        "partNumber": "G-B58-201",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386156",
+        "itemName": "SEAL RING",
+        "description": "",
+        "partNumber": "G-B58-202",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386157",
+        "itemName": "STATIC RING",
+        "description": "",
+        "partNumber": "G-B58-103",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386158",
+        "itemName": "SLEEVE",
+        "description": "",
+        "partNumber": "G-B58-102",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386159",
+        "itemName": "STATIC RING SEAT",
+        "description": "",
+        "partNumber": "G-B58-101",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386160",
+        "itemName": "GASKET",
+        "description": "",
+        "partNumber": "G-B58-016",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386161",
+        "itemName": "FLANGE",
+        "description": "",
+        "partNumber": "G-B58-034",
+        "quantity": 1,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386162",
+        "itemName": "OIL-SEALING FRAME",
+        "description": "",
+        "partNumber": "G-B58-011A",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      },
+      {
+        "id": "1780141386163",
+        "itemName": "BALL BEARING",
+        "description": "",
+        "partNumber": "GB/T276-89",
+        "quantity": 2,
+        "unit": "PCS",
+        "condition": "",
+        "unitPrice": 0
+      }
+    ],
+    "terms": "Delivery: FOB origin port. Estimated lead time: 3-5 weeks subject to stock availability.",
+    "currency": "USD",
+    "discount": 0,
+    "discountType": "flat",
+    "taxPercent": 0,
+    "shippingCharge": 0,
+    "createdAt": "2026-05-30T11:09:28.023Z",
+    "updatedAt": "2026-05-30T11:58:28.736Z"
+  }
+]

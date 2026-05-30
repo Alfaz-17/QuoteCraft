@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+model User {
+  id            String      @id @default(uuid())
+  name          String?
+  email         String      @unique
+  password      String
+  geminiApiKey  String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  quotations    Quotation[]
+}
+
+model Quotation {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  number         String
+  type           String   // quotation, rfq, proforma
+  date           String
+  validUntil     String
+  vessel         String?
+  reference      String?
+  scope          String?
+  make           String?
+  model          String?
+  introText      String?
+  company        Json     // JSON object representing company details
+  client         Json     // JSON object representing client details
+  items          Json     // JSON array of LineItem
+  terms          String?
+  currency       String   @default("USD")
+  discount       Float    @default(0)
+  discountType   String   @default("flat")
+  taxPercent     Float    @default(0)
+  shippingCharge Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

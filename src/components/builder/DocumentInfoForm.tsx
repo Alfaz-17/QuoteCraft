@@ -20,6 +20,28 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
         <CardTitle className="text-base font-semibold">Document Details</CardTitle>
       </CardHeader>
       <CardContent className="px-0 space-y-4">
+        {/* Document Type & Number */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="docType" className="text-xs">Document Type</Label>
+            <Select value={data.type} onValueChange={(v) => onUpdate({ type: v as DocumentInfoFormProps["data"]["type"] })}>
+              <SelectTrigger id="docType" className="h-9 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="quotation">Quotation</SelectItem>
+                <SelectItem value="rfq">RFQ</SelectItem>
+                <SelectItem value="proforma">Proforma Invoice</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="docNumber" className="text-xs">Document No.</Label>
+            <Input id="docNumber" value={data.number} onChange={(e) => onUpdate({ number: e.target.value })} className="h-9 font-mono text-xs" placeholder="QT-1001" />
+          </div>
+        </div>
+
+        {/* Dates */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="date" className="text-xs">Date</Label>
@@ -31,16 +53,24 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
           </div>
         </div>
 
+        {/* Vessel & Reference */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="vessel" className="text-xs">Vessel Name</Label>
+            <Input id="vessel" value={data.vessel || ""} onChange={(e) => onUpdate({ vessel: e.target.value })} placeholder="e.g. MV Sea Star" className="h-9" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="reference" className="text-xs">Reference</Label>
+            <Input id="reference" value={data.reference || ""} onChange={(e) => onUpdate({ reference: e.target.value })} placeholder="e.g. INQ-2024-0451" className="h-9" />
+          </div>
+        </div>
+
         {/* Machine Info - controlled by Settings toggle, no inline toggle here */}
         {showMachineInfo && (
           <>
             <Separator className="my-3" />
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Machine Information</p>
             <div className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="scope" className="text-xs">Scope of Supply</Label>
-                <Input id="scope" value={data.scope || ""} onChange={(e) => onUpdate({ scope: e.target.value })} placeholder="e.g. MAIN ENGINE SPARES" className="h-9" />
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="make" className="text-xs">Make</Label>

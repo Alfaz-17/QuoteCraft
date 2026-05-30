@@ -6,7 +6,16 @@ export const aiModel = genAI.getGenerativeModel({
   model: "gemini-2.5-flash",
 });
 
-export async function analyzeLogoColors(imageBase64: string) {
+export async function analyzeLogoColors(imageBase64: string, customApiKey?: string) {
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
+  if (!apiKey) {
+    throw new Error("Gemini API Key is not configured.");
+  }
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+  });
+
   const prompt = `
     Analyze this company logo image carefully and extract the EXACT dominant colors visible in the logo.
     
@@ -21,27 +30,22 @@ export async function analyzeLogoColors(imageBase64: string) {
     - Do NOT add any text, explanation, or markdown — just the raw JSON object.
   `;
 
-  try {
-    const result = await aiModel.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: imageBase64.split(",")[1],
-          mimeType: "image/png", // Adjust if needed
-        },
+  const result = await model.generateContent([
+    prompt,
+    {
+      inlineData: {
+        data: imageBase64.split(",")[1] || imageBase64,
+        mimeType: "image/png", // Adjust if needed
       },
-    ]);
-    const response = await result.response;
-    const text = response.text();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return { primary: "#2563eb", secondary: "#64748b", textColor: "#1e293b" };
-  } catch (error) {
-    console.error("AI Logo Analysis Error:", error);
-    return { primary: "#2563eb", secondary: "#64748b", textColor: "#1e293b" };
+    },
+  ]);
+  const response = await result.response;
+  const text = response.text();
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return JSON.parse(jsonMatch[0]);
   }
+  throw new Error("Could not extract colors from logo. Output format is invalid.");
 }
 
 export async function polishItemDescription(description: string) {

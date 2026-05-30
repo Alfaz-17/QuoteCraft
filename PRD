@@ -1,468 +1,107 @@
 📘 PRODUCT REQUIREMENTS DOCUMENT (PRD)
-Product Name (Working Title)
 
-QuoteCraft – Custom Quotation & RFQ Builder
+Product Name: QuoteCraft – B2B SaaS Quotation & RFQ Intelligence Builder
 
-1️⃣ Product Overview
+---
 
-QuoteCraft is a browser-based tool that allows businesses to create fully customizable quotations, RFQs, and proforma invoices with branded layouts and downloadable PDF output — without requiring login or database storage in Version 1.
+## 1️⃣ Product Overview
 
-The product focuses on:
+QuoteCraft is a premium, cloud-synced, browser-based B2B SaaS application designed for marine suppliers, ship chandlers, and heavy equipment traders. It allows active trading agents to generate beautifully branded, multi-currency quotations, RFQs, and proforma invoices with a high-fidelity live preview and professional downloadable A4 PDFs. 
 
-Fast document generation
+It is now a full commercial application incorporating secure multi-user authentication, resilient cloud storage, background auto-syncing, and advanced multimodal AI document parsing.
 
-Full visual customization
+---
 
-Clean professional PDF output
+## 2️⃣ Core Architectural Foundations (Live V2)
 
-Zero backend complexity
+Unlike the initial offline-only MVP, the current system is a production-ready B2B SaaS powered by:
+1. **🔐 Multi-User Authentication (NextAuth):** Secure email/credentials-based signup and login system using `bcryptjs` password hashing and robust JWT B2B cloud sessions.
+2. **🗄️ Resilient Cloud Database (Neon PostgreSQL & Prisma 7):** Centralized cloud storage using Prisma Client (singleton export pattern) connected to a scalable Neon database cluster.
+3. **🔄 Real-Time Background Cloud Sync:** Debounced autosaving (1.5s inactivity delay) that automatically syncs the active document structure to PostgreSQL without blocking frontend typing performance.
+4. **🤖 AI RFQ Importer (Gemini 2.5 Flash):** An advanced multimodal uploader modal allowing users to drag and drop PDFs, Excel files, invoices, or paste raw text to instantly extract and populate line items.
+5. **⚙️ Custom B2B Integrations:** Allows agents to save and synchronize their own custom Gemini API keys inside settings.
 
-2️⃣ Problem Statement
+---
 
-Small and mid-size businesses:
+## 3️⃣ Target Users & Geography
 
-Use MS Word manually
+* **Primary Users:** Marine spare parts suppliers, technical ship chandlers, mechanical equipment traders, and global import/export agencies.
+* **Secondary Users:** Industrial distributors, engineering service providers, and freelance technical estimators.
+* **Primary Geographies:** SME trading hubs in India, UAE (Dubai/Abu Dhabi), Singapore, and the global maritime commerce sector.
 
-Re-edit the same format repeatedly
+---
 
-Struggle with branding consistency
+## 4️⃣ Core Features (Completed & Live)
 
-Waste time formatting tables
+### 🔹 4.1 Branding Customization Settings
+* **Branding Profiles:** Persists company logo, custom primary/secondary palettes, standard body text colors, and font configurations in browser local storage.
+* **Streamlined settings panel:** Centrally configures company visual identities.
+* **Live Sync:** Reflects branding updates instantly on the live preview and output PDFs.
 
-Generate low-quality PDFs
+### 🔹 4.2 Document Details
+* **Document Types:** Quick switching between **Quotation**, **RFQ**, and **Proforma Invoice** formats.
+* **Sequence Numbers:** Trackable document numbers that automatically increment sequence counters (e.g. `QT-1001` → `QT-1002`) on new creations.
+* **Maritime Details:** Integrated fields for **Vessel Name** and **Reference Numbers** (PO or Inquiry references).
+* **Technical Details:** Specialized fields for **Scope of Supply**, **Machine Make**, and **Machine Model** (collapsible via Settings).
 
-There is no simple, customizable, instant quotation builder without heavy SaaS complexity.
+### 🔹 4.3 Company & Client Section
+* **Business Profile (Your Details):** Set once globally in Settings. Hidden from the active builder tab to prevent redundant double data-entry while still automatically printing on the PDF output.
+* **Customer Details (Client Details):** Input panel on the main builder to specify the client contact person, attention (Attn), client company name, and address.
 
-3️⃣ Goals (V1)
-Primary Goals
+### 🔹 4.4 Dynamic Parts Table & Controls
+* **Line Item Columns:** S.No (auto-generated), Item Name, Description, Part Number, Qty, Unit, Condition, Rate, and Row Total.
+* **Premium Table Controls:**
+  * **Duplication:** One-click duplicate for line items.
+  * **Reordering:** Arrow buttons to reorder item listings.
+  * **Unit Selector:** Quick-insert dropdown (pcs, sets, kg, ltrs, mtrs, nos, lot).
+* **AI RFQ Importer Modal:** Drag-and-drop file uploader supporting Base64 PDF, image, or raw text analysis to instantly generate parts tables. Supports "Append to Table" or "Replace Current Rows".
 
-Allow users to create professional quotations in under 5 minutes
+### 🔹 4.5 Multi-Currency & Pricing Calculations
+* **Global Currency Formatter:** Supports `USD`, `EUR`, `GBP`, `AED`, `INR`, `SGD`, and `JPY` with automatic symbol formatting on subtotals, charges, and PDFs.
+* **Commercial Charges:** Supports flat or percentage-based discounts, tax/VAT rates, and shipping fees.
+* **Calculations:** 
+  * `Row Total` = Qty × Unit Price
+  * `Subtotal` = Sum of all rows
+  * `Grand Total` = (Subtotal - Discount) + Tax + Shipping
 
-Allow full layout customization
+### 🔹 4.6 Default Terms & Conditions
+* **Zero Double Entry:** Standard terms configured in Settings are cached globally and automatically pre-filled on every "New Quotation" without requiring retyping.
+* **Customization:** Active document terms can still be edited or refined in the builder tab without overwriting your global settings.
+* **Terms Templates:** One-click buttons to quick-insert typical marine trading terms (Payment T/T, Letter of Credit, 30-Day Credit, Ex-Works, FOB, CIF, Warranty, Sea-Worthy Packing).
 
-Generate high-quality downloadable PDF
+---
 
-Run fully frontend (no backend)
+## 5️⃣ Technical Architecture (V2 SaaS)
 
-Non-Goals (V1)
+```mermaid
+graph TD
+  User((Trading Agent)) -->|Interacts| Frontend[Next.js App Router & Tailwind CSS]
+  Frontend -->|Client Session| NextAuth[NextAuth JWT Handler]
+  Frontend -->|Local Caching| LocalStorage[(Browser LocalStorage)]
+  Frontend -->|Debounced Sync| API_Save[API Route: /api/quotation/save]
+  Frontend -->|AI Document Parse| API_AI[API Route: /api/ai/import-rfq]
+  
+  API_Save -->|Prisma Client| Prisma[Prisma Client Singleton]
+  API_AI -->|Gemini SDK| Gemini[Gemini-2.5-Flash Model]
+  
+  Prisma -->|PostgreSQL Protocol| DB[(Neon PostgreSQL DB Cloud)]
+  DB -->|Saves Accounts/Quotes| DB
+```
 
-No user accounts
+### Dependency Stack:
+* **Core:** Next.js (App Router, Turbopack compiler) & React 19.
+* **Database & ORM:** Prisma 7 & `@prisma/client` connected to Neon.
+* **Authentication:** `next-auth` (session tokens, secure credentials check).
+* **AI Engine:** `@google/generative-ai` SDK (`gemini-2.5-flash` model).
+* **PDF Engine:** `@react-pdf/renderer` & `jspdf` (for absolute vector layouts).
 
-No database storage
+---
 
-No multi-user
+## 6️⃣ B2B SaaS Pricing & Monetization Model
 
-No document history
-
-No online sharing links
-
-4️⃣ Target Users
-Primary
-
-Marine suppliers
-
-Mechanical traders
-
-Export/import businesses
-
-Equipment suppliers
-
-Agencies
-
-Geography
-
-India
-
-UAE
-
-SME global market
-
-5️⃣ Core Features (MVP)
-🔹 5.1 Branding Customization Module
-Purpose
-
-Allow user to visually brand the quotation.
-
-Functional Requirements
-
-User can:
-
-Upload logo (PNG, JPG, SVG)
-
-Choose primary color
-
-Choose secondary color
-
-Choose font (Google Fonts dropdown)
-
-Select layout template (3 options)
-
-System Behavior
-
-Branding changes update live preview instantly
-
-Branding applied to generated PDF
-
-Store branding in local state
-
-Optionally persist in localStorage
-
-🔹 5.2 Document Information Module
-Fields
-
-Document Type (Dropdown)
-
-Quotation
-
-RFQ
-
-Proforma Invoice
-
-Document Number (Manual entry)
-
-Date (Date picker)
-
-Valid Until
-
-Reference
-
-Project Name (optional)
-
-🔹 5.3 Company & Client Section
-Company (Editable)
-
-Company Name
-
-Address
-
-Phone
-
-Email
-
-GST / VAT (optional)
-
-Client
-
-Client Name
-
-Company Name
-
-Address
-
-Email
-
-Country
-
-🔹 5.4 Dynamic Line Items Table
-Default Columns
-
-S.No (auto increment)
-
-Item Name
-
-Description
-
-Part Number
-
-Quantity
-
-Unit
-
-Unit Price
-
-Total (auto calculated)
-
-Functional Requirements
-
-User can:
-
-Add row
-
-Delete row
-
-Edit all cells
-
-Reorder rows (optional)
-
-Auto calculation:
-
-Row total = qty × unit price
-
-Subtotal = sum of rows
-
-🔹 5.5 Calculation Module
-Fields
-
-Subtotal (auto)
-
-Discount (optional % or fixed)
-
-Tax % (optional)
-
-Shipping charge (optional)
-
-Grand Total (auto)
-
-Rules
-
-Grand Total =
-
-(Subtotal - Discount) + Tax + Shipping
-
-Real-time calculation required.
-
-🔹 5.6 Terms & Conditions Module
-
-Rich text area
-
-Optional toggle:
-
-Show Delivery Terms
-
-Show Warranty
-
-Show Payment Terms
-
-Show Additional Notes
-
-User can fully customize text.
-
-🔹 5.7 Layout Templates
-
-V1 includes 3 templates:
-
-1. Classic Corporate
-
-Left logo
-
-Clean bordered table
-
-Blue accent
-
-2. Minimal Clean
-
-Center header
-
-No heavy borders
-
-Modern typography
-
-3. Technical / Industrial
-
-Bold section headings
-
-Structured grid
-
-Strong accent color blocks
-
-Templates differ only in:
-
-Header layout
-
-Table style
-
-Footer style
-
-Font weight usage
-
-🔹 5.8 Live Preview Panel
-
-Split screen layout:
-
-Left:
-
-Form builder
-
-Right:
-
-Real-time document preview
-
-Preview must:
-
-Match PDF layout exactly
-
-Reflect branding changes instantly
-
-🔹 5.9 PDF Generation
-Requirements
-
-Generate professional A4 PDF
-
-Maintain layout fidelity
-
-Preserve colors and fonts
-
-Include logo
-
-Support multi-page if rows overflow
-
-No watermark (or optional free watermark strategy)
-
-Implementation Options
-
-html2canvas + jsPDF
-OR
-
-@react-pdf/renderer (preferred for clean output)
-
-6️⃣ Technical Architecture (V1)
-Frontend Only
-
-Next.js (App Router)
-
-Tailwind CSS
-
-React Hook Form
-
-Zod validation
-
-Local React state
-
-Optional localStorage
-
-No:
-
-Backend API
-
-Database
-
-Auth system
-
-7️⃣ UX Requirements
-
-Clean SaaS-style interface
-
-Modern minimal UI
-
-Mobile responsive
-
-Form must not feel overwhelming
-
-Sections collapsible
-
-8️⃣ Performance Requirements
-
-Instant calculation updates
-
-PDF generation under 3 seconds
-
-No page reload
-
-Fully client-side execution
-
-9️⃣ Edge Cases
-
-Empty line items → disable PDF button
-
-Invalid quantity → show error
-
-Extremely long description → wrap text
-
-Large logo → auto-scale
-
-🔟 Monetization Strategy (V1)
-Option A – Free Tool to Validate Market
-
-Use for:
-
-Lead collection
-
-Build audience
-
-Option B – Freemium
-
-Free:
-
-1 template
-
-Watermark
-
-Paid:
-
-3 templates
-
-No watermark
-
-Custom color unlock
-
-1️⃣1️⃣ Future Roadmap (V2+)
-
-Add authentication
-
-Add database
-
-Save documents
-
-Client history
-
-GST auto calculation (India)
-
-VAT auto calculation (UAE)
-
-Shareable link
-
-E-signature
-
-Stripe subscription
-
-Multi-user teams
-
-AI-powered writing assistant
-
-1️⃣2️⃣ Success Metrics
-
-Time to generate document < 5 minutes
-
-PDF generation success rate > 99%
-
-80% users complete at least 1 document
-
-10% conversion to paid (if monetized)
-
-1️⃣3️⃣ Risks
-
-Many free competitors exist
-
-PDF formatting complexity
-
-Layout consistency challenges
-
-Mitigation:
-
-Focus on industry niche (Marine/Technical)
-
-Offer superior customization
-
-Add AI features later
-
-1️⃣4️⃣ MVP Development Timeline
-
-Week 1:
-
-UI layout
-
-Branding module
-
-Form builder
-
-Week 2:
-
-Dynamic table
-
-Calculation engine
-
-Week 3:
-
-Layout templates
-
-PDF generation
-
-Week 4:
-
-Polish + deploy
-
-🎯 Final Product Positioning
-
-"Create professional branded quotations in 2 minutes — no login required."
-
-If you want next, I c
+QuoteCraft implements a tiered software subscription to lock advanced features behind B2B paywalls:
+
+1. **Starter (Free Tier):** Limit of 5 manual quotation PDF downloads/month. Data saved locally in the browser only.
+2. **Professional ($29/mo):** Unlimited quotes, custom branding profiles, and saved default terms.
+3. **Business ($79/mo):** Access to private Client Web Portal links, **"Read/Opened" tracking notifications**, and integrated Stripe checks.
+4. **Enterprise ($199+/mo):** Multi-agent team workspaces, shared templates, live IMO/Maritime Vessel Finder database lookups, and unlimited AI RFQ imports.

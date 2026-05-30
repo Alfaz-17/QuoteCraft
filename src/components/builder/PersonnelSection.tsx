@@ -45,17 +45,6 @@ export function PersonnelSection({
       <CardHeader className="px-0 pt-0 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-lg font-semibold">{title}</CardTitle>
         <div className="flex items-center gap-4">
-          {hideCompany && (
-             <div className="flex items-center gap-2">
-                <Label htmlFor="show-customer-details" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tight">Display on PDF</Label>
-                <Switch
-                  id="show-customer-details"
-                  checked={showCustomerDetails}
-                  onCheckedChange={onToggleCustomerDetails}
-                  className="scale-75"
-                />
-             </div>
-          )}
           <div className="flex items-center gap-2 bg-primary/5 px-2 py-1 rounded-full border border-primary/10">
             <Sparkles className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-bold uppercase text-primary tracking-tighter">Auto-Format</span>
@@ -127,7 +116,7 @@ export function PersonnelSection({
         {!hideCompany && !hideClient && <Separator />}
 
         {!hideClient && (
-          <div className={showCustomerDetails ? "space-y-4 opacity-100 transition-all duration-300" : "space-y-4 opacity-50 transition-all duration-300 pointer-events-none"}>
+          <div className="space-y-4">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Client Details</h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">

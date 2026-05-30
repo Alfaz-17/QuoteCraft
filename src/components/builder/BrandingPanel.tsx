@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QuotationState } from "@/types/quotation.types";
+import { useToast } from "@/components/ui/Toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,24 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
   const [aiColors, setAiColors] = useState<AIColors | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const { success, error: toastError } = useToast();
+
+  // Check if Gemini Key is configured on mount
+  useEffect(() => {
+    const checkKey = async () => {
+      try {
+        const res = await fetch("/api/ai/check-key");
+        if (res.ok) {
+          const data = await res.json();
+          setHasApiKey(!!data.hasKey);
+        }
+      } catch (e) {
+        setHasApiKey(false);
+      }
+    };
+    checkKey();
+  }, []);
 
   const analyzeWithAI = async (base64: string) => {
     setIsAnalyzing(true);
@@ -58,25 +77,71 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
           textColor: colors.textColor,
         });
         setApplied(true);
+        success("Logo analyzed! Brand color scheme successfully applied.");
       } else {
         throw new Error("Could not extract colors from logo");
       }
     } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error("AI Analysis failed:", error);
-      setAiError(error.message || "Failed to analyze logo");
+      const errorMsg = error.message || "Failed to analyze logo";
+      setAiError(errorMsg);
+      toastError(errorMsg);
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const compressImage = (base64Str: string, maxWidth = 400, maxHeight = 400): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.85)); // compress as JPEG with 85% quality
+        } else {
+          resolve(base64Str);
+        }
+      };
+      img.onerror = () => {
+        resolve(base64Str);
+      };
+    });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        onUpdate({ logo: result });
-        analyzeWithAI(result);
+      reader.onloadend = async () => {
+        const rawResult = reader.result as string;
+        try {
+          const compressed = await compressImage(rawResult);
+          onUpdate({ logo: compressed });
+        } catch (err) {
+          console.error("Compression failed, using raw logo:", err);
+          onUpdate({ logo: rawResult });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -90,6 +155,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
         textColor: aiColors.textColor,
       });
       setApplied(true);
+      success("Brand color scheme successfully applied.");
     }
   };
 
@@ -107,17 +173,41 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
 
         {/* Logo Preview */}
         {branding.logo && (
-          <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border">
-            <img src={branding.logo} alt="Logo" className="h-12 w-12 object-contain rounded-lg bg-white border p-1" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground">Logo uploaded</p>
-              {isAnalyzing && (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                  <span className="text-[10px] text-primary font-medium animate-pulse">AI analyzing colors...</span>
+          <div className="flex flex-col gap-3 p-3 bg-slate-50 rounded-xl border animate-in fade-in duration-200">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <img src={branding.logo} alt="Logo" className="h-12 w-12 object-contain rounded-lg bg-white border p-1" />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Logo uploaded</p>
+                  {isAnalyzing && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                      <span className="text-[10px] text-primary font-medium animate-pulse">AI analyzing colors...</span>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              {/* Show option to analyze colors only if Gemini key is present and not currently analyzing */}
+              {hasApiKey && !isAnalyzing && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => analyzeWithAI(branding.logo!)}
+                  className="h-8 text-xs font-bold rounded-full gap-1 border-primary/20 hover:border-primary/50 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Analyze Colors
+                </Button>
               )}
             </div>
+
+            {/* If no API key configured, show subtle hint */}
+            {!hasApiKey && (
+              <p className="text-[10px] text-slate-400 font-medium">
+                💡 Tip: Add a Gemini API Key in <strong>AI Integration Settings</strong> to automatically extract color combinations from your logo.
+              </p>
+            )}
           </div>
         )}
 

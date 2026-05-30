@@ -3,10 +3,16 @@
 import { LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Settings2, X, Eye, EyeOff } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Settings2, X, Eye, EyeOff, Copy, ChevronUp, ChevronDown, Sparkles, FileText, UploadCloud, Loader2, AlertCircle } from "lucide-react";
 import { calculateRowTotal } from "@/utils/calculations";
 import { COMMON_MARINE_PARTS } from "@/constants/marine-parts";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/Toast";
+
+
+const UNIT_OPTIONS = ["pcs", "sets", "kg", "ltrs", "mtrs", "nos", "lot", "pair", "box", "roll"];
 
 interface ItemsTableProps {
   items: LineItem[];
@@ -14,9 +20,13 @@ interface ItemsTableProps {
   onUpdate: (id: string, updates: Partial<LineItem>) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  onDuplicate: (id: string) => void;
+  onReorder: (id: string, direction: "up" | "down") => void;
   onAddColumn: (col: TableColumn) => void;
   onDeleteColumn: (id: string) => void;
   onUpdateColumn: (id: string, updates: Partial<TableColumn>) => void;
+  onImportItems?: (items: LineItem[]) => void;
+  currencySymbol?: string;
 }
 
 export function ItemsTable({
@@ -25,16 +35,28 @@ export function ItemsTable({
   onUpdate,
   onDelete,
   onAdd,
+  onDuplicate,
+  onReorder,
   onAddColumn,
   onDeleteColumn,
   onUpdateColumn,
+  onImportItems,
+  currencySymbol = "$",
 }: ItemsTableProps) {
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [newColumnLabel, setNewColumnLabel] = useState("");
-
+  
+  // AI Importer States
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiText, setAiText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [importMode, setImportMode] = useState<"replace" | "append">("replace");
+  
+  const { success, error: toastError, info: toastInfo, dismiss } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const visibleColumns = tableColumns.filter(c => c.visible);
-
-
 
   const handleAddColumn = () => {
     if (!newColumnLabel.trim()) return;
@@ -58,12 +80,134 @@ export function ItemsTable({
     return String(val);
   };
 
+  // Convert file to Base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 4 * 1024 * 1024) {
+        const errorMsg = "The file you selected exceeds the 4MB limit. Please upload a smaller file or copy-paste the text directly.";
+        setAiError(errorMsg);
+        toastError("File too large. Max size is 4MB.");
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } else {
+        setSelectedFile(file);
+        setAiError("");
+      }
+    }
+  };
+
+  const handleRunAIImport = async () => {
+    setAiError("");
+    setAiLoading(true);
+    let loadingToastId = "";
+
+    try {
+      let bodyData: any = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      if (selectedFile) {
+        const base64 = await fileToBase64(selectedFile);
+        bodyData = {
+          fileData: base64,
+          fileName: selectedFile.name,
+          mimeType: selectedFile.type,
+        };
+      } else if (aiText.trim()) {
+        bodyData = {
+          rawText: aiText,
+        };
+      } else {
+        const errorMsg = "Please select a file or paste RFQ description text.";
+        setAiError(errorMsg);
+        toastError(errorMsg);
+        setAiLoading(false);
+        return;
+      }
+
+      loadingToastId = toastInfo("Analyzing RFQ with Gemini AI... Please hold.", 15000);
+
+      const res = await fetch("/api/ai/import-rfq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to process RFQ with AI.");
+      }
+
+      if (data.items && Array.isArray(data.items)) {
+        if (data.items.length === 0) {
+          throw new Error("No structured marine parts found in the input. Please try copy-pasting the raw text.");
+        }
+
+        // Map elements to ensure unique IDs
+        const formattedItems = data.items.map((item: any, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+          id: (Date.now() + idx).toString(),
+          itemName: item.itemName || "Exhaust Spares",
+          description: item.description || "",
+          partNumber: item.partNumber || "",
+          quantity: parseFloat(item.quantity) || 1,
+          unit: item.unit || "pcs",
+          condition: item.condition || "",
+          unitPrice: parseFloat(item.unitPrice) || 0,
+        }));
+
+        if (onImportItems) {
+          if (importMode === "replace") {
+            onImportItems(formattedItems);
+          } else {
+            onImportItems([...items, ...formattedItems]);
+          }
+        }
+        
+        // Success -> close modal
+        setShowAIModal(false);
+        setAiText("");
+        setSelectedFile(null);
+        success(`Successfully extracted ${formattedItems.length} marine line items!`);
+      } else {
+        throw new Error("The AI failed to format the extracted line items correctly.");
+      }
+    } catch (err: any) {
+      const errMsg = err.message || "An unexpected error occurred during AI analysis.";
+      setAiError(errMsg);
+      toastError(errMsg);
+    } finally {
+      setAiLoading(false);
+      if (loadingToastId) {
+        dismiss(loadingToastId);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Parts Table</h3>
         <div className="flex items-center gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAIModal(true)}
+            className="gap-1.5 rounded-full text-[11px] h-8 px-3 border-amber-200 text-amber-700 bg-amber-50/50 hover:bg-amber-100/60 font-bold transition-all shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+            Import via AI
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -91,73 +235,94 @@ export function ItemsTable({
                   col.visible ? "bg-primary/10 text-primary border-primary/30" : "bg-muted/50 text-muted-foreground"
                 }`}
               >
-                <button onClick={() => onUpdateColumn(col.id, { visible: !col.visible })} className="hover:scale-110 transition-transform">
-                  {col.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                <button
+                  onClick={() => onUpdateColumn(col.id, { visible: !col.visible })}
+                  className="hover:scale-110 transition-transform"
+                >
+                  {col.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3 text-muted-foreground" />}
                 </button>
-                <Input
-                  value={col.label}
-                  onChange={e => onUpdateColumn(col.id, { label: e.target.value })}
-                  className="h-5 w-[70px] text-[10px] font-bold bg-transparent border-none shadow-none p-0 focus-visible:ring-0"
-                />
+                <span>{col.label}</span>
                 {col.id.startsWith("custom_") && (
-                  <button onClick={() => onDeleteColumn(col.id)} className="text-destructive hover:scale-110 transition-transform">
-                    <X className="w-3 h-3" />
+                  <button
+                    onClick={() => onDeleteColumn(col.id)}
+                    className="text-destructive hover:scale-115 transition-transform ml-1 font-bold"
+                  >
+                    ×
                   </button>
                 )}
               </div>
             ))}
           </div>
-          <div className="flex gap-2 items-center pt-1">
+          <div className="flex gap-2 max-w-xs pt-1">
             <Input
-              placeholder="New column name..."
+              placeholder="Add custom column..."
               value={newColumnLabel}
               onChange={e => setNewColumnLabel(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleAddColumn()}
               className="h-8 text-xs flex-1"
             />
-            <Button size="sm" variant="outline" onClick={handleAddColumn} className="h-8 text-[11px] gap-1 rounded-full">
-              <Plus className="w-3 h-3" /> Add
+            <Button size="sm" onClick={handleAddColumn} className="h-8 text-xs font-bold rounded-full">
+              Add
             </Button>
           </div>
         </div>
       )}
 
-      {/* Card-based rows for each item */}
+      {/* Cards List */}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={item.id} className="rounded-xl border bg-white p-3 space-y-2.5 shadow-sm group relative">
-            {/* Row Number + Delete */}
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 w-6 h-6 rounded-full flex items-center justify-center">
+          <div
+            key={item.id}
+            className="p-4 rounded-xl border bg-white/75 backdrop-blur-sm shadow-sm space-y-3 relative group hover:border-primary/20 transition-all duration-200"
+          >
+            {/* Float row controls on hover */}
+            <div className="absolute top-3 right-3 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => onReorder(item.id, "up")}
+                disabled={index === 0}
+                className="p-1 rounded bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
+                title="Move Up"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onReorder(item.id, "down")}
+                disabled={index === items.length - 1}
+                className="p-1 rounded bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
+                title="Move Down"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDuplicate(item.id)}
+                className="p-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors"
+                title="Duplicate Row"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(item.id)}
+                className="p-1 rounded bg-red-50 hover:bg-red-100 text-destructive transition-colors ml-1"
+                title="Delete Row"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Serial number indicator */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black bg-slate-100 text-slate-700 w-5 h-5 rounded-full flex items-center justify-center border">
                 {index + 1}
               </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDelete(item.id)}
-                className="h-6 w-6 text-destructive/50 hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="w-3 h-3" />
-              </Button>
             </div>
 
-            {/* Item Name - full width with good height */}
-            <div>
+            {/* Primary Name Field */}
+            {visibleColumns.some(c => c.key === "itemName") && (
               <Input
-                placeholder="Item Name"
+                placeholder="Item Name (e.g. Cylinder Liner Seals)"
                 value={item.itemName || ""}
-                onChange={e => onUpdate(item.id, { itemName: e.target.value })}
-                className="h-9 text-sm font-medium"
                 list="marine-parts-list"
-              />
-            </div>
-
-            {/* Description */}
-            {item.description !== undefined && (
-              <Input
-                placeholder="Description (optional)"
-                value={item.description || ""}
-                onChange={e => onUpdate(item.id, { description: e.target.value })}
+                onChange={e => onUpdate(item.id, { itemName: e.target.value })}
                 className="h-8 text-xs text-muted-foreground"
               />
             )}
@@ -165,7 +330,7 @@ export function ItemsTable({
             {/* Dynamic fields grid */}
             <div className="grid grid-cols-2 gap-2">
               {visibleColumns
-                .filter(col => col.key !== "sno" && col.key !== "itemName" && col.key !== "total")
+                .filter(col => col.key !== "sno" && col.key !== "itemName" && col.key !== "total" && col.key !== "unit")
                 .map(col => (
                   <div key={col.id} className="space-y-0.5">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
@@ -189,6 +354,25 @@ export function ItemsTable({
                     />
                   </div>
                 ))}
+
+              {/* Unit dropdown — special handling */}
+              {visibleColumns.some(c => c.key === "unit") && (
+                <div className="space-y-0.5">
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
+                    Unit
+                  </label>
+                  <Select value={item.unit || "pcs"} onValueChange={(v) => onUpdate(item.id, { unit: v })}>
+                    <SelectTrigger className="h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNIT_OPTIONS.map(u => (
+                        <SelectItem key={u} value={u}>{u.toUpperCase()}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {/* Total row */}
@@ -196,7 +380,7 @@ export function ItemsTable({
               <div className="flex justify-end pt-1 border-t">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold uppercase text-muted-foreground">Total:</span>
-                  <span className="text-sm font-black text-primary">{calculateRowTotal(item).toFixed(2)}</span>
+                  <span className="text-sm font-black text-primary">{currencySymbol}{calculateRowTotal(item).toFixed(2)}</span>
                 </div>
               </div>
             )}
@@ -216,8 +400,164 @@ export function ItemsTable({
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-5 py-2.5 flex items-center gap-4">
             <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Subtotal</span>
             <span className="text-xl font-black text-primary">
-              {items.reduce((sum, item) => sum + calculateRowTotal(item), 0).toFixed(2)}
+              {currencySymbol}{items.reduce((sum, item) => sum + calculateRowTotal(item), 0).toFixed(2)}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* ===== AI RFQ IMPORTER MODAL ===== */}
+      {showAIModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-4 border-b bg-gradient-to-r from-amber-500/5 to-primary/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 animate-pulse">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-800">AI RFQ Document Importer</h4>
+                  <p className="text-[10px] text-muted-foreground font-semibold">Gemini 2.5 Flash Document Intelligence</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAIModal(false);
+                  setAiError("");
+                  setSelectedFile(null);
+                }}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <ScrollArea className="flex-1 max-h-[60vh] p-5">
+              <div className="space-y-4">
+                {aiError && (
+                  <div className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-medium flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {aiError}
+                  </div>
+                )}
+
+                {/* Import Mode Option */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Import Method</label>
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1 rounded-lg border">
+                    <button
+                      onClick={() => setImportMode("replace")}
+                      className={`py-1.5 text-xs font-bold rounded-md transition-all ${
+                        importMode === "replace" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-slate-700"
+                      }`}
+                    >
+                      Replace Current Rows
+                    </button>
+                    <button
+                      onClick={() => setImportMode("append")}
+                      className={`py-1.5 text-xs font-bold rounded-md transition-all ${
+                        importMode === "append" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-slate-700"
+                      }`}
+                    >
+                      Append to Table
+                    </button>
+                  </div>
+                </div>
+
+                {/* File Dropzone */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Select RFQ File</label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+                      selectedFile ? "border-primary bg-primary/5" : "border-slate-200 hover:border-slate-300 bg-slate-50/50"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="application/pdf,image/*,text/plain"
+                      className="hidden"
+                    />
+                    <UploadCloud className={`w-8 h-8 mx-auto mb-2 ${selectedFile ? "text-primary" : "text-slate-400"}`} />
+                    {selectedFile ? (
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-slate-800">{selectedFile.name}</p>
+                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">{(selectedFile.size / 1024).toFixed(1)} KB — Click to change</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-slate-700">Drag & drop or <span className="text-primary font-bold">browse</span> files</p>
+                        <p className="text-[9px] text-muted-foreground font-semibold uppercase">Supports PDF, PNG, JPG, or TXT</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Text Paste Fallback */}
+                {!selectedFile && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Or Copy-Paste RFQ Text</label>
+                      {aiText && (
+                        <button onClick={() => setAiText("")} className="text-[10px] text-destructive font-bold hover:underline">
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <textarea
+                      placeholder="e.g. 5x cylinder liner seals, oem wartsila parts, model 6L20, maker wartsila..."
+                      value={aiText}
+                      onChange={(e) => setAiText(e.target.value)}
+                      className="w-full h-24 p-3 text-xs border rounded-xl outline-none focus:ring-1 focus:ring-primary resize-none bg-slate-50/20 font-medium"
+                    />
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t bg-slate-50 flex items-center justify-between shrink-0">
+              <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5 text-slate-400" />
+                Dual input support (File or Text)
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowAIModal(false);
+                    setAiError("");
+                    setSelectedFile(null);
+                  }}
+                  className="h-8 text-xs font-bold rounded-full"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={aiLoading}
+                  onClick={handleRunAIImport}
+                  className="h-8 text-xs font-bold rounded-full shadow-md shadow-primary/10 gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 border-none text-white"
+                >
+                  {aiLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+                      Run AI Import
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
