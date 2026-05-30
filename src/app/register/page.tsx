@@ -12,21 +12,38 @@ import { Loader2, Ship, ArrowRight, ShieldCheck } from "lucide-react";
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    if (!name || name.trim().length < 2) {
+      setError("Name must be at least 2 characters long");
+      return;
+    }
+
+    const phoneRegex = /^[+]?[0-9\s\-()]{7,25}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setError("Please enter a valid phone number (at least 7 digits)");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, phone: phone.trim(), password }),
       });
 
       const data = await res.json();
@@ -84,14 +101,14 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-tight">Work Email</Label>
+                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-tight">Phone Number</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="phone"
+                  type="tel"
                   required
-                  placeholder="e.g. sales@marine-agency.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. +1 555 0199"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="h-10 text-xs"
                 />
               </div>

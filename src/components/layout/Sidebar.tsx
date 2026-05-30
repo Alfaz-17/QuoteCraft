@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Settings, Ship, ChevronRight } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { FileText, Settings, Ship, ChevronRight, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -24,6 +25,10 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  // Don't render sidebar at all if not authenticated
+  if (status !== "authenticated") return null;
 
   return (
     <>
@@ -66,10 +71,26 @@ export function Sidebar() {
           })}
         </nav>
 
-        <div className="p-4 border-t mt-auto">
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 italic text-[10px] text-muted-foreground">
-            &quot;Precision in every quotation, standard in every RFQ.&quot;
-          </div>
+        {/* User Info & Logout */}
+        <div className="p-4 border-t mt-auto space-y-3">
+          {session?.user && (
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-800 truncate">{session.user.name || "User"}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{session.user.email}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-xs font-semibold"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </button>
         </div>
       </aside>
 
@@ -113,6 +134,16 @@ export function Sidebar() {
               </Link>
             );
           })}
+          {/* Mobile Logout Button */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex flex-col items-center gap-1 px-5 py-2 rounded-2xl transition-all duration-300 text-muted-foreground active:scale-95"
+          >
+            <div className="flex items-center justify-center w-10 h-10 rounded-2xl hover:bg-red-50 transition-all duration-300">
+              <LogOut className="w-5 h-5 text-red-400" />
+            </div>
+            <span className="text-[10px] font-semibold tracking-wide text-red-400">Logout</span>
+          </button>
         </div>
         {/* Safe area spacer for devices with home indicators */}
         <div className="h-safe-area-bottom" />
@@ -120,3 +151,4 @@ export function Sidebar() {
     </>
   );
 }
+

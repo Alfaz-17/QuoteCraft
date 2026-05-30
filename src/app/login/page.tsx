@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,19 @@ import { Loader2, Ship, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-rea
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // Redirect authenticated users away from login
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -33,6 +42,7 @@ export default function LoginPage() {
     try {
       const res = await signIn("credentials", {
         redirect: false,
+        phone,
         password,
       });
 
@@ -66,7 +76,7 @@ export default function LoginPage() {
         <Card className="border-none shadow-xl bg-white/70 backdrop-blur-md">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-lg font-bold">Sign In</CardTitle>
-            <CardDescription className="text-xs">Enter your secure password below to unlock the workspace</CardDescription>
+            <CardDescription className="text-xs">Enter your phone number and secure password below to unlock the workspace</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -82,6 +92,19 @@ export default function LoginPage() {
                   {error}
                 </div>
               )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-tight">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  required
+                  placeholder="e.g. +1 555 0199"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="h-10 text-xs"
+                />
+              </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="password" className="text-xs font-bold uppercase tracking-tight">Password</Label>

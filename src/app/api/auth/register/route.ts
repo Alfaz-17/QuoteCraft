@@ -4,19 +4,34 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, phone, email, password } = await req.json();
+    const identifier = (phone || email || "").toLowerCase().trim();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Missing email or password" }, { status: 400 });
+    if (!name || name.trim().length < 2) {
+      return NextResponse.json({ error: "Name must be at least 2 characters long" }, { status: 400 });
+    }
+
+    if (!identifier) {
+      return NextResponse.json({ error: "Missing phone number or email" }, { status: 400 });
+    }
+
+    // Basic phone validation (allowing +, numbers, spaces, dashes, parentheses)
+    const phoneRegex = /^[+]?[0-9\s\-()]{7,25}$/;
+    if (!phoneRegex.test(identifier)) {
+      return NextResponse.json({ error: "Please enter a valid phone number (at least 7 digits)" }, { status: 400 });
+    }
+
+    if (!password || password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters long" }, { status: 400 });
     }
 
     // Check if user already exists
     const existing = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { email: identifier }
     });
 
     if (existing) {
-      return NextResponse.json({ error: "User with this email already exists" }, { status: 400 });
+      return NextResponse.json({ error: "User with this phone number is already registered" }, { status: 400 });
     }
 
     // Hash password
@@ -26,7 +41,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.create({
       data: {
         name,
-        email: email.toLowerCase(),
+        email: identifier,
         password: hashedPassword,
       }
     });
