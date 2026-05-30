@@ -53,13 +53,7 @@ export default function Home() {
           </span>
         );
       case "synced":
-        return (
-          <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-emerald-700 bg-emerald-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-emerald-200/50 shadow-sm shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <Cloud className="w-2.5 h-2.5 text-emerald-600 shrink-0" /> 
-            Cloud Synced
-          </span>
-        );
+        return null;
       case "error":
         return (
           <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-rose-700 bg-rose-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-rose-200/50 shadow-sm shrink-0">
@@ -282,29 +276,6 @@ export default function Home() {
               {isClient && renderSyncStatus()}
             </div>
             <div className="flex items-center gap-1.5">
-              {session ? (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="h-8 w-8 text-destructive"
-                  title={`Sign Out (${session.user?.name || session.user?.email})`}
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-slate-600"
-                  title="Sign In"
-                  asChild
-                >
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4" />
-                  </Link>
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 size="icon"
