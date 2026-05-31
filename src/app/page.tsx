@@ -217,7 +217,7 @@ export default function Home() {
   ), [currencySymbol, state.discount, state.discountType, state.taxPercent, state.shippingCharge, subtotal, discountAmount, grandTotal, dispatch]);
 
   return (
-    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-14 md:pb-0">
+    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-20 md:pb-0">
 
       {/* ===== MOBILE: Builder View ===== */}
       {activeTab === "builder" && (
@@ -345,7 +345,7 @@ export default function Home() {
           </div>
 
           {/* Mobile Preview Content */}
-          <div className="flex-1 bg-white overflow-y-auto pb-20">
+          <div className="flex-1 bg-white overflow-y-auto pb-24">
             {isClient && <PreviewContainer data={state} isMobile={true} />}
           </div>
         </div>
