@@ -13,7 +13,7 @@ interface DocumentInfoFormProps {
 }
 
 export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: DocumentInfoFormProps) {
-  const labelClass = "text-[12px] font-black text-slate-700";
+  const labelClass = "text-[11px] font-black uppercase tracking-widest text-slate-500";
   const hintClass = "text-[10px] font-semibold text-slate-400";
 
   return (
