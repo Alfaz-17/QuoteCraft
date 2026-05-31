@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, CloudOff, LogIn, LogOut, Sparkles } from "lucide-react";
+import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, LogIn, LogOut } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -42,39 +42,7 @@ export default function Home() {
 
   const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "$";
 
-  const syncBadge = useMemo(() => {
-    switch (syncStatus) {
-      case "syncing":
-        return (
-          <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-amber-700 bg-amber-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-amber-200/50 shadow-sm animate-pulse shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-            <Loader2 className="w-2.5 h-2.5 animate-spin shrink-0 text-amber-600" />
-            <span className="hidden min-[390px]:inline">Syncing Draft</span>
-            <span className="min-[390px]:hidden">Sync</span>
-          </span>
-        );
-      case "error":
-        return (
-          <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-rose-700 bg-rose-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-rose-200/50 shadow-sm shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-            <CloudOff className="w-2.5 h-2.5 text-rose-600 shrink-0" />
-            <span className="hidden min-[390px]:inline">Draft Offline</span>
-            <span className="min-[390px]:hidden">Offline</span>
-          </span>
-        );
-      case "local":
-        return (
-          <Link href="/register" className="flex items-center gap-1.5 text-[9.5px] font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100/90 backdrop-blur-sm px-2.5 py-1 rounded-full border border-indigo-200/50 shadow-sm transition-all shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
-            <Sparkles className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
-            <span className="hidden min-[390px]:inline">Saved Locally</span>
-            <span className="min-[390px]:hidden">Local</span>
-          </Link>
-        );
-      default:
-        return null;
-    }
-  }, [syncStatus]);
+
 
   // Handlers — all wrapped in useCallback for stable references
   const handleUpdateDocInfo  = useCallback((updates: any) => dispatch({ type: "SET_DOCUMENT_INFO", payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -253,7 +221,6 @@ export default function Home() {
           <div className="px-3 py-2 border-b bg-white flex justify-between items-center z-20 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="font-bold text-sm shrink-0">RFQ Builder</h1>
-              {isClient && syncBadge}
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <Button
@@ -392,7 +359,6 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isClient && syncBadge}
             <Button
               variant="outline"
               size="sm"
