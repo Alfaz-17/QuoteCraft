@@ -22,6 +22,16 @@ export const metadata: Metadata = {
   },
 };
 
+import type { Viewport } from "next";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Providers } from "./providers";
 

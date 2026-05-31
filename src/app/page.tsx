@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, LogIn, LogOut } from "lucide-react";
+import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, LogIn, LogOut, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -74,10 +74,15 @@ export default function Home() {
     dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } });
   }, [dispatch]);
 
+  const [showNewQuoteConfirm, setShowNewQuoteConfirm] = useState(false);
+
   const handleNewQuotation = useCallback(() => {
-    if (window.confirm("Start a new quotation? Your current draft will be replaced (company profile is kept).")) {
-      dispatch({ type: "NEW_QUOTATION" });
-    }
+    setShowNewQuoteConfirm(true);
+  }, []);
+
+  const confirmNewQuotation = useCallback(() => {
+    dispatch({ type: "NEW_QUOTATION" });
+    setShowNewQuoteConfirm(false);
   }, [dispatch]);
 
   const handleDownloadPDF = useCallback(async () => {
@@ -456,6 +461,39 @@ export default function Home() {
       <div className="hidden md:block flex-1 bg-slate-100 overflow-hidden h-full">
         {isClient && <PreviewContainer data={state} />}
       </div>
+
+      {/* ===== Custom Confirmation Modal ===== */}
+      {showNewQuoteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
+            <div className="p-6 md:p-8 text-center space-y-4">
+              <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <AlertTriangle className="w-8 h-8" />
+              </div>
+              <h4 className="text-xl font-black text-slate-800">Start New Quotation?</h4>
+              <p className="text-sm font-medium text-slate-500">
+                This will clear all your current line items and document details. Your company branding profile will be kept.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowNewQuoteConfirm(false)}
+                  className="rounded-2xl font-bold h-12"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={confirmNewQuotation}
+                  className="rounded-2xl font-bold h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+                >
+                  Confirm
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

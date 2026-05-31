@@ -123,11 +123,11 @@
 
 /* Mobile Bottom Navigation */
 .mobile-bottom-nav {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
 }
 
 .h-safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0px);
+  height: max(env(safe-area-inset-bottom), 12px);
 }
 
 /* Mobile Touch Improvements */
