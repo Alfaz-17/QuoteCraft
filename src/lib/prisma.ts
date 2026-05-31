@@ -10,7 +10,7 @@ export const db: Pool =
     ssl: { rejectUnauthorized: false }, // Required for Neon / Supabase
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 15000, // Increased to 15s to allow Neon cold starts
   });
 
 if (process.env.NODE_ENV !== "production") {

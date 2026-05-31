@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     await updateUserGeminiKey(userId, geminiApiKey || null);
     return NextResponse.json({ message: "Settings updated successfully" });
   } catch (error) {
+    console.error("API error:", error);
     return NextResponse.json({ error: "Failed to save user settings" }, { status: 500 });
   }
 }
