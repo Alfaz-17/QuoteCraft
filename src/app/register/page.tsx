@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useToast } from "@/components/ui/Toast";
 import { Loader2, Ship, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function RegisterPage() {
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { error: toastError, info: toastInfo } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +56,13 @@ export default function RegisterPage() {
       // Successful registration -> go to login
       router.push("/login?registered=true");
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      if (err.message === "User with this phone number is already registered") {
+        setError(err.message);
+        toastInfo("Looks like you already have an account! Navigating to login...");
+      } else {
+        setError(err.message || "An unexpected error occurred");
+        toastError(err.message || "An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -81,11 +89,22 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 text-xs bg-red-50 text-red-600 rounded-lg border border-red-100 font-medium">
+              {error === "User with this phone number is already registered" ? (
+                <div className="p-4 text-xs bg-amber-50 text-amber-800 rounded-lg border border-amber-200 font-medium flex flex-col gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
+                    <p className="leading-snug">You already have an account with this number.</p>
+                  </div>
+                  <Button type="button" variant="outline" className="w-full text-xs h-9 bg-white border-amber-200 hover:bg-amber-100 hover:text-amber-900 transition-colors" onClick={() => router.push("/login")}>
+                    Sign In instead
+                  </Button>
+                </div>
+              ) : error ? (
+                <div className="p-3 text-xs bg-red-50 text-red-600 rounded-lg border border-red-100 font-medium flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
                   {error}
                 </div>
-              )}
+              ) : null}
 
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="text-xs font-bold uppercase tracking-tight">Full Name</Label>

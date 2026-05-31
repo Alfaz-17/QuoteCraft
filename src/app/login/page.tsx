@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useToast } from "@/components/ui/Toast";
 import { Loader2, Ship, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 function LoginContent() {
@@ -19,6 +20,7 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const { error: toastError, info: toastInfo } = useToast();
 
   // Redirect authenticated users away from login
   useEffect(() => {
@@ -53,7 +55,13 @@ function LoginContent() {
       router.push("/");
       router.refresh();
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      if (err.message === "No user found with this phone number or email") {
+        setError(err.message);
+        toastInfo("No account found! Please register first.");
+      } else {
+        setError(err.message || "An unexpected error occurred");
+        toastError(err.message || "An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -87,11 +95,22 @@ function LoginContent() {
                 </div>
               )}
 
-              {error && (
-                <div className="p-3 text-xs bg-red-50 text-red-600 rounded-lg border border-red-100 font-medium">
+              {error === "No user found with this phone number or email" ? (
+                <div className="p-4 text-xs bg-amber-50 text-amber-800 rounded-lg border border-amber-200 font-medium flex flex-col gap-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
+                    <p className="leading-snug">We couldn't find an account with that number.</p>
+                  </div>
+                  <Button type="button" variant="outline" className="w-full text-xs h-9 bg-white border-amber-200 hover:bg-amber-100 hover:text-amber-900 transition-colors" onClick={() => router.push("/register")}>
+                    Create a new account
+                  </Button>
+                </div>
+              ) : error ? (
+                <div className="p-3 text-xs bg-red-50 text-red-600 rounded-lg border border-red-100 font-medium flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
                   {error}
                 </div>
-              )}
+              ) : null}
 
               <div className="space-y-1.5">
                 <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-tight">Phone Number</Label>
