@@ -123,7 +123,7 @@
 
 /* Mobile Bottom Navigation */
 .mobile-bottom-nav {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
 }
 
 .h-safe-area-bottom {
@@ -174,7 +174,7 @@
   }
 
   label {
-    font-size: 11px !important;
+    font-size: 12px !important;
     line-height: 1.1;
   }
 

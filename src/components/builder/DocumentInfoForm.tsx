@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 
 interface DocumentInfoFormProps {
   data: QuotationState["documentInfo"];
@@ -14,6 +13,9 @@ interface DocumentInfoFormProps {
 }
 
 export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: DocumentInfoFormProps) {
+  const labelClass = "text-[12px] font-black text-slate-700";
+  const hintClass = "text-[10px] font-semibold text-slate-400";
+
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0 pb-2 md:pb-3">
@@ -21,9 +23,11 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
       </CardHeader>
       <CardContent className="px-0 space-y-3 md:space-y-4">
         {/* Document Type & Number */}
-        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+        <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Basic Document Info</p>
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="docType" className="text-xs">Document Type</Label>
+            <Label htmlFor="docType" className={labelClass}>Document Type</Label>
             <Select value={data.type} onValueChange={(v) => onUpdate({ type: v as DocumentInfoFormProps["data"]["type"] })}>
               <SelectTrigger id="docType" className="h-9 text-xs">
                 <SelectValue />
@@ -36,48 +40,54 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
             </Select>
           </div>
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="docNumber" className="text-xs">Document No.</Label>
+            <Label htmlFor="docNumber" className={labelClass}>Document Number</Label>
             <Input id="docNumber" value={data.number} onChange={(e) => onUpdate({ number: e.target.value })} className="h-9 font-mono text-xs" placeholder="QT-1001" />
+            <p className={hintClass}>Shown on top of the quotation.</p>
           </div>
         </div>
 
         {/* Dates */}
-        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="date" className="text-xs">Date</Label>
+            <Label htmlFor="date" className={labelClass}>Issue Date</Label>
             <Input id="date" type="date" value={data.date} onChange={(e) => onUpdate({ date: e.target.value })} className="h-9" />
           </div>
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="validUntil" className="text-xs">Valid Until</Label>
+            <Label htmlFor="validUntil" className={labelClass}>Valid Until</Label>
             <Input id="validUntil" type="date" value={data.validUntil} onChange={(e) => onUpdate({ validUntil: e.target.value })} className="h-9" />
+            <p className={hintClass}>Last date this quote is valid.</p>
           </div>
+        </div>
         </div>
 
         {/* Vessel & Reference */}
-        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+        <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Vessel / Enquiry Details</p>
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="vessel" className="text-xs">Vessel Name</Label>
+            <Label htmlFor="vessel" className={labelClass}>Vessel Name</Label>
             <Input id="vessel" value={data.vessel || ""} onChange={(e) => onUpdate({ vessel: e.target.value })} placeholder="e.g. MV Sea Star" className="h-9" />
           </div>
           <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="reference" className="text-xs">Reference</Label>
+            <Label htmlFor="reference" className={labelClass}>Customer Reference</Label>
             <Input id="reference" value={data.reference || ""} onChange={(e) => onUpdate({ reference: e.target.value })} placeholder="e.g. INQ-2024-0451" className="h-9" />
+            <p className={hintClass}>RFQ, enquiry, or buyer reference.</p>
           </div>
+        </div>
         </div>
 
         {/* Machine Info - controlled by Settings toggle, no inline toggle here */}
         {showMachineInfo && (
           <>
-            <Separator className="my-3" />
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Machine Information</p>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+            <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Machine Information</p>
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
                 <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="make" className="text-xs">Make</Label>
+                  <Label htmlFor="make" className={labelClass}>Maker / Brand</Label>
                   <Input id="make" value={data.make || ""} onChange={(e) => onUpdate({ make: e.target.value })} placeholder="e.g. WARTSILA" className="h-9" />
                 </div>
                 <div className="space-y-1.5 min-w-0">
-                  <Label htmlFor="model" className="text-xs">Model</Label>
+                  <Label htmlFor="model" className={labelClass}>Model / Engine Type</Label>
                   <Input id="model" value={data.model || ""} onChange={(e) => onUpdate({ model: e.target.value })} placeholder="e.g. 6L20" className="h-9" />
                 </div>
               </div>

@@ -4,10 +4,10 @@ import { LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Settings2, X, Eye, EyeOff, Copy, ChevronUp, ChevronDown, Sparkles, FileText, UploadCloud, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Settings2, X, Eye, EyeOff, Copy, ChevronUp, ChevronDown, Sparkles, FileText, UploadCloud, Loader2, AlertCircle, Pencil, Check } from "lucide-react";
 import { calculateRowTotal } from "@/utils/calculations";
 import { COMMON_MARINE_PARTS } from "@/constants/marine-parts";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/Toast";
 
@@ -45,6 +45,7 @@ export function ItemsTable({
 }: ItemsTableProps) {
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [newColumnLabel, setNewColumnLabel] = useState("");
+  const [activeItemId, setActiveItemId] = useState<string | null>(items[0]?.id ?? null);
   
   // AI Importer States
   const [showAIModal, setShowAIModal] = useState(false);
@@ -56,7 +57,39 @@ export function ItemsTable({
   
   const { success, error: toastError, info: toastInfo, dismiss } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const itemCountRef = useRef(items.length);
   const visibleColumns = tableColumns.filter(c => c.visible);
+
+  useEffect(() => {
+    const previousCount = itemCountRef.current;
+    itemCountRef.current = items.length;
+
+    if (items.length === 0) {
+      setActiveItemId(null);
+      return;
+    }
+
+    if (items.length > previousCount) {
+      setActiveItemId(items[items.length - 1].id);
+      return;
+    }
+
+    if (!activeItemId || !items.some(item => item.id === activeItemId)) {
+      setActiveItemId(items[items.length - 1].id);
+    }
+  }, [items, activeItemId]);
+
+  const handleAddItem = () => {
+    onAdd();
+  };
+
+  const handleDeleteItem = (id: string) => {
+    onDelete(id);
+    if (activeItemId === id) {
+      const nextItem = items.find(item => item.id !== id);
+      setActiveItemId(nextItem?.id ?? null);
+    }
+  };
 
   const handleAddColumn = () => {
     if (!newColumnLabel.trim()) return;
@@ -197,18 +230,8 @@ export function ItemsTable({
     <div className="space-y-3 md:space-y-4">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">Parts Table</h3>
+        <h3 className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">Parts List</h3>
         <div className="flex flex-wrap items-center justify-end gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAIModal(true)}
-            className="gap-1 rounded-lg md:rounded-full text-[11px] h-8 px-2.5 md:px-3 border-amber-200 text-amber-700 bg-amber-50/50 hover:bg-amber-100/60 font-bold transition-all shadow-sm"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-            <span className="hidden min-[390px]:inline">Import via AI</span>
-            <span className="min-[390px]:hidden">AI</span>
-          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -217,11 +240,6 @@ export function ItemsTable({
           >
             <Settings2 className="w-3.5 h-3.5" />
             <span className="hidden min-[390px]:inline">Columns</span>
-          </Button>
-          <Button size="sm" onClick={onAdd} className="gap-1 rounded-lg md:rounded-full shadow-sm text-[11px] h-8 px-2.5 md:px-3">
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden min-[390px]:inline">Add Row</span>
-            <span className="min-[390px]:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -273,126 +291,206 @@ export function ItemsTable({
 
       {/* Cards List */}
       <div className="space-y-2.5 md:space-y-3">
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            className="p-3 md:p-4 rounded-xl border bg-white/75 backdrop-blur-sm shadow-sm space-y-2.5 md:space-y-3 relative group hover:border-primary/20 transition-all duration-200"
-          >
-            {/* Float row controls on hover */}
-            <div className="absolute top-3 right-3 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => onReorder(item.id, "up")}
-                disabled={index === 0}
-                className="p-1 rounded bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
-                title="Move Up"
-              >
-                <ChevronUp className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => onReorder(item.id, "down")}
-                disabled={index === items.length - 1}
-                className="p-1 rounded bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
-                title="Move Down"
-              >
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => onDuplicate(item.id)}
-                className="p-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors"
-                title="Duplicate Row"
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => onDelete(item.id)}
-                className="p-1 rounded bg-red-50 hover:bg-red-100 text-destructive transition-colors ml-1"
-                title="Delete Row"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+        {items.length > 0 && (
+          <div className="rounded-xl border bg-slate-50/50 p-2 shadow-sm">
+            <div className="flex items-center justify-between px-1 pb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                Line Items
+              </p>
             </div>
+            <div className="space-y-1.5">
+              {items.map((item, index) => {
+                const isActive = activeItemId === item.id;
+                const rowTotal = calculateRowTotal(item);
 
-            {/* Serial number indicator */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black bg-slate-100 text-slate-700 w-5 h-5 rounded-full flex items-center justify-center border">
-                {index + 1}
-              </span>
-            </div>
+                if (!isActive) {
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setActiveItemId(item.id)}
+                      className="group flex items-center gap-3 rounded-xl border bg-white hover:border-primary/30 hover:bg-slate-50 px-3 py-2.5 cursor-pointer transition-all shadow-sm"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-black text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1 flex flex-col justify-center">
+                        <span className="block truncate text-sm font-bold text-slate-800">
+                          {item.itemName || <span className="text-slate-400 italic">Unnamed Part</span>}
+                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                            Qty: {item.quantity || 0} {item.unit || "pcs"}
+                          </span>
+                          <span className="text-[11px] font-bold text-primary">
+                            {currencySymbol}{rowTotal.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronDown className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-primary transition-colors -rotate-90" />
+                    </div>
+                  );
+                }
 
-            {/* Primary Name Field */}
-            {visibleColumns.some(c => c.key === "itemName") && (
-              <Input
-                placeholder="Item Name (e.g. Cylinder Liner Seals)"
-                value={item.itemName || ""}
-                list="marine-parts-list"
-                onChange={e => onUpdate(item.id, { itemName: e.target.value })}
-                className="h-9 md:h-8 text-xs text-muted-foreground"
-              />
-            )}
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border-2 border-primary/40 bg-white p-3 md:p-4 shadow-md space-y-3 md:space-y-4 animate-in fade-in zoom-in-95 duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-2 border-b pb-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
+                          <Pencil className="w-3 h-3" /> Editing Item {index + 1}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-lg bg-primary/10 px-2 py-1 text-xs font-black text-primary">
+                        {currencySymbol}{rowTotal.toFixed(2)}
+                      </span>
+                    </div>
 
-            {/* Dynamic fields grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {visibleColumns
-                .filter(col => col.key !== "sno" && col.key !== "itemName" && col.key !== "total" && col.key !== "unit")
-                .map(col => (
-                  <div key={col.id} className="space-y-0.5 min-w-0">
-                    <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
-                      {col.label}
-                    </label>
-                    <Input
-                      type={col.type === "number" ? "number" : "text"}
-                      placeholder={col.label}
-                      value={getCellValue(item, col, index)}
-                      onChange={e => {
-                        const val = col.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
-                        onUpdate(item.id, { [col.key]: val });
-                      }}
-                      onKeyDown={e => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          onAdd();
-                        }
-                      }}
-                      className={`h-9 text-sm ${col.type === "number" ? "text-right font-medium" : ""}`}
-                    />
+                    {/* Primary Name Field */}
+                    {visibleColumns.some(c => c.key === "itemName") && (
+                      <div className="space-y-1 min-w-0">
+                        <label className="text-[11px] font-black uppercase tracking-wide text-slate-600 pl-1">
+                          Item Name
+                        </label>
+                        <Input
+                          placeholder="e.g. Cylinder liner seals"
+                          value={item.itemName || ""}
+                          list="marine-parts-list"
+                          onChange={e => onUpdate(item.id, { itemName: e.target.value })}
+                          className="h-10 text-sm font-medium text-slate-800"
+                        />
+                      </div>
+                    )}
+
+                    {/* Dynamic fields grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {visibleColumns
+                        .filter(col => col.key !== "sno" && col.key !== "itemName" && col.key !== "total" && col.key !== "unit")
+                        .map(col => (
+                          <div key={col.id} className="space-y-0.5 min-w-0">
+                            <label className="text-[11px] font-black uppercase tracking-wide text-slate-600 pl-1">
+                              {col.label}
+                            </label>
+                            <Input
+                              type={col.type === "number" ? "number" : "text"}
+                              placeholder={col.label}
+                              value={getCellValue(item, col, index)}
+                              onChange={e => {
+                                const val = col.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
+                                onUpdate(item.id, { [col.key]: val });
+                              }}
+                              onKeyDown={e => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  setActiveItemId(null);
+                                }
+                              }}
+                              className={`h-9 text-sm ${col.type === "number" ? "text-right font-medium" : ""}`}
+                            />
+                          </div>
+                        ))}
+
+                      {/* Unit dropdown — special handling */}
+                      {visibleColumns.some(c => c.key === "unit") && (
+                        <div className="space-y-0.5 min-w-0">
+                          <label className="text-[11px] font-black uppercase tracking-wide text-slate-600 pl-1">
+                            Unit
+                          </label>
+                          <Select value={item.unit || "pcs"} onValueChange={(v) => onUpdate(item.id, { unit: v })}>
+                            <SelectTrigger className="h-9 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {UNIT_OPTIONS.map(u => (
+                                <SelectItem key={u} value={u}>{u.toUpperCase()}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => onReorder(item.id, "up")}
+                          disabled={index === 0}
+                          className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
+                          title="Move Up"
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => onReorder(item.id, "down")}
+                          disabled={index === items.length - 1}
+                          className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 disabled:opacity-40 text-slate-600 transition-colors"
+                          title="Move Down"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => onDuplicate(item.id)}
+                          className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors ml-1"
+                          title="Duplicate Row"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-destructive transition-colors ml-1"
+                          title="Delete Row"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <Button size="sm" onClick={() => setActiveItemId(null)} className="rounded-full px-5 font-bold shadow-sm">
+                        <Check className="w-4 h-4 mr-1.5" /> Done
+                      </Button>
+                    </div>
                   </div>
-                ))}
-
-              {/* Unit dropdown — special handling */}
-              {visibleColumns.some(c => c.key === "unit") && (
-                <div className="space-y-0.5 min-w-0">
-                  <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
-                    Unit
-                  </label>
-                  <Select value={item.unit || "pcs"} onValueChange={(v) => onUpdate(item.id, { unit: v })}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {UNIT_OPTIONS.map(u => (
-                        <SelectItem key={u} value={u}>{u.toUpperCase()}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                );
+              })}
             </div>
-
-            {/* Total row */}
-            {visibleColumns.some(c => c.key === "total") && (
-              <div className="flex justify-end pt-1 border-t">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Total:</span>
-                  <span className="text-sm font-black text-primary">{currencySymbol}{calculateRowTotal(item).toFixed(2)}</span>
-                </div>
-              </div>
-            )}
           </div>
-        ))}
+        )}
 
         {items.length === 0 && (
-          <div className="rounded-xl border-2 border-dashed bg-muted/10 p-8 text-center">
-            <p className="text-muted-foreground text-sm">No items yet. Click <strong>&quot;Add Row&quot;</strong> to start.</p>
+          <div className="rounded-2xl border-2 border-dashed bg-slate-50/50 p-8 text-center flex flex-col items-center justify-center gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-2">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <p className="text-muted-foreground text-sm font-medium">Your parts list is empty.</p>
+            <div className="flex items-center justify-center flex-wrap gap-2 mt-2">
+              <Button onClick={handleAddItem} className="gap-1.5 rounded-full shadow-sm font-bold">
+                <Plus className="w-4 h-4" /> Add Your First Part
+              </Button>
+              <Button variant="outline" onClick={() => setShowAIModal(true)} className="gap-1.5 rounded-full font-bold text-amber-600 border-amber-200 bg-amber-50 hover:bg-amber-100 shadow-sm">
+                <Sparkles className="w-4 h-4 text-amber-500" /> AI Import
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        {/* Bottom Actions - Always visible when items exist */}
+        {items.length > 0 && (
+          <div className="flex gap-2 pt-1 pb-2">
+            <Button 
+              onClick={handleAddItem} 
+              className="flex-1 gap-1.5 rounded-xl border-dashed border-2 bg-white text-primary border-primary/30 hover:border-primary/60 hover:bg-primary/5 shadow-sm h-12 font-bold text-sm transition-all"
+            >
+              <Plus className="w-4 h-4" /> Add Another Part
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAIModal(true)} 
+              className="gap-1.5 rounded-xl border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-sm h-12 px-4 font-bold transition-all"
+            >
+              <Sparkles className="w-4 h-4 text-amber-500" /> 
+              <span className="hidden min-[390px]:inline">AI Import</span>
+            </Button>
           </div>
         )}
       </div>
