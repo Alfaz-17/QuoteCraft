@@ -431,11 +431,11 @@ export default function Home() {
         </ScrollArea>
 
         {/* Desktop Download Button */}
-        <div className="p-4 border-t bg-white shadow-[0_-4px_10px_-5px_rgba(0,0,0,0.05)]">
+        <div className="p-4 md:px-5 md:pb-5 pt-2 shrink-0 bg-transparent z-20">
           <Button
             disabled={state.items.length === 0 || isDownloading}
             onClick={handleDownloadPDF}
-            className="w-full h-11 text-sm font-bold shadow-lg shadow-primary/20 gap-2 group"
+            className="w-full h-12 text-sm font-bold rounded-2xl shadow-xl shadow-primary/20 gap-2 group border border-primary/20 bg-primary hover:bg-primary hover:brightness-110 transition-all"
           >
             {isDownloading ? (
               <>
