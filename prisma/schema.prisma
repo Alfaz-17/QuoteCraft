@@ -16,6 +16,7 @@ model User {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   quotations    Quotation[]
+  profile       UserProfile?
 }
 
 model Quotation {
@@ -42,5 +43,16 @@ model Quotation {
   taxPercent     Float    @default(0)
   shippingCharge Float    @default(0)
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model UserProfile {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        Json
+  branding       Json
+  terms          String?
+  tableColumns   Json
+  builderConfig  Json
   updatedAt      DateTime @updatedAt
 }
