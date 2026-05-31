@@ -33,14 +33,14 @@ function AccordionItem({ id, title, description, icon, isOpen, onToggle, badge, 
     <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
       {/* Header Button */}
       <div 
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors"
+        className="flex items-center justify-between p-3 md:p-4 cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={onToggle}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
           <div className="text-primary shrink-0">
             {icon}
           </div>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-bold text-xs md:text-sm text-slate-800 uppercase tracking-wider">{title}</h3>
             {description && <p className="text-[10px] text-muted-foreground font-medium hidden sm:block mt-0.5">{description}</p>}
           </div>
@@ -64,7 +64,7 @@ function AccordionItem({ id, title, description, icon, isOpen, onToggle, badge, 
           isOpen ? "max-h-[1200px] border-t border-slate-100" : "max-h-0"
         }`}
       >
-        <div className="p-4 md:p-5 bg-slate-50/10">
+        <div className="p-3 md:p-5 bg-slate-50/10">
           {children}
         </div>
       </div>
@@ -249,7 +249,7 @@ export default function SettingsPage() {
       </header>
 
       <ScrollArea className="flex-1">
-        <div className="max-w-xl mx-auto p-4 md:p-6 pb-24 md:pb-6 space-y-4">
+        <div className="max-w-xl mx-auto p-3 md:p-6 pb-20 md:pb-6 space-y-3 md:space-y-4">
 
           {/* 1. Visual Branding */}
           <AccordionItem

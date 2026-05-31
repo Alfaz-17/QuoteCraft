@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { findUserApiKey, updateUserGeminiKey } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,19 +15,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { geminiApiKey: true }
-    });
-
-    // If key exists, mask it for safety
-    const hasKey = !!user?.geminiApiKey;
+    const geminiApiKey = await findUserApiKey(userId);
+    const hasKey = !!geminiApiKey;
     const maskedKey = hasKey ? "••••••••••••••••" : "";
 
-    return NextResponse.json({
-      geminiApiKey: maskedKey,
-      hasKey
-    });
+    return NextResponse.json({ geminiApiKey: maskedKey, hasKey });
   } catch (error) {
     return NextResponse.json({ error: "Failed to load user settings" }, { status: 500 });
   }
@@ -47,18 +39,11 @@ export async function POST(req: NextRequest) {
 
     const { geminiApiKey } = await req.json();
 
-    // If they send masked key, do not overwrite existing key
     if (geminiApiKey === "••••••••••••••••") {
       return NextResponse.json({ message: "Settings unchanged" });
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        geminiApiKey: geminiApiKey || null // Clear if they send empty string
-      }
-    });
-
+    await updateUserGeminiKey(userId, geminiApiKey || null);
     return NextResponse.json({ message: "Settings updated successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to save user settings" }, { status: 500 });

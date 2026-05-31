@@ -42,12 +42,12 @@ export function PersonnelSection({
   };
   return (
     <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0 pt-0 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-        <div className="flex items-center gap-4">
+      <CardHeader className="px-0 pt-0 pb-2 md:pb-3 flex flex-row items-center justify-between gap-2 space-y-0">
+        <CardTitle className="text-sm md:text-lg font-semibold truncate">{title}</CardTitle>
+        <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-2 bg-primary/5 px-2 py-1 rounded-full border border-primary/10">
             <Sparkles className="w-3 h-3 text-primary" />
-            <span className="text-[10px] font-bold uppercase text-primary tracking-tighter">Auto-Format</span>
+            <span className="hidden min-[390px]:inline text-[10px] font-bold uppercase text-primary tracking-tighter">Auto-Format</span>
             <Switch 
               checked={autoFormat} 
               onCheckedChange={setAutoFormat}
@@ -56,10 +56,10 @@ export function PersonnelSection({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-0 space-y-6">
+      <CardContent className="px-0 space-y-4 md:space-y-6">
         {!hideCompany && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Your Details</h3>
+          <div className="space-y-3 md:space-y-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider">Your Details</h3>
             <div className="space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="companyName">Company Name</Label>
@@ -79,8 +79,8 @@ export function PersonnelSection({
                   onBlur={(e) => onUpdateCompany({ address: formatField(e.target.value, "address") })}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                <div className="space-y-1 min-w-0">
                   <Label htmlFor="companyPhone">Phone</Label>
                   <Input
                     id="companyPhone"
@@ -89,7 +89,7 @@ export function PersonnelSection({
                     onBlur={(e) => onUpdateCompany({ phone: cleanText(e.target.value) })}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0">
                   <Label htmlFor="companyEmail">Email</Label>
                   <Input
                     id="companyEmail"
@@ -116,11 +116,11 @@ export function PersonnelSection({
         {!hideCompany && !hideClient && <Separator />}
 
         {!hideClient && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Client Details</h3>
+          <div className="space-y-3 md:space-y-4">
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider">Client Details</h3>
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                <div className="space-y-1 min-w-0">
                   <Label htmlFor="clientName">Contact Person</Label>
                   <Input
                     id="clientName"
@@ -129,7 +129,7 @@ export function PersonnelSection({
                     onBlur={(e) => onUpdateClient({ name: formatField(e.target.value, "name") })}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0">
                   <Label htmlFor="clientAttn">Attention (Attn)</Label>
                   <Input
                     id="clientAttn"

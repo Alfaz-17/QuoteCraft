@@ -161,22 +161,22 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
 
   return (
     <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-lg font-semibold">Branding</CardTitle>
+      <CardHeader className="px-0 pt-0 pb-2 md:pb-3">
+        <CardTitle className="text-sm md:text-lg font-semibold">Branding</CardTitle>
       </CardHeader>
-      <CardContent className="px-0 space-y-4">
+      <CardContent className="px-0 space-y-3 md:space-y-4">
         {/* Logo Upload */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 md:space-y-2">
           <Label htmlFor="logo">Upload Logo</Label>
           <Input id="logo" type="file" accept="image/*" onChange={handleLogoUpload} />
         </div>
 
         {/* Logo Preview */}
         {branding.logo && (
-          <div className="flex flex-col gap-3 p-3 bg-slate-50 rounded-xl border animate-in fade-in duration-200">
+          <div className="flex flex-col gap-2.5 md:gap-3 p-3 bg-slate-50 rounded-xl border animate-in fade-in duration-200">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <img src={branding.logo} alt="Logo" className="h-12 w-12 object-contain rounded-lg bg-white border p-1" />
+                <img src={branding.logo} alt="Logo" className="h-10 w-10 md:h-12 md:w-12 object-contain rounded-lg bg-white border p-1" />
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Logo uploaded</p>
                   {isAnalyzing && (
@@ -194,7 +194,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                   size="sm"
                   variant="outline"
                   onClick={() => analyzeWithAI(branding.logo!)}
-                  className="h-8 text-xs font-bold rounded-full gap-1 border-primary/20 hover:border-primary/50 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+                  className="h-8 text-[11px] md:text-xs font-bold rounded-lg md:rounded-full gap-1 border-primary/20 hover:border-primary/50 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
                 >
                   <Sparkles className="w-3 h-3" />
                   Analyze Colors
@@ -213,7 +213,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
 
         {/* AI Analyzed Color Palette */}
         {aiColors && !isAnalyzing && (
-          <div className="p-3 rounded-xl border-2 border-primary/20 bg-primary/5 space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="p-3 rounded-xl border-2 border-primary/20 bg-primary/5 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
@@ -258,32 +258,32 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
         )}
 
         {/* Manual Color Pickers */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          <div className="space-y-1.5 md:space-y-2">
             <Label htmlFor="primaryColor">Primary Color</Label>
             <div className="flex gap-2">
-              <Input id="primaryColor" type="color" value={branding.primaryColor} onChange={(e) => onUpdate({ primaryColor: e.target.value })} className="w-12 h-10 p-1" />
+              <Input id="primaryColor" type="color" value={branding.primaryColor} onChange={(e) => onUpdate({ primaryColor: e.target.value })} className="w-10 md:w-12 h-9 md:h-10 p-1" />
               <Input type="text" value={branding.primaryColor} onChange={(e) => onUpdate({ primaryColor: e.target.value })} className="flex-1" />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 md:space-y-2">
             <Label htmlFor="secondaryColor">Secondary Color</Label>
             <div className="flex gap-2">
-              <Input id="secondaryColor" type="color" value={branding.secondaryColor} onChange={(e) => onUpdate({ secondaryColor: e.target.value })} className="w-12 h-10 p-1" />
+              <Input id="secondaryColor" type="color" value={branding.secondaryColor} onChange={(e) => onUpdate({ secondaryColor: e.target.value })} className="w-10 md:w-12 h-9 md:h-10 p-1" />
               <Input type="text" value={branding.secondaryColor} onChange={(e) => onUpdate({ secondaryColor: e.target.value })} className="flex-1" />
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 md:space-y-2">
             <Label htmlFor="textColor">Text Color</Label>
             <div className="flex gap-2">
-              <Input id="textColor" type="color" value={branding.textColor} onChange={(e) => onUpdate({ textColor: e.target.value })} className="w-12 h-10 p-1" />
+              <Input id="textColor" type="color" value={branding.textColor} onChange={(e) => onUpdate({ textColor: e.target.value })} className="w-10 md:w-12 h-9 md:h-10 p-1" />
               <Input type="text" value={branding.textColor} onChange={(e) => onUpdate({ textColor: e.target.value })} className="flex-1" />
             </div>
           </div>
         </div>
 
         {/* Font Family - Visual Preview */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 md:space-y-2">
           <Label>Font Family</Label>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -295,7 +295,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
               <button
                 key={font.name}
                 onClick={() => onUpdate({ font: font.name })}
-                className={`p-3 rounded-xl border-2 text-left transition-all duration-200 ${
+                className={`p-2.5 md:p-3 rounded-xl border-2 text-left transition-all duration-200 ${
                   branding.font === font.name
                     ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
                     : "border-transparent bg-slate-50 hover:border-slate-200 hover:bg-white"

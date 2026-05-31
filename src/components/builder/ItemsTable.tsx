@@ -194,31 +194,34 @@ export function ItemsTable({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Parts Table</h3>
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-xs md:text-sm font-bold uppercase tracking-widest text-muted-foreground">Parts Table</h3>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowAIModal(true)}
-            className="gap-1.5 rounded-full text-[11px] h-8 px-3 border-amber-200 text-amber-700 bg-amber-50/50 hover:bg-amber-100/60 font-bold transition-all shadow-sm"
+            className="gap-1 rounded-lg md:rounded-full text-[11px] h-8 px-2.5 md:px-3 border-amber-200 text-amber-700 bg-amber-50/50 hover:bg-amber-100/60 font-bold transition-all shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-            Import via AI
+            <span className="hidden min-[390px]:inline">Import via AI</span>
+            <span className="min-[390px]:hidden">AI</span>
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowColumnManager(!showColumnManager)}
-            className={`gap-1 rounded-full text-[11px] h-8 px-3 ${showColumnManager ? "bg-primary/10 text-primary" : ""}`}
+            className={`gap-1 rounded-lg md:rounded-full text-[11px] h-8 px-2.5 md:px-3 ${showColumnManager ? "bg-primary/10 text-primary" : ""}`}
           >
             <Settings2 className="w-3.5 h-3.5" />
-            Columns
+            <span className="hidden min-[390px]:inline">Columns</span>
           </Button>
-          <Button size="sm" onClick={onAdd} className="gap-1 rounded-full shadow-sm text-[11px] h-8 px-3">
-            <Plus className="w-3.5 h-3.5" /> Add Row
+          <Button size="sm" onClick={onAdd} className="gap-1 rounded-lg md:rounded-full shadow-sm text-[11px] h-8 px-2.5 md:px-3">
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden min-[390px]:inline">Add Row</span>
+            <span className="min-[390px]:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -269,11 +272,11 @@ export function ItemsTable({
       )}
 
       {/* Cards List */}
-      <div className="space-y-3">
+      <div className="space-y-2.5 md:space-y-3">
         {items.map((item, index) => (
           <div
             key={item.id}
-            className="p-4 rounded-xl border bg-white/75 backdrop-blur-sm shadow-sm space-y-3 relative group hover:border-primary/20 transition-all duration-200"
+            className="p-3 md:p-4 rounded-xl border bg-white/75 backdrop-blur-sm shadow-sm space-y-2.5 md:space-y-3 relative group hover:border-primary/20 transition-all duration-200"
           >
             {/* Float row controls on hover */}
             <div className="absolute top-3 right-3 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -323,7 +326,7 @@ export function ItemsTable({
                 value={item.itemName || ""}
                 list="marine-parts-list"
                 onChange={e => onUpdate(item.id, { itemName: e.target.value })}
-                className="h-8 text-xs text-muted-foreground"
+                className="h-9 md:h-8 text-xs text-muted-foreground"
               />
             )}
 
@@ -332,7 +335,7 @@ export function ItemsTable({
               {visibleColumns
                 .filter(col => col.key !== "sno" && col.key !== "itemName" && col.key !== "total" && col.key !== "unit")
                 .map(col => (
-                  <div key={col.id} className="space-y-0.5">
+                  <div key={col.id} className="space-y-0.5 min-w-0">
                     <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
                       {col.label}
                     </label>
@@ -357,7 +360,7 @@ export function ItemsTable({
 
               {/* Unit dropdown — special handling */}
               {visibleColumns.some(c => c.key === "unit") && (
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 min-w-0">
                   <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground pl-1">
                     Unit
                   </label>

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, CloudOff, LogIn, LogOut, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { TableColumn, Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { calculateSubtotal, calculateDiscountAmount, calculateGrandTotal } from "@/utils/calculations";
@@ -40,96 +40,77 @@ export default function Home() {
 
   useEffect(() => { setIsClient(true); }, []);
 
-    const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "$";
+  const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "$";
 
-  const renderSyncStatus = () => {
+  const syncBadge = useMemo(() => {
     switch (syncStatus) {
       case "syncing":
         return (
           <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-amber-700 bg-amber-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-amber-200/50 shadow-sm animate-pulse shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-            <Loader2 className="w-2.5 h-2.5 animate-spin shrink-0 text-amber-600" /> 
-            Syncing Draft
+            <Loader2 className="w-2.5 h-2.5 animate-spin shrink-0 text-amber-600" />
+            <span className="hidden min-[390px]:inline">Syncing Draft</span>
+            <span className="min-[390px]:hidden">Sync</span>
           </span>
         );
-      case "synced":
-        return null;
       case "error":
         return (
           <span className="flex items-center gap-1.5 text-[9.5px] font-bold text-rose-700 bg-rose-50/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-rose-200/50 shadow-sm shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-            <CloudOff className="w-2.5 h-2.5 text-rose-600 shrink-0" /> 
-            Draft Offline
+            <CloudOff className="w-2.5 h-2.5 text-rose-600 shrink-0" />
+            <span className="hidden min-[390px]:inline">Draft Offline</span>
+            <span className="min-[390px]:hidden">Offline</span>
           </span>
         );
       case "local":
-      default:
         return (
           <Link href="/register" className="flex items-center gap-1.5 text-[9.5px] font-bold text-indigo-700 bg-indigo-50/80 hover:bg-indigo-100/90 backdrop-blur-sm px-2.5 py-1 rounded-full border border-indigo-200/50 shadow-sm transition-all shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
-            <Sparkles className="w-2.5 h-2.5 text-indigo-500 shrink-0" /> 
-            Saved Locally
+            <Sparkles className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
+            <span className="hidden min-[390px]:inline">Saved Locally</span>
+            <span className="min-[390px]:hidden">Local</span>
           </Link>
         );
+      default:
+        return null;
     }
-  };
+  }, [syncStatus]);
 
-  // Handlers
-  const handleUpdateDocInfo = (updates: any) => dispatch({ type: "SET_DOCUMENT_INFO", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateCompany = (updates: any) => dispatch({ type: "SET_COMPANY", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateClient = (updates: any) => dispatch({ type: "SET_CLIENT", payload: updates }); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateTerms = (terms: string) => dispatch({ type: "SET_TERMS", payload: terms });
-  const handleUpdateIntroText = (text: string) => dispatch({ type: "SET_INTRO_TEXT", payload: text });
+  // Handlers — all wrapped in useCallback for stable references
+  const handleUpdateDocInfo  = useCallback((updates: any) => dispatch({ type: "SET_DOCUMENT_INFO", payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const handleUpdateCompany  = useCallback((updates: any) => dispatch({ type: "SET_COMPANY",        payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const handleUpdateClient   = useCallback((updates: any) => dispatch({ type: "SET_CLIENT",         payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const handleUpdateTerms    = useCallback((terms: string) => dispatch({ type: "SET_TERMS",         payload: terms  }), [dispatch]);
+  const handleUpdateIntroText = useCallback((text: string) => dispatch({ type: "SET_INTRO_TEXT",    payload: text   }), [dispatch]);
+  const handleDeleteItem     = useCallback((id: string)   => dispatch({ type: "DELETE_ITEM",        payload: id     }), [dispatch]);
+  const handleDuplicateItem  = useCallback((id: string)   => dispatch({ type: "DUPLICATE_ITEM",     payload: id     }), [dispatch]);
+  const handleAddColumn      = useCallback((col: TableColumn) => dispatch({ type: "ADD_COLUMN",     payload: col    }), [dispatch]);
+  const handleDeleteColumn   = useCallback((id: string)   => dispatch({ type: "DELETE_COLUMN",      payload: id     }), [dispatch]);
 
-  const handleAddItem = () => {
+  const handleAddItem = useCallback(() => {
     dispatch({
       type: "ADD_ITEM",
-      payload: {
-        id: Date.now().toString(),
-        itemName: "",
-        description: "",
-        partNumber: "",
-        quantity: 1,
-        unit: "pcs",
-        condition: "",
-        unitPrice: 0,
-      },
+      payload: { id: Date.now().toString(), itemName: "", description: "", partNumber: "", quantity: 1, unit: "pcs", condition: "", unitPrice: 0 },
     });
-  };
+  }, [dispatch]);
 
-  const handleUpdateItem = (id: string, updates: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const handleUpdateItem = useCallback((id: string, updates: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     dispatch({ type: "UPDATE_ITEM", payload: { id, updates } });
-  };
+  }, [dispatch]);
 
-  const handleDeleteItem = (id: string) => {
-    dispatch({ type: "DELETE_ITEM", payload: id });
-  };
-
-  const handleDuplicateItem = (id: string) => {
-    dispatch({ type: "DUPLICATE_ITEM", payload: id });
-  };
-
-  const handleReorderItem = (id: string, direction: "up" | "down") => {
+  const handleReorderItem = useCallback((id: string, direction: "up" | "down") => {
     dispatch({ type: "REORDER_ITEM", payload: { id, direction } });
-  };
+  }, [dispatch]);
 
-  const handleAddColumn = (col: TableColumn) => {
-    dispatch({ type: "ADD_COLUMN", payload: col });
-  };
-
-  const handleDeleteColumn = (id: string) => {
-    dispatch({ type: "DELETE_COLUMN", payload: id });
-  };
-
-  const handleUpdateColumn = (id: string, updates: Partial<TableColumn>) => {
+  const handleUpdateColumn = useCallback((id: string, updates: Partial<TableColumn>) => {
     dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } });
-  };
+  }, [dispatch]);
 
-  const handleNewQuotation = () => {
+  const handleNewQuotation = useCallback(() => {
     if (window.confirm("Start a new quotation? Your current draft will be replaced (company profile is kept).")) {
       dispatch({ type: "NEW_QUOTATION" });
     }
-  };
+  }, [dispatch]);
 
   const handleDownloadPDF = useCallback(async () => {
     setIsDownloading(true);
@@ -142,22 +123,21 @@ export default function Home() {
     }
   }, [state]);
 
-  // Grand total calculations
-  const discountAmount = calculateDiscountAmount(subtotal, state.discount, state.discountType);
-  const grandTotal = calculateGrandTotal(subtotal, state.discount, state.discountType, state.taxPercent, state.shippingCharge);
+  // Grand total calculations — memoized
+  const discountAmount = useMemo(() => calculateDiscountAmount(subtotal, state.discount, state.discountType), [subtotal, state.discount, state.discountType]);
+  const grandTotal = useMemo(() => calculateGrandTotal(subtotal, state.discount, state.discountType, state.taxPercent, state.shippingCharge), [subtotal, state.discount, state.discountType, state.taxPercent, state.shippingCharge]);
 
-  // Build visible tabs based on builderConfig
-  const allTabs = [
+  // Visible tabs — memoized
+  const visibleTabs = useMemo(() => [
     { id: "document", label: "Document", icon: FileText, visible: true },
-    { id: "client", label: "Client", icon: Users, visible: state.builderConfig.showClientInfo },
-    { id: "parts", label: "Parts", icon: LayoutGrid, visible: state.builderConfig.showTable },
-  ];
-  const visibleTabs = allTabs.filter(t => t.visible);
+    { id: "client",   label: "Client",   icon: Users,    visible: state.builderConfig.showClientInfo },
+    { id: "parts",    label: "Parts",    icon: LayoutGrid, visible: state.builderConfig.showTable },
+  ].filter(t => t.visible), [state.builderConfig.showClientInfo, state.builderConfig.showTable]);
 
-  // Totals section component — reused in both mobile & desktop
-  const TotalsSection = () => (
-    <div className="space-y-3 p-4 rounded-xl border bg-white/90 backdrop-blur-sm shadow-sm hover:border-primary/10 transition-all duration-200">
-      <div className="flex items-center justify-between border-b pb-2 mb-3">
+  // Totals section — memoized pure component to avoid re-render on unrelated state changes
+  const TotalsSection = useMemo(() => (
+    <div className="space-y-2.5 md:space-y-3 p-3 md:p-4 rounded-xl border bg-white/90 backdrop-blur-sm shadow-sm hover:border-primary/10 transition-all duration-200">
+      <div className="flex items-center justify-between border-b pb-2 mb-2 md:mb-3">
         <div className="flex items-center gap-2">
           <Calculator className="w-4 h-4 text-primary" />
           <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-700">Financial Summary</p>
@@ -167,7 +147,7 @@ export default function Home() {
       
       {/* Currency */}
       <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-20 shrink-0 text-slate-600">Currency</Label>
+        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Currency</Label>
         <Select value={state.currency} onValueChange={(v) => dispatch({ type: "SET_CURRENCY", payload: v as Currency })}>
           <SelectTrigger className="h-8 text-xs flex-1 font-medium bg-slate-50/50">
             <SelectValue />
@@ -182,17 +162,17 @@ export default function Home() {
 
       {/* Discount */}
       <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-20 shrink-0 text-slate-600">Discount</Label>
+        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Discount</Label>
         <Input
           type="number"
           min={0}
           value={state.discount || ""}
           onChange={e => dispatch({ type: "SET_DISCOUNT", payload: { amount: parseFloat(e.target.value) || 0, type: state.discountType } })}
-          className="h-8 text-xs text-right flex-1 bg-slate-50/50"
+          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
           placeholder="0"
         />
         <Select value={state.discountType} onValueChange={(v) => dispatch({ type: "SET_DISCOUNT", payload: { amount: state.discount, type: v as "flat" | "percent" } })}>
-          <SelectTrigger className="h-8 text-xs w-20 bg-slate-50/50">
+          <SelectTrigger className="h-8 text-xs w-16 md:w-20 bg-slate-50/50">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -204,35 +184,35 @@ export default function Home() {
 
       {/* Tax */}
       <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-20 shrink-0 text-slate-600">Tax %</Label>
+        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Tax %</Label>
         <Input
           type="number"
           min={0}
           max={100}
           value={state.taxPercent || ""}
           onChange={e => dispatch({ type: "SET_TAX_PERCENT", payload: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-xs text-right flex-1 bg-slate-50/50"
+          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
           placeholder="0"
         />
-        <span className="text-[11px] text-muted-foreground w-20 text-center font-bold">%</span>
+        <span className="text-[11px] text-muted-foreground w-16 md:w-20 text-center font-bold">%</span>
       </div>
 
       {/* Shipping */}
       <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-20 shrink-0 text-slate-600">Shipping</Label>
+        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Shipping</Label>
         <Input
           type="number"
           min={0}
           value={state.shippingCharge || ""}
           onChange={e => dispatch({ type: "SET_SHIPPING", payload: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-xs text-right flex-1 bg-slate-50/50"
+          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
           placeholder="0"
         />
-        <span className="text-[11px] text-muted-foreground w-20 text-center font-bold">{currencySymbol}</span>
+        <span className="text-[11px] text-muted-foreground w-16 md:w-20 text-center font-bold">{currencySymbol}</span>
       </div>
 
       {/* Structured Billing Calculations */}
-      <div className="mt-4 pt-3.5 border-t border-slate-100/80 space-y-2 text-xs">
+      <div className="mt-3 md:mt-4 pt-3 border-t border-slate-100/80 space-y-1.5 md:space-y-2 text-xs">
         <div className="flex justify-between text-slate-500 font-semibold">
           <span>Subtotal</span>
           <span className="font-mono">{currencySymbol}{subtotal.toFixed(2)}</span>
@@ -255,32 +235,32 @@ export default function Home() {
             <span className="font-mono">{currencySymbol}{state.shippingCharge.toFixed(2)}</span>
           </div>
         )}
-        <div className="flex justify-between text-slate-800 font-black text-sm pt-2.5 border-t border-dashed border-slate-200">
+        <div className="flex justify-between text-slate-800 font-black text-sm pt-2 border-t border-dashed border-slate-200">
           <span>Grand Total</span>
           <span className="font-mono text-primary text-base">{currencySymbol}{grandTotal.toFixed(2)}</span>
         </div>
       </div>
     </div>
-  );
+  ), [currencySymbol, state.discount, state.discountType, state.taxPercent, state.shippingCharge, subtotal, discountAmount, grandTotal, dispatch]);
 
   return (
-    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-16 md:pb-0">
+    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-14 md:pb-0">
 
       {/* ===== MOBILE: Builder View ===== */}
       {activeTab === "builder" && (
         <div className="flex flex-col h-full w-full md:hidden">
           {/* Mobile Builder Header */}
-          <div className="p-3 border-b bg-white flex justify-between items-center z-20 shrink-0">
-            <div className="flex items-center gap-2">
-              <h1 className="font-bold text-base">RFQ Builder</h1>
-              {isClient && renderSyncStatus()}
+          <div className="px-3 py-2 border-b bg-white flex justify-between items-center z-20 shrink-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <h1 className="font-bold text-sm shrink-0">RFQ Builder</h1>
+              {isClient && syncBadge}
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleNewQuotation}
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-lg"
                 title="New Quotation"
               >
                 <FilePlus className="w-4 h-4" />
@@ -290,14 +270,14 @@ export default function Home() {
                 size="icon"
                 disabled={state.items.length === 0 || isDownloading}
                 onClick={handleDownloadPDF}
-                className="h-8 w-8"
+                className="h-8 w-8 rounded-lg"
               >
                 {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               </Button>
               <Button
                 size="sm"
                 onClick={() => setActiveTab("preview")}
-                className="text-xs h-8 gap-1.5"
+                className="text-[11px] h-8 gap-1 px-2.5 rounded-lg"
               >
                 <Eye className="w-3.5 h-3.5" />
                 Preview
@@ -306,14 +286,14 @@ export default function Home() {
           </div>
 
           {/* Mobile Builder Content */}
-          <ScrollArea className="flex-1 px-4 py-5">
+          <ScrollArea className="flex-1 px-3 py-3">
             <Tabs defaultValue="document" className="w-full">
-              <TabsList className="grid mb-5 h-11 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
+              <TabsList className="grid mb-3 h-10 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
                 {visibleTabs.map(tab => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-[11px] gap-1"
+                    className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-[11px] gap-1 px-1"
                   >
                     <tab.icon className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{tab.label}</span>
@@ -321,12 +301,12 @@ export default function Home() {
                 ))}
               </TabsList>
 
-              <TabsContent value="document" className="space-y-5 outline-none">
+              <TabsContent value="document" className="space-y-4 outline-none">
                 <DocumentInfoForm data={state.documentInfo} onUpdate={handleUpdateDocInfo} showMachineInfo={state.builderConfig.showMachineInfo} />
                 <div className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Intro Text</p>
                   <textarea
-                    className="w-full h-20 p-3 text-xs border rounded-lg focus:ring-1 focus:ring-primary outline-none resize-none bg-white"
+                    className="w-full h-[72px] p-2.5 text-xs border rounded-lg focus:ring-1 focus:ring-primary outline-none resize-none bg-white"
                     value={state.introText}
                     onChange={(e) => handleUpdateIntroText(e.target.value)}
                     placeholder="Introductory text for the RFQ..."
@@ -335,13 +315,13 @@ export default function Home() {
               </TabsContent>
 
               {state.builderConfig.showClientInfo && (
-                <TabsContent value="client" className="space-y-5 outline-none">
+                <TabsContent value="client" className="space-y-4 outline-none">
                   <PersonnelSection company={state.company} client={state.client} onUpdateCompany={handleUpdateCompany} onUpdateClient={handleUpdateClient} hideCompany={true} title="Customer Details" />
                 </TabsContent>
               )}
 
               {state.builderConfig.showTable && (
-                <TabsContent value="parts" className="space-y-5 outline-none">
+                <TabsContent value="parts" className="space-y-4 outline-none">
                   <ItemsTable
                     items={state.items}
                     tableColumns={state.tableColumns}
@@ -356,7 +336,7 @@ export default function Home() {
                     onImportItems={(items) => dispatch({ type: "SET_ITEMS", payload: items })}
                     currencySymbol={currencySymbol}
                   />
-                  <TotalsSection />
+                  {TotalsSection}
                 </TabsContent>
               )}
 
@@ -371,12 +351,12 @@ export default function Home() {
       {activeTab === "preview" && (
         <div className="flex flex-col h-full w-full md:hidden">
           {/* Preview Header with Back + Download */}
-          <div className="p-3 border-b bg-white flex justify-between items-center z-20 shrink-0">
+          <div className="px-3 py-2 border-b bg-white flex justify-between items-center z-20 shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setActiveTab("builder")}
-              className="text-xs h-8 gap-1 -ml-1"
+              className="text-xs h-8 gap-1 -ml-1 rounded-lg"
             >
               <ArrowLeft className="w-4 h-4" />
               Builder
@@ -412,7 +392,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isClient && renderSyncStatus()}
+            {isClient && syncBadge}
             <Button
               variant="outline"
               size="sm"
@@ -476,7 +456,7 @@ export default function Home() {
                   onImportItems={(items) => dispatch({ type: "SET_ITEMS", payload: items })}
                   currencySymbol={currencySymbol}
                 />
-                <TotalsSection />
+                {TotalsSection}
               </TabsContent>
             )}
 

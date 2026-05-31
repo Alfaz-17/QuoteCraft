@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { findUserById, updateUserPassword } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -11,27 +11,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id;
+    const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!userId) {
       return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
     }
 
     const { oldPassword, newPassword } = await req.json();
-
     if (!oldPassword || !newPassword) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Find the user in Prisma DB
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
+    const user = await findUserById(userId);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return NextResponse.json({ error: "Incorrect old password" }, { status: 400 });
@@ -41,14 +35,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "New password must be at least 6 characters long" }, { status: 400 });
     }
 
-    // Hash the new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-
-    // Update password in Prisma DB
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedNewPassword }
-    });
+    await updateUserPassword(userId, hashedNewPassword);
 
     return NextResponse.json({ message: "Password updated successfully" });
   } catch (error: any) {

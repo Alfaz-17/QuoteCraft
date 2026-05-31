@@ -1,6 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, useEffect, useMemo, useState, useCallback, useRef } from "react";
+import React, {
+  createContext, useContext, useReducer, useEffect,
+  useMemo, useState, useRef, useCallback,
+} from "react";
 import { useSession } from "next-auth/react";
 import { quotationReducer, initialState, QuotationAction } from "./quotationReducer";
 import { QuotationState } from "../types/quotation.types";
@@ -19,169 +22,208 @@ interface QuotationContextType {
 
 const QuotationContext = createContext<QuotationContextType | null>(null);
 
-const STORAGE_KEY = "quoteDraft";
-const COMPANY_KEY = "companyProfile";
+const STORAGE_KEY  = "quoteDraft";
+const COMPANY_KEY  = "companyProfile";
 const BRANDING_KEY = "brandingProfile";
-const TERMS_KEY = "defaultTerms";
+const TERMS_KEY    = "defaultTerms";
+
+// ── Debounce helper ────────────────────────────────────────────────────────
+function useDebouncedCallback<T extends unknown[]>(
+  fn: (...args: T) => void,
+  delay: number,
+) {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  return useCallback(
+    (...args: T) => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => fn(...args), delay);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fn, delay],
+  );
+}
 
 export function QuotationProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(quotationReducer, initialState);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isSaved, setIsSaved] = useState(true);
+  const [state, dispatch]     = useReducer(quotationReducer, initialState);
+  const [isHydrated, setIsHydrated]   = useState(false);
+  const [isSaved, setIsSaved]         = useState(true);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>("local");
-  
+  const [syncStatus, setSyncStatus]   = useState<SyncStatus>("local");
+
   const { data: session, status: sessionStatus } = useSession();
 
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cloudSyncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const profileLoadedRef = useRef(false);
 
-  // Load from localStorage on mount — BEFORE any saves happen
+  // ── 1. Hydrate from localStorage (once) ───────────────────────────────────
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved        = localStorage.getItem(STORAGE_KEY);
       const savedCompany = localStorage.getItem(COMPANY_KEY);
       const savedBranding = localStorage.getItem(BRANDING_KEY);
-      const savedTerms = localStorage.getItem(TERMS_KEY);
+      const savedTerms   = localStorage.getItem(TERMS_KEY);
 
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Merge in persisted company/branding/terms if they exist separately
-        if (savedCompany) {
-          parsed.company = { ...parsed.company, ...JSON.parse(savedCompany) };
-        }
-        if (savedBranding) {
-          parsed.branding = { ...parsed.branding, ...JSON.parse(savedBranding) };
-        }
-        if (savedTerms) {
-          parsed.terms = savedTerms;
-        }
+        if (savedCompany)  parsed.company  = { ...parsed.company,  ...JSON.parse(savedCompany) };
+        if (savedBranding) parsed.branding = { ...parsed.branding, ...JSON.parse(savedBranding) };
+        if (savedTerms)    parsed.terms    = savedTerms;
         dispatch({ type: "RESET", payload: parsed });
-      } else {
-        // No saved quote — but maybe company/branding/terms were saved from settings
-        if (savedCompany || savedBranding || savedTerms) {
-          const updates: Partial<QuotationState> = {};
-          if (savedCompany) updates.company = JSON.parse(savedCompany);
-          if (savedBranding) updates.branding = JSON.parse(savedBranding);
-          if (savedTerms) updates.terms = savedTerms;
-          dispatch({ type: "RESET", payload: { ...initialState, ...updates } as QuotationState });
-        }
+      } else if (savedCompany || savedBranding || savedTerms) {
+        const updates: Partial<QuotationState> = {};
+        if (savedCompany)  updates.company  = JSON.parse(savedCompany);
+        if (savedBranding) updates.branding = JSON.parse(savedBranding);
+        if (savedTerms)    updates.terms    = savedTerms;
+        dispatch({ type: "RESET", payload: { ...initialState, ...updates } as QuotationState });
       }
     } catch (e) {
       console.error("Failed to load saved state", e);
     }
-    // Mark hydration complete — now saves are allowed
     setIsHydrated(true);
   }, []);
 
-  // 1. Debounced save to localStorage — ONLY after hydration
+  // ── 2. Load profile from DB on login (once per session) ───────────────────
   useEffect(() => {
-    if (!isHydrated) return; // Don't save until we've loaded
+    if (sessionStatus !== "authenticated" || !session || !isHydrated) return;
+    if (profileLoadedRef.current) return;
 
-    setIsSaved(false);
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
+    let cancelled = false;
+    (async () => {
       try {
-        // 1. Try to save full draft. Fallback to saving without logo if quota is exceeded.
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-          if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
-            console.warn("Storage quota exceeded for draft. Saving without logo...");
-            const stateWithoutLogo = { ...state, branding: { ...state.branding, logo: null } };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateWithoutLogo));
-          } else {
-            throw e;
-          }
-        }
+        const res = await fetch("/api/user/profile");
+        if (!res.ok || cancelled) return;
+        const { profile } = await res.json();
+        if (!profile || cancelled) return;
 
-        // 2. Try to save company profile separately
-        try {
-          localStorage.setItem(COMPANY_KEY, JSON.stringify(state.company));
-        } catch (e) {
-          console.error("Failed to save company profile locally", e);
-        }
-
-        // 3. Try to save branding separately. Fallback to saving without logo if quota is exceeded.
-        try {
-          localStorage.setItem(BRANDING_KEY, JSON.stringify(state.branding));
-        } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-          if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
-            console.warn("Storage quota exceeded for branding. Saving without logo...");
-            const brandingWithoutLogo = { ...state.branding, logo: null };
-            localStorage.setItem(BRANDING_KEY, JSON.stringify(brandingWithoutLogo));
-          } else {
-            console.error("Failed to save branding profile locally", e);
-          }
-        }
-
-        // 4. Try to save default terms
-        if (state.terms) {
-          try {
-            localStorage.setItem(TERMS_KEY, state.terms);
-          } catch (e) {
-            console.error("Failed to save default terms locally", e);
-          }
-        }
-
-        setIsSaved(true);
-        setLastSavedAt(new Date());
+        dispatch({
+          type: "RESET",
+          payload: {
+            ...state,
+            company:      profile.company      ?? state.company,
+            branding:     { ...(profile.branding ?? {}), logo: state.branding.logo },
+            terms:        profile.terms         ?? state.terms,
+            tableColumns: profile.tableColumns?.length ? profile.tableColumns : state.tableColumns,
+            builderConfig: profile.builderConfig ?? state.builderConfig,
+          } as QuotationState,
+        });
+        profileLoadedRef.current = true;
       } catch (e) {
-        console.error("Failed to save state locally", e);
+        console.error("Failed to load user profile from DB", e);
       }
-    }, 500); // 500ms local debounce
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus, session, isHydrated]);
 
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
+  // ── 3. Debounced localStorage save ────────────────────────────────────────
+  const saveLocal = useCallback((s: QuotationState) => {
+    try {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+      } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...s, branding: { ...s.branding, logo: null } }));
+        } else throw e;
       }
-    };
-  }, [state, isHydrated]);
+      try { localStorage.setItem(COMPANY_KEY, JSON.stringify(s.company)); } catch {}
+      try {
+        localStorage.setItem(BRANDING_KEY, JSON.stringify(s.branding));
+      } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+          localStorage.setItem(BRANDING_KEY, JSON.stringify({ ...s.branding, logo: null }));
+        }
+      }
+      if (s.terms) { try { localStorage.setItem(TERMS_KEY, s.terms); } catch {} }
+      setIsSaved(true);
+      setLastSavedAt(new Date());
+    } catch (e) {
+      console.error("Failed to save state locally", e);
+    }
+  }, []);
 
-  // 2. Debounced save to PostgreSQL Cloud — ONLY if logged in
+  const debouncedSaveLocal = useDebouncedCallback(saveLocal, 600);
+
   useEffect(() => {
     if (!isHydrated) return;
+    setIsSaved(false);
+    debouncedSaveLocal(state);
+  }, [state, isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (sessionStatus !== "authenticated" || !session) {
-      setSyncStatus("local");
-      return;
+  // ── 4. Debounced cloud sync — quotation document ───────────────────────────
+  const syncQuotation = useCallback(async (s: QuotationState) => {
+    try {
+      setSyncStatus("syncing");
+      const res = await fetch("/api/quotation/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(s),
+      });
+      setSyncStatus(res.ok ? "synced" : "error");
+    } catch {
+      setSyncStatus("error");
     }
+  }, []);
 
-    setSyncStatus("syncing");
+  const debouncedSyncQuotation = useDebouncedCallback(syncQuotation, 2000);
 
-    if (cloudSyncTimeoutRef.current) {
-      clearTimeout(cloudSyncTimeoutRef.current);
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (sessionStatus !== "authenticated" || !session) { setSyncStatus("local"); return; }
+    debouncedSyncQuotation(state);
+  }, [state, isHydrated, sessionStatus, session]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 5. Debounced cloud sync — settings/profile only ───────────────────────
+  // Stable identity derived values so the effect only fires when SETTINGS change,
+  // not when items / documentInfo / client etc. change.
+  const companyRef     = useRef(state.company);
+  const brandingRef    = useRef(state.branding);
+  const termsRef       = useRef(state.terms);
+  const tableColsRef   = useRef(state.tableColumns);
+  const builderCfgRef  = useRef(state.builderConfig);
+
+  const profileChanged =
+    state.company      !== companyRef.current    ||
+    state.branding     !== brandingRef.current   ||
+    state.terms        !== termsRef.current      ||
+    state.tableColumns !== tableColsRef.current  ||
+    state.builderConfig !== builderCfgRef.current;
+
+  const syncProfile = useCallback(async (s: QuotationState) => {
+    try {
+      await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company:      s.company,
+          branding:     s.branding,
+          terms:        s.terms,
+          tableColumns: s.tableColumns,
+          builderConfig: s.builderConfig,
+        }),
+      });
+    } catch (e) {
+      console.error("Profile sync error:", e);
     }
+  }, []);
 
-    cloudSyncTimeoutRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch("/api/quotation/save", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(state),
-        });
+  const debouncedSyncProfile = useDebouncedCallback(syncProfile, 3000);
 
-        if (!res.ok) {
-          throw new Error("Cloud save failed");
-        }
+  useEffect(() => {
+    companyRef.current    = state.company;
+    brandingRef.current   = state.branding;
+    termsRef.current      = state.terms;
+    tableColsRef.current  = state.tableColumns;
+    builderCfgRef.current = state.builderConfig;
 
-        setSyncStatus("synced");
-      } catch (error) {
-        console.error("Cloud autosave error:", error);
-        setSyncStatus("error");
-      }
-    }, 1500); // 1.5s debounce for cloud database to prevent performance lags
+    if (!isHydrated || !profileLoadedRef.current) return;
+    if (sessionStatus !== "authenticated" || !session) return;
+    if (!profileChanged) return;
 
-    return () => {
-      if (cloudSyncTimeoutRef.current) {
-        clearTimeout(cloudSyncTimeoutRef.current);
-      }
-    };
-  }, [state, isHydrated, sessionStatus, session]);
+    debouncedSyncProfile(state);
+  }, [ // eslint-disable-line react-hooks/exhaustive-deps
+    state.company, state.branding, state.terms,
+    state.tableColumns, state.builderConfig,
+    isHydrated, sessionStatus, session,
+  ]);
 
   const subtotal = useMemo(() => calculateSubtotal(state.items), [state.items]);
 
@@ -193,9 +235,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useQuotationState = () => {
-  const context = useContext(QuotationContext);
-  if (!context) {
-    throw new Error("useQuotationState must be used within a QuotationProvider");
-  }
-  return context;
+  const ctx = useContext(QuotationContext);
+  if (!ctx) throw new Error("useQuotationState must be used within a QuotationProvider");
+  return ctx;
 };

@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
+import { findUserByEmail } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
@@ -22,18 +22,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing phone number or email");
         }
 
-        // Find user by phone/email stored in unique email field
-        const user = await prisma.user.findUnique({
-          where: { email: identifier }
-        });
+        const user = await findUserByEmail(identifier);
 
         if (!user) {
           throw new Error("No user found with this phone number or email");
         }
 
-        // Compare password hashes
         const isValid = await bcrypt.compare(credentials.password, user.password);
-
         if (!isValid) {
           throw new Error("Invalid password");
         }
@@ -65,7 +60,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days secure session
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -25,5 +25,14 @@
     "geminiApiKey": null,
     "createdAt": "2026-05-30T12:22:40.609Z",
     "updatedAt": "2026-05-30T12:22:40.609Z"
+  },
+  {
+    "id": "ruknm2ae2h9numkhn510wi",
+    "name": "Alfaz Bilakhiya",
+    "email": "8160989597",
+    "password": "$2b$12$i0nw446xBkI31nEqcfb7UeldY5SxJQxaQYMZb8xSzwxh1mRs41peu",
+    "geminiApiKey": null,
+    "createdAt": "2026-05-31T06:14:01.492Z",
+    "updatedAt": "2026-05-31T06:14:01.492Z"
   }
 ]

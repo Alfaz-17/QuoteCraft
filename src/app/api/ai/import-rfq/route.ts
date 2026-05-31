@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { findUserApiKey } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
@@ -11,23 +11,16 @@ export async function POST(req: NextRequest) {
 
     // 1. If user is logged in, try to fetch their custom Gemini API Key from database
     if (session?.user) {
-      const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const userId = (session.user as any).id;
       if (userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { geminiApiKey: true }
-        });
-        if (user?.geminiApiKey) {
-          userApiKey = user.geminiApiKey;
-        }
+        userApiKey = (await findUserApiKey(userId)) ?? "";
       }
     }
 
-    // 2. Use user key or fall back to system global key
-    const apiKey = userApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
+    const apiKey = userApiKey;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Gemini API Key is not configured. Please go to Settings (AI Integration Settings) to paste a valid API key, or make sure you are signed in." },
+        { error: "Gemini API Key not configured. Please add your key in Settings." },
         { status: 400 }
       );
     }

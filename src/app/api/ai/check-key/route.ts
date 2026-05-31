@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { findUserApiKey } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,20 +12,12 @@ export async function GET(req: NextRequest) {
     if (session?.user) {
       const userId = (session.user as any).id;
       if (userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { geminiApiKey: true }
-        });
-        if (user?.geminiApiKey) {
-          hasUserKey = true;
-        }
+        const key = await findUserApiKey(userId);
+        if (key) hasUserKey = true;
       }
     }
 
-    // 2. Check if global system key exists in environment
-    const hasSystemKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY);
-
-    return NextResponse.json({ hasKey: hasUserKey || hasSystemKey });
+    return NextResponse.json({ hasKey: hasUserKey });
   } catch (error) {
     return NextResponse.json({ hasKey: false });
   }

@@ -1,20 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+// IMPORTANT: No API key is stored in environment variables.
+// Each user stores their own Gemini API key in the database via Settings.
+// All AI functions must receive the key from the server-side session/DB call.
+// This file runs server-side ONLY (API routes). Never import in client components.
 
-export const aiModel = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-});
-
-export async function analyzeLogoColors(imageBase64: string, customApiKey?: string) {
-  const apiKey = customApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
+function getAiClient(apiKey: string) {
   if (!apiKey) {
-    throw new Error("Gemini API Key is not configured.");
+    throw new Error("Gemini API Key is not configured. Please add your API key in Settings.");
   }
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-  });
+  return new GoogleGenerativeAI(apiKey);
+}
+
+export async function analyzeLogoColors(imageBase64: string, apiKey: string) {
+  const genAI = getAiClient(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `
     Analyze this company logo image carefully and extract the EXACT dominant colors visible in the logo.
@@ -35,7 +35,7 @@ export async function analyzeLogoColors(imageBase64: string, customApiKey?: stri
     {
       inlineData: {
         data: imageBase64.split(",")[1] || imageBase64,
-        mimeType: "image/png", // Adjust if needed
+        mimeType: "image/png",
       },
     },
   ]);
@@ -48,7 +48,10 @@ export async function analyzeLogoColors(imageBase64: string, customApiKey?: stri
   throw new Error("Could not extract colors from logo. Output format is invalid.");
 }
 
-export async function polishItemDescription(description: string) {
+export async function polishItemDescription(description: string, apiKey: string) {
+  const genAI = getAiClient(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
   const prompt = `
     You are a marine spare parts expert.
     Polish the following item description to sound professional and technically accurate for a marine RFQ.
@@ -62,7 +65,7 @@ export async function polishItemDescription(description: string) {
   `;
 
   try {
-    const result = await aiModel.generateContent(prompt);
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text().trim();
   } catch (error) {
@@ -71,7 +74,10 @@ export async function polishItemDescription(description: string) {
   }
 }
 
-export async function generateCommercialTerms(items: string) {
+export async function generateCommercialTerms(items: string, apiKey: string) {
+  const genAI = getAiClient(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
   const prompt = `
     You are a senior marine supply manager.
     Based on these items: [${items}], generate 5 professional commercial terms.
@@ -87,7 +93,7 @@ export async function generateCommercialTerms(items: string) {
   `;
 
   try {
-    const result = await aiModel.generateContent(prompt);
+    const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text().trim();
   } catch (error) {

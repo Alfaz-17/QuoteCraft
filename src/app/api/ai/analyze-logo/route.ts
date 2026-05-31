@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { findUserApiKey } from "@/lib/prisma";
 import { analyzeLogoColors } from "@/lib/ai-service";
 
 export async function POST(req: NextRequest) {
@@ -11,15 +11,9 @@ export async function POST(req: NextRequest) {
 
     // 1. If user is logged in, try to fetch their custom Gemini API Key from database
     if (session?.user) {
-      const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
+      const userId = (session.user as any).id;
       if (userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { geminiApiKey: true }
-        });
-        if (user?.geminiApiKey) {
-          userApiKey = user.geminiApiKey;
-        }
+        userApiKey = (await findUserApiKey(userId)) ?? "";
       }
     }
 
@@ -28,10 +22,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    const apiKey = userApiKey || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
+    const apiKey = userApiKey;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Gemini API Key is not configured. Please supply a key in Settings." },
+        { error: "Gemini API Key not configured. Please add your key in Settings." },
         { status: 400 }
       );
     }

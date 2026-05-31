@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  findQuotationByUserAndNumber,
+  createQuotation,
+  updateQuotation,
+} from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,72 +26,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing document number" }, { status: 400 });
     }
 
-    // Find if a quotation with this number and userId already exists
-    const existing = await prisma.quotation.findFirst({
-      where: {
-        userId,
-        number: documentInfo.number,
-      }
-    });
+    const existing = await findQuotationByUserAndNumber(userId, documentInfo.number);
 
-    let quotation;
+    const payload = {
+      type: documentInfo.type || "quotation",
+      date: documentInfo.date || "",
+      validUntil: documentInfo.validUntil || "",
+      vessel: documentInfo.vessel || "",
+      reference: documentInfo.reference || "",
+      scope: documentInfo.scope || "",
+      make: documentInfo.make || "",
+      model: documentInfo.model || "",
+      introText: introText || "",
+      company: company || {},
+      client: client || {},
+      items: items || [],
+      terms: terms || "",
+      currency: currency || "USD",
+      discount: parseFloat(discount) || 0,
+      discountType: discountType || "flat",
+      taxPercent: parseFloat(taxPercent) || 0,
+      shippingCharge: parseFloat(shippingCharge) || 0,
+    };
+
+    let quotationId: string;
     if (existing) {
-      // Update existing
-      quotation = await prisma.quotation.update({
-        where: { id: existing.id },
-        data: {
-          type: documentInfo.type || "quotation",
-          date: documentInfo.date || "",
-          validUntil: documentInfo.validUntil || "",
-          vessel: documentInfo.vessel || "",
-          reference: documentInfo.reference || "",
-          scope: documentInfo.scope || "",
-          make: documentInfo.make || "",
-          model: documentInfo.model || "",
-          introText: introText || "",
-          company: company || {},
-          client: client || {},
-          items: items || [],
-          terms: terms || "",
-          currency: currency || "USD",
-          discount: parseFloat(discount) || 0,
-          discountType: discountType || "flat",
-          taxPercent: parseFloat(taxPercent) || 0,
-          shippingCharge: parseFloat(shippingCharge) || 0,
-        }
-      });
+      await updateQuotation(existing.id, payload);
+      quotationId = existing.id;
     } else {
-      // Create new
-      quotation = await prisma.quotation.create({
-        data: {
-          userId,
-          number: documentInfo.number,
-          type: documentInfo.type || "quotation",
-          date: documentInfo.date || "",
-          validUntil: documentInfo.validUntil || "",
-          vessel: documentInfo.vessel || "",
-          reference: documentInfo.reference || "",
-          scope: documentInfo.scope || "",
-          make: documentInfo.make || "",
-          model: documentInfo.model || "",
-          introText: introText || "",
-          company: company || {},
-          client: client || {},
-          items: items || [],
-          terms: terms || "",
-          currency: currency || "USD",
-          discount: parseFloat(discount) || 0,
-          discountType: discountType || "flat",
-          taxPercent: parseFloat(taxPercent) || 0,
-          shippingCharge: parseFloat(shippingCharge) || 0,
-        }
-      });
+      const created = await createQuotation({ userId, number: documentInfo.number, ...payload });
+      quotationId = created.id;
     }
 
-    return NextResponse.json({
-      message: "Sync successful",
-      quotationId: quotation.id,
-    });
+    return NextResponse.json({ message: "Sync successful", quotationId });
   } catch (error) {
     console.error("Save Quotation Error:", error);
     return NextResponse.json({ error: "Failed to save quotation to cloud" }, { status: 500 });
