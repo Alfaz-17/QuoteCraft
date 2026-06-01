@@ -82,8 +82,8 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       if (dimensions.width > 0 && dimensions.height > 0) {
         headerImg = dimensions.img;
         const aspectRatio = dimensions.width / dimensions.height;
-        const maxWidth = 50;  // Professional logo width limit
-        const maxHeight = 20; // Professional logo height limit
+        const maxWidth = 45;  // Neat logo width limit
+        const maxHeight = 14; // Neat logo height limit to align with text
         
         logoW = maxWidth;
         logoH = maxWidth / aspectRatio;
@@ -113,13 +113,14 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     }
   }
 
-  // Draw Supplier Company Name under the Logo
+  // Draw Supplier Company Name next to the Logo
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(rgb[0], rgb[1], rgb[2]);
   
-  const companyNameX = 15;
-  const companyNameY = hasLogo ? 10 + logoH + 6 : 17;
+  const companyNameX = hasLogo ? 15 + logoW + 5 : 15;
+  // Align Company Name to the same Y-baseline as the Document Title (16)
+  const companyNameY = 16;
   doc.text((data.company.name || "OUR COMPANY").toUpperCase(), companyNameX, companyNameY);
   
   // Under Company Name, show website if exists
@@ -137,12 +138,12 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   doc.setFontSize(12);
   doc.setTextColor(rgb[0], rgb[1], rgb[2]);
   const title = getTitle().toUpperCase();
-  doc.text(title, 195, 14, { align: "right" });
+  doc.text(title, 195, 16, { align: "right" });
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.setTextColor(55, 65, 81); // text-gray-700
-  doc.text(data.documentInfo.number, 195, 19, { align: "right" });
+  doc.text(data.documentInfo.number, 195, 21, { align: "right" });
 
   doc.setFontSize(8);
   // Date Row
@@ -151,10 +152,11 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   doc.setTextColor(107, 114, 128); // text-gray-500
   const dateLabel = "DATE: ";
   const dateValW = doc.getTextWidth(dateVal);
-  doc.text(dateVal, 195, 23.5, { align: "right" });
+  doc.text(dateVal, 195, 25.5, { align: "right" });
   doc.setFont("helvetica", "bold");
-  doc.text(dateLabel, 195 - dateValW, 23.5, { align: "right" });
+  doc.text(dateLabel, 195 - dateValW, 25.5, { align: "right" });
   
+  let docInfoY = 29.5;
   if (data.documentInfo.validUntil) {
     const validVal = data.documentInfo.validUntil;
     doc.setFont("helvetica", "normal");
@@ -167,7 +169,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   }
 
   // Set currentY below this premium top header block
-  let currentY = Math.max(websiteY, 29) + 6;
+  let currentY = Math.max(10 + logoH, websiteY, 29) + 6;
 
   // Draw Divider Line
   doc.setDrawColor(220, 220, 220);
