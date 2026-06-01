@@ -117,8 +117,14 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
 
         const ctx = canvas.getContext("2d");
         if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.85)); // compress as JPEG with 85% quality
+          const isJpeg = base64Str.startsWith("data:image/jpeg") || base64Str.startsWith("data:image/jpg");
+          if (isJpeg) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/png"));
+          }
         } else {
           resolve(base64Str);
         }

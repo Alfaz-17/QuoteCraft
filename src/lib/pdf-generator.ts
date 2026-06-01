@@ -3,18 +3,18 @@ import autoTable from "jspdf-autotable";
 import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
 
-const getImageDimensions = (base64: string): Promise<{ width: number; height: number }> => {
+const getImageDimensions = (base64: string): Promise<{ width: number; height: number; img: HTMLImageElement | null }> => {
   return new Promise((resolve) => {
     if (typeof window === "undefined") {
-      resolve({ width: 0, height: 0 });
+      resolve({ width: 0, height: 0, img: null });
       return;
     }
     const img = new Image();
     img.onload = () => {
-      resolve({ width: img.width, height: img.height });
+      resolve({ width: img.width, height: img.height, img });
     };
     img.onerror = () => {
-      resolve({ width: 0, height: 0 });
+      resolve({ width: 0, height: 0, img: null });
     };
     img.src = base64;
   });
@@ -74,14 +74,16 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   let logoH = 0;
   let logoW = 0;
   let hasLogo = false;
+  let headerImg: HTMLImageElement | null = null;
 
   if (data.branding.logo) {
     try {
       const dimensions = await getImageDimensions(data.branding.logo);
       if (dimensions.width > 0 && dimensions.height > 0) {
+        headerImg = dimensions.img;
         const aspectRatio = dimensions.width / dimensions.height;
-        const maxWidth = 35;  // Compact logo width
-        const maxHeight = 15; // Compact logo height
+        const maxWidth = 50;  // Professional logo width limit
+        const maxHeight = 20; // Professional logo height limit
         
         logoW = maxWidth;
         logoH = maxWidth / aspectRatio;
@@ -91,7 +93,19 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
           logoW = maxHeight * aspectRatio;
         }
         
-        doc.addImage(data.branding.logo, "PNG", 15, 10, logoW, logoH, undefined, "FAST");
+        let imgFormat = "PNG";
+        if (data.branding.logo.startsWith("data:image/")) {
+          const match = data.branding.logo.match(/^data:image\/([a-zA-Z0-9]+);/);
+          if (match && match[1]) {
+            imgFormat = match[1].toUpperCase();
+            if (imgFormat === "PNG" || imgFormat === "JPEG" || imgFormat === "WEBP") {
+              // Valid formats for jsPDF
+            }
+          }
+        }
+        
+        // Pass base64 string directly to preserve alpha channel natively in jsPDF
+        doc.addImage(data.branding.logo, imgFormat, 15, 10, logoW, logoH);
         hasLogo = true;
       }
     } catch (e) {
@@ -99,21 +113,23 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     }
   }
 
-  // Draw Supplier Company Name next to the Logo
+  // Draw Supplier Company Name under the Logo
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(rgb[0], rgb[1], rgb[2]);
   
-  const companyNameX = hasLogo ? 15 + logoW + 4 : 15;
-  const companyNameY = hasLogo ? (10 + (logoH / 2) - 1.5) : 17;
+  const companyNameX = 15;
+  const companyNameY = hasLogo ? 10 + logoH + 6 : 17;
   doc.text((data.company.name || "OUR COMPANY").toUpperCase(), companyNameX, companyNameY);
   
   // Under Company Name, show website if exists
+  let websiteY = companyNameY;
   if (data.company.website) {
+    websiteY += 4.5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(156, 163, 175); // text-gray-400
-    doc.text(data.company.website.toLowerCase(), companyNameX, companyNameY + 4.5);
+    doc.text(data.company.website.toLowerCase(), companyNameX, websiteY);
   }
 
   // Draw Document Details on Top-Right (aligned right)
@@ -151,7 +167,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   }
 
   // Set currentY below this premium top header block
-  let currentY = Math.max(10 + logoH, 29) + 4;
+  let currentY = Math.max(websiteY, 29) + 6;
 
   // Draw Divider Line
   doc.setDrawColor(220, 220, 220);
@@ -325,7 +341,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       textColor: [55, 65, 81], // text-gray-700
     },
     alternateRowStyles: { fillColor: [255, 255, 255] },
-    margin: { left: 15, right: 15 },
+    margin: { left: 15, right: 15, bottom: 25 },
   });
 
   let finalY = (doc as any).lastAutoTable.finalY + 5; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -436,17 +452,19 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   let footerLogoH = 8;
   let footerLogoW = 18;
   let hasFooterLogo = false;
+  let footerImg: HTMLImageElement | null = null;
 
   if (data.branding.logo) {
     try {
       const dimensions = await getImageDimensions(data.branding.logo);
       if (dimensions.width > 0 && dimensions.height > 0) {
+        footerImg = dimensions.img;
         const aspectRatio = dimensions.width / dimensions.height;
-        footerLogoH = 8; // Match h-8 (approx 8mm height)
-        footerLogoW = 8 * aspectRatio;
-        if (footerLogoW > 40) {
-          footerLogoW = 40;
-          footerLogoH = 40 / aspectRatio;
+        footerLogoH = 16; // Match h-16
+        footerLogoW = 16 * aspectRatio;
+        if (footerLogoW > 80) {
+          footerLogoW = 80;
+          footerLogoH = 80 / aspectRatio;
         }
         hasFooterLogo = true;
       }
@@ -463,7 +481,19 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
 
   if (hasFooterLogo && data.branding.logo) {
     try {
-      doc.addImage(data.branding.logo, "PNG", 15, contentY + 5, footerLogoW, footerLogoH, undefined, "FAST");
+      let imgFormat = "PNG";
+      if (data.branding.logo.startsWith("data:image/")) {
+        const match = data.branding.logo.match(/^data:image\/([a-zA-Z0-9]+);/);
+        if (match && match[1]) {
+          imgFormat = match[1].toUpperCase();
+          if (imgFormat === "PNG" || imgFormat === "JPEG" || imgFormat === "WEBP") {
+            // Valid format
+          } else {
+            imgFormat = "PNG"; // Fallback
+          }
+          }
+        }
+      doc.addImage(data.branding.logo, imgFormat, 15, contentY + 5, footerLogoW, footerLogoH);
     } catch (e) { /* ignore */ }
   } else if (data.company.name) {
     doc.setFontSize(9.5);
@@ -482,25 +512,28 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     const lineB = Math.round(rgb[2] + (255 - rgb[2]) * 0.7);
     doc.setDrawColor(lineR, lineG, lineB);
     doc.setLineWidth(0.4);
-    doc.line(15, 281, 195, 281);
+    doc.line(15, 276, 195, 276);
     
     // Footer Details
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(107, 114, 128); // text-gray-500
     
+    let footerY = 280;
     if (data.company.address) {
-      doc.text(data.company.address.toUpperCase(), 15, 285);
+      const splitAddress = doc.splitTextToSize(data.company.address.toUpperCase(), 140);
+      doc.text(splitAddress, 15, footerY);
+      footerY += splitAddress.length * 3.5;
     }
     const contactParts = [data.company.email, data.company.phone].filter(Boolean);
     if (contactParts.length > 0) {
-      doc.text(contactParts.join(" | ").toUpperCase(), 15, 289);
+      doc.text(contactParts.join(" | ").toUpperCase(), 15, footerY);
     }
     const website = data.company.website || (data.company.email ? `www.${data.company.email.split("@")[1] || "example.com"}` : "");
     if (website) {
-      doc.text(`WEBSITE: ${website.toUpperCase()}`, 195, 285, { align: "right" });
+      doc.text(`WEBSITE: ${website.toUpperCase()}`, 195, 280, { align: "right" });
     }
-    doc.text(`PAGE ${i} OF ${pageCount}`, 195, 289, { align: "right" });
+    doc.text(`PAGE ${i} OF ${pageCount}`, 195, 284, { align: "right" });
   }
 
   const filename = `${data.documentInfo.number || "RFQ"}_${data.documentInfo.date || "doc"}.pdf`;
