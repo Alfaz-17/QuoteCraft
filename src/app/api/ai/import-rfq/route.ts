@@ -3,35 +3,65 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { findUserApiKey } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-parser";
 
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     let userApiKey = "";
 
-    // 1. If user is logged in, try to fetch their custom Gemini API Key from database
     if (session?.user) {
-      const userId = (session.user as any).id;
+      const userId = (session.user as { id?: string }).id;
       if (userId) {
         userApiKey = (await findUserApiKey(userId)) ?? "";
       }
     }
 
-    const apiKey = userApiKey;
-    if (!apiKey) {
+    // 1. Parse input payload
+    const { fileData, fileName, mimeType, rawText } = await req.json();
+
+    // Prevent handling excessively large files
+    if (fileData && fileData.length > 10 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "Gemini API Key not configured. Please add your key in Settings." },
+        { error: "The uploaded file exceeds 8MB. Please upload a smaller file, or copy-paste the raw RFQ text directly." },
         { status: 400 }
       );
     }
 
-    // 3. Parse input
-    const { fileData, fileName, mimeType, rawText } = await req.json();
+    const isExcel =
+      mimeType === XLSX_MIME ||
+      /\.(xlsx|xls)$/i.test(fileName || "");
 
-    // Prevent handling extremely large files to protect server performance
-    if (fileData && fileData.length > 5.5 * 1024 * 1024) {
+    // 2. LAYER A: DETERMINISTIC EXCEL EXTRACTION (Zero LLM cost, instant, 100% deterministic)
+    if (fileData && isExcel) {
+      try {
+        const base64Data = fileData.split(",")[1] || fileData;
+        const buffer = Buffer.from(base64Data, "base64");
+        const deterministicResult = await parseExcelDeterministically(buffer);
+
+        if (deterministicResult && deterministicResult.rows.length > 0) {
+          return NextResponse.json({
+            columns: deterministicResult.columns,
+            rows: deterministicResult.rows,
+            method: "deterministic_excel",
+            durationMs: deterministicResult.durationMs,
+            uncertainCount: deterministicResult.uncertainCount,
+            sheetName: deterministicResult.sheetName,
+          });
+        }
+      } catch (detErr) {
+        console.warn("Deterministic Excel parse skipped to fallback:", detErr);
+      }
+    }
+
+    // 3. LAYER B: AI FALLBACK (Requires Gemini API Key)
+    const apiKey = userApiKey;
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "The uploaded file exceeds 4MB. Please upload a smaller file, or copy-paste the raw RFQ text directly." },
+        {
+          error:
+            "This document requires AI document intelligence. Please configure your Gemini API Key in Settings.",
+        },
         { status: 400 }
       );
     }
@@ -39,26 +69,48 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 32000 },
     });
 
     const systemPrompt = `
-      You are an expert B2B marine procurement and estimation AI.
-      Your task is to analyze the provided document/text and extract all line items accurately.
-      
-      For each item, extract the following:
-      - itemName (string): A short clean title of the item (e.g. Cylinder Liner Seals, Exhaust Valve, Fuel Injector Spares).
-      - description (string): Extra specifications, measurements, sizes, drawing references or technical description.
-      - partNumber (string): The manufacturer part number or drawing reference if visible, otherwise "".
-      - quantity (number): The quantity requested, defaulting to 1 if not found.
-      - unit (string): The unit of measurement (e.g. pcs, sets, kg, ltrs, mtrs, nos, lot). Default to "pcs".
-      - condition (string): The required condition if specified (e.g. New Genuine, OEM, Reconditioned), otherwise "".
-      - unitPrice (number): The price per unit if visible, otherwise 0.
+      You are an expert B2B marine and industrial procurement assistant.
+      The input is a buyer's RFQ (PDF, image, spreadsheet text or pasted text).
+      Reproduce the buyer's OWN table structure so a supplier can price it.
 
-      Format the output as a strict, valid JSON array of objects. Do NOT include any markdown formatting like \`\`\`json or explanation text. Return only the raw JSON string.
+      1. Detect the item table and list its columns in the SAME order and with the SAME header
+         wording as the document (e.g. "Maker", "Drawing No.", "Remarks", "Delivery Port").
+         Give each column a short key: "c1", "c2", ...
+      2. Classify each column with a "kind":
+         serial (Sr/S.No/#), name (short item title), description (specs, size, long text),
+         partNumber (part no / drawing no / article no / IMPA / ISSA code), qty (quantity requested),
+         unit (UOM), price (rate / unit price - only if the buyer provided a column for it),
+         total (line amount), number (any other numeric column), text (any other column).
+         Use each kind at most once, except "text" and "number".
+      3. Return every item row as an object keyed by those column keys. Keep values exactly as written.
+         Use "" when a cell is empty. Do NOT invent prices, part numbers or quantities.
+      4. Ignore header blocks, vessel details, notes and footers - only the item table.
+         If section/sub-heading rows appear inside the table, skip them.
+
+      Return ONLY JSON in this shape:
+      {"columns":[{"key":"c1","label":"Sr No","kind":"serial"}],"rows":[{"c1":"1"}]}
     `;
 
+    const startTime = Date.now();
     let result;
-    if (fileData && mimeType) {
+    const isCsv = mimeType === "text/csv" || /\.csv$/i.test(fileName || "");
+
+    if (fileData && isExcel) {
+      const base64Data = fileData.split(",")[1] || fileData;
+      const sheetText = await xlsxToText(Buffer.from(base64Data, "base64"));
+      if (!sheetText.trim()) {
+        return NextResponse.json({ error: "The Excel file looks empty." }, { status: 400 });
+      }
+      result = await model.generateContent(`${systemPrompt}\n\nInput RFQ spreadsheet (first number on each line is the Excel row):\n${sheetText}`);
+    } else if (fileData && isCsv) {
+      const base64Data = fileData.split(",")[1] || fileData;
+      const csvText = Buffer.from(base64Data, "base64").toString("utf-8");
+      result = await model.generateContent(`${systemPrompt}\n\nInput RFQ (CSV):\n${csvText}`);
+    } else if (fileData && mimeType) {
       // Multimodal import (file)
       const base64Data = fileData.split(",")[1] || fileData;
       result = await model.generateContent([
@@ -66,9 +118,9 @@ export async function POST(req: NextRequest) {
         {
           inlineData: {
             data: base64Data,
-            mimeType: mimeType
-          }
-        }
+            mimeType: mimeType,
+          },
+        },
       ]);
     } else if (rawText) {
       // Text paste import
@@ -78,7 +130,7 @@ export async function POST(req: NextRequest) {
     }
 
     const responseText = await result.response.text();
-    
+
     // Clean potential markdown wrapped blocks
     let cleanedJson = responseText.trim();
     if (cleanedJson.startsWith("```")) {
@@ -86,23 +138,28 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const parsedItems = JSON.parse(cleanedJson);
-      if (!Array.isArray(parsedItems)) {
-        throw new Error("AI did not return a valid array");
+      const parsed = JSON.parse(cleanedJson);
+      if (!parsed || !Array.isArray(parsed.columns) || !Array.isArray(parsed.rows)) {
+        throw new Error("AI did not return columns and rows");
       }
-      return NextResponse.json({ items: parsedItems });
-    } catch (e) {
+      return NextResponse.json({
+        columns: parsed.columns,
+        rows: parsed.rows,
+        method: "ai_fallback",
+        durationMs: Date.now() - startTime,
+      });
+    } catch {
       console.error("AI returned malformed JSON:", responseText);
       return NextResponse.json(
-        { error: "AI failed to extract line items in a structured format. The document may be low quality. Please try copy-pasting the raw text." },
+        { error: "AI failed to extract line items in a structured format. Please try copy-pasting the raw text." },
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Import RFQ Error:", error);
-    
-    const errMsg = error?.message || String(error);
-    let friendlyMessage = "An unexpected error occurred during AI analysis. Please try again.";
+
+    const errMsg = (error as Error)?.message || String(error);
+    let friendlyMessage = "An unexpected error occurred during document analysis. Please try again.";
 
     if (
       errMsg.includes("API key not valid") || 
@@ -110,14 +167,14 @@ export async function POST(req: NextRequest) {
       errMsg.includes("key is invalid") ||
       errMsg.includes("invalid key")
     ) {
-      friendlyMessage = "Your Gemini API Key is invalid or expired. Please check your key in Settings and ensure it is correct.";
+      friendlyMessage = "Your Gemini API Key is invalid or expired. Please check your key in Settings.";
     } else if (
       errMsg.includes("quota") || 
       errMsg.includes("quota exceeded") || 
       errMsg.includes("RESOURCE_EXHAUSTED") || 
       errMsg.includes("429")
     ) {
-      friendlyMessage = "Gemini AI API rate limit or quota exceeded. Please wait a minute before trying again.";
+      friendlyMessage = "Gemini AI API rate limit exceeded. Please wait a minute before trying again.";
     } else if (
       errMsg.includes("fetch failed") || 
       errMsg.includes("network") || 
@@ -125,27 +182,7 @@ export async function POST(req: NextRequest) {
       errMsg.includes("connect") ||
       errMsg.includes("offline")
     ) {
-      friendlyMessage = "Network error: Unable to connect to Gemini API. Please check your internet connection and try again.";
-    } else if (
-      errMsg.includes("SAFETY") || 
-      errMsg.includes("blocked") || 
-      errMsg.includes("safety filters") ||
-      errMsg.includes("candidate")
-    ) {
-      friendlyMessage = "The document was blocked by Gemini safety filters. Please verify that the content contains standard marine RFQ text and try again.";
-    } else if (
-      errMsg.includes("model not found") || 
-      errMsg.includes("404") || 
-      errMsg.includes("not found")
-    ) {
-      friendlyMessage = "The requested AI model (gemini-2.5-flash) is currently unavailable or deprecated. Please contact support.";
-    } else if (
-      errMsg.includes("too large") || 
-      errMsg.includes("payload") || 
-      errMsg.includes("413") ||
-      errMsg.includes("exceeds")
-    ) {
-      friendlyMessage = "The uploaded file is too large. Please upload files under 4MB, or copy-paste the text directly.";
+      friendlyMessage = "Network error: Unable to connect to Gemini API. Please check your connection.";
     }
 
     return NextResponse.json({ error: friendlyMessage }, { status: 500 });
