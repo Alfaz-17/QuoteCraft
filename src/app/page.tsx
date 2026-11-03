@@ -1,499 +1,324 @@
 "use client";
 
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useQuotationState } from "@/hooks/useQuotationState";
-import { DocumentInfoForm } from "@/components/builder/DocumentInfoForm";
-import { PersonnelSection } from "@/components/builder/PersonnelSection";
-import { ItemsTable } from "@/components/builder/ItemsTable";
-import { TermsSection } from "@/components/builder/TermsSection";
-import { PreviewContainer } from "@/components/preview/PreviewContainer";
+import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
+import { Step1Upload } from "@/components/flow/Step1Upload";
+import { Step2CheckItems } from "@/components/flow/Step2CheckItems";
+import { Step3AddPrices } from "@/components/flow/Step3AddPrices";
+import { Step4SendQuote } from "@/components/flow/Step4SendQuote";
+import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileText, Users, LayoutGrid, ScrollText, ArrowLeft, Eye, FilePlus, Check, Loader2, DollarSign, Calculator, Cloud, LogIn, LogOut, AlertTriangle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { generateProfessionalPDF } from "@/lib/pdf-generator";
-import { TableColumn, Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
-import { calculateSubtotal, calculateDiscountAmount, calculateGrandTotal } from "@/utils/calculations";
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
-
-
-const CURRENCIES: { value: Currency; label: string }[] = [
-  { value: "USD", label: "$ USD" },
-  { value: "EUR", label: "€ EUR" },
-  { value: "GBP", label: "£ GBP" },
-  { value: "AED", label: "AED" },
-  { value: "INR", label: "₹ INR" },
-  { value: "SGD", label: "S$ SGD" },
-  { value: "JPY", label: "¥ JPY" },
-];
+import { 
+  Building2, RotateCcw, FilePlus, Check, Loader2, Anchor 
+} from "lucide-react";
+import { LineItem, TableColumn, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import { calculateSubtotal, calculateGrandTotal } from "@/utils/calculations";
+import { useToast } from "@/components/ui/Toast";
 
 export default function Home() {
-  const { state, dispatch, subtotal, isSaved, lastSavedAt, syncStatus } = useQuotationState();
-  const { data: session } = useSession();
+  const { state, dispatch, isSaved, subtotal } = useQuotationState();
+  const { success: toastSuccess, info: toastInfo } = useToast();
+
+  const [currentStep, setCurrentStep] = useState<FlowStep>(1);
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [activeTab, setActiveTab] = useState<"builder" | "preview">("builder");
-  const [isDownloading, setIsDownloading] = useState(false);
 
-  useEffect(() => { setIsClient(true); }, []);
+  // Undo history stack (Principle 7: Forgive mistakes, Undo available)
+  const undoStack = useRef<LineItem[][]>([]);
 
-  const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "$";
+  useEffect(() => {
+    setIsClient(true);
+    // If draft already has items, start at Step 3 (Prices) or Step 2 (Check items)
+    if (state.items.length > 0 && state.items.some(i => i.itemName || i.partNumber)) {
+      const hasAnyPrice = state.items.some(i => (i.unitPrice && i.unitPrice > 0));
+      setCurrentStep(hasAnyPrice ? 3 : 2);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-
-
-  // Handlers — all wrapped in useCallback for stable references
-  const handleUpdateDocInfo  = useCallback((updates: any) => dispatch({ type: "SET_DOCUMENT_INFO", payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateCompany  = useCallback((updates: any) => dispatch({ type: "SET_COMPANY",        payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateClient   = useCallback((updates: any) => dispatch({ type: "SET_CLIENT",         payload: updates }), [dispatch]); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const handleUpdateTerms    = useCallback((terms: string) => dispatch({ type: "SET_TERMS",         payload: terms  }), [dispatch]);
-  const handleUpdateIntroText = useCallback((text: string) => dispatch({ type: "SET_INTRO_TEXT",    payload: text   }), [dispatch]);
-  const handleDeleteItem     = useCallback((id: string)   => dispatch({ type: "DELETE_ITEM",        payload: id     }), [dispatch]);
-  const handleDuplicateItem  = useCallback((id: string)   => dispatch({ type: "DUPLICATE_ITEM",     payload: id     }), [dispatch]);
-  const handleAddColumn      = useCallback((col: TableColumn) => dispatch({ type: "ADD_COLUMN",     payload: col    }), [dispatch]);
-  const handleDeleteColumn   = useCallback((id: string)   => dispatch({ type: "DELETE_COLUMN",      payload: id     }), [dispatch]);
-
-  const handleAddItem = useCallback(() => {
-    dispatch({
-      type: "ADD_ITEM",
-      payload: { id: Date.now().toString(), itemName: "", description: "", partNumber: "", quantity: 1, unit: "pcs", condition: "", unitPrice: 0 },
-    });
-  }, [dispatch]);
-
-  const handleUpdateItem = useCallback((id: string, updates: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-    dispatch({ type: "UPDATE_ITEM", payload: { id, updates } });
-  }, [dispatch]);
-
-  const handleReorderItem = useCallback((id: string, direction: "up" | "down") => {
-    dispatch({ type: "REORDER_ITEM", payload: { id, direction } });
-  }, [dispatch]);
-
-  const handleUpdateColumn = useCallback((id: string, updates: Partial<TableColumn>) => {
-    dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } });
-  }, [dispatch]);
-
-  const [showNewQuoteConfirm, setShowNewQuoteConfirm] = useState(false);
-
-  const handleNewQuotation = useCallback(() => {
-    setShowNewQuoteConfirm(true);
+  // Push previous items state before updating
+  const pushUndo = useCallback((itemsToSave: LineItem[]) => {
+    undoStack.current = [
+      itemsToSave.map(item => ({ ...item })),
+      ...undoStack.current.slice(0, 20),
+    ];
   }, []);
 
-  const confirmNewQuotation = useCallback(() => {
-    dispatch({ type: "NEW_QUOTATION" });
-    setShowNewQuoteConfirm(false);
-  }, [dispatch]);
+  // Global Ctrl+Z handler for undo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") {
+          e.preventDefault();
+          handleUndo();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDownloadPDF = useCallback(async () => {
-    setIsDownloading(true);
-    try {
-      // Small delay to show loading state
-      await new Promise(r => setTimeout(r, 100));
-      await generateProfessionalPDF(state);
-    } finally {
-      setTimeout(() => setIsDownloading(false), 1000);
+  const handleUndo = useCallback(() => {
+    if (undoStack.current.length === 0) {
+      toastInfo("Nothing to undo.");
+      return;
     }
-  }, [state]);
+    const previous = undoStack.current[0];
+    undoStack.current = undoStack.current.slice(1);
+    dispatch({ type: "SET_ITEMS", payload: previous });
+    toastSuccess("Action undone!");
+  }, [dispatch, toastInfo, toastSuccess]);
 
-  // Grand total calculations — memoized
-  const discountAmount = useMemo(() => calculateDiscountAmount(subtotal, state.discount, state.discountType), [subtotal, state.discount, state.discountType]);
-  const grandTotal = useMemo(() => calculateGrandTotal(subtotal, state.discount, state.discountType, state.taxPercent, state.shippingCharge), [subtotal, state.discount, state.discountType, state.taxPercent, state.shippingCharge]);
+  // Handlers for state updates
+  const handleUpdateItem = useCallback((id: string, updates: Partial<LineItem>) => {
+    pushUndo(state.items);
+    dispatch({ type: "UPDATE_ITEM", payload: { id, updates } });
+  }, [dispatch, state.items, pushUndo]);
 
-  // Visible tabs — memoized
-  const visibleTabs = useMemo(() => [
-    { id: "document", label: "Document", icon: FileText, visible: true },
-    { id: "client",   label: "Client",   icon: Users,    visible: state.builderConfig.showClientInfo },
-    { id: "parts",    label: "Parts",    icon: LayoutGrid, visible: state.builderConfig.showTable },
-  ].filter(t => t.visible), [state.builderConfig.showClientInfo, state.builderConfig.showTable]);
+  const handleBatchUpdatePrices = useCallback((updates: { id: string; price: number }[]) => {
+    pushUndo(state.items);
+    const updateMap = new Map(updates.map(u => [u.id, u.price]));
+    const nextItems = state.items.map(item => {
+      if (updateMap.has(item.id)) {
+        return { ...item, unitPrice: updateMap.get(item.id)! };
+      }
+      return item;
+    });
+    dispatch({ type: "SET_ITEMS", payload: nextItems });
+  }, [dispatch, state.items, pushUndo]);
 
-  // Totals section — memoized pure component to avoid re-render on unrelated state changes
-  const TotalsSection = useMemo(() => (
-    <div className="space-y-2.5 md:space-y-3 p-3 md:p-4 rounded-xl border bg-white/90 backdrop-blur-sm shadow-sm hover:border-primary/10 transition-all duration-200">
-      <div className="flex items-center justify-between border-b pb-2 mb-2 md:mb-3">
-        <div className="flex items-center gap-2">
-          <Calculator className="w-4 h-4 text-primary" />
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-700">Financial Summary</p>
-        </div>
-        <span className="text-[9px] font-black uppercase text-primary/70 bg-primary/5 px-2 py-0.5 rounded-full">Estimates</span>
-      </div>
-      
-      {/* Currency */}
-      <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Currency</Label>
-        <Select value={state.currency} onValueChange={(v) => dispatch({ type: "SET_CURRENCY", payload: v as Currency })}>
-          <SelectTrigger className="h-8 text-xs flex-1 font-medium bg-slate-50/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {CURRENCIES.map(c => (
-              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+  const handleDeleteItem = useCallback((id: string) => {
+    pushUndo(state.items);
+    dispatch({ type: "DELETE_ITEM", payload: id });
+  }, [dispatch, state.items, pushUndo]);
 
-      {/* Discount */}
-      <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Discount</Label>
-        <Input
-          type="number"
-          min={0}
-          value={state.discount || ""}
-          onChange={e => dispatch({ type: "SET_DISCOUNT", payload: { amount: parseFloat(e.target.value) || 0, type: state.discountType } })}
-          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
-          placeholder="0"
-        />
-        <Select value={state.discountType} onValueChange={(v) => dispatch({ type: "SET_DISCOUNT", payload: { amount: state.discount, type: v as "flat" | "percent" } })}>
-          <SelectTrigger className="h-8 text-xs w-16 md:w-20 bg-slate-50/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="flat">{currencySymbol}</SelectItem>
-            <SelectItem value="percent">%</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+  const handleAddItem = useCallback(() => {
+    pushUndo(state.items);
+    dispatch({
+      type: "ADD_ITEM",
+      payload: {
+        id: Date.now().toString(),
+        itemName: "",
+        description: "",
+        partNumber: "",
+        quantity: 1,
+        unit: "pcs",
+        condition: "",
+        unitPrice: 0,
+      },
+    });
+  }, [dispatch, state.items, pushUndo]);
 
-      {/* Tax */}
-      <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Tax %</Label>
-        <Input
-          type="number"
-          min={0}
-          max={100}
-          value={state.taxPercent || ""}
-          onChange={e => dispatch({ type: "SET_TAX_PERCENT", payload: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
-          placeholder="0"
-        />
-        <span className="text-[11px] text-muted-foreground w-16 md:w-20 text-center font-bold">%</span>
-      </div>
+  const handleDuplicateItem = useCallback((id: string) => {
+    pushUndo(state.items);
+    dispatch({ type: "DUPLICATE_ITEM", payload: id });
+  }, [dispatch, state.items, pushUndo]);
 
-      {/* Shipping */}
-      <div className="flex items-center gap-2">
-        <Label className="text-[10px] font-bold uppercase tracking-tight w-16 md:w-20 shrink-0 text-slate-600">Shipping</Label>
-        <Input
-          type="number"
-          min={0}
-          value={state.shippingCharge || ""}
-          onChange={e => dispatch({ type: "SET_SHIPPING", payload: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-xs text-right min-w-0 flex-1 bg-slate-50/50"
-          placeholder="0"
-        />
-        <span className="text-[11px] text-muted-foreground w-16 md:w-20 text-center font-bold">{currencySymbol}</span>
-      </div>
+  const handleReorderItem = useCallback((id: string, direction: "up" | "down") => {
+    pushUndo(state.items);
+    dispatch({ type: "REORDER_ITEM", payload: { id, direction } });
+  }, [dispatch, state.items, pushUndo]);
 
-      {/* Structured Billing Calculations */}
-      <div className="mt-3 md:mt-4 pt-3 border-t border-slate-100/80 space-y-1.5 md:space-y-2 text-xs">
-        <div className="flex justify-between text-slate-500 font-semibold">
-          <span>Subtotal</span>
-          <span className="font-mono">{currencySymbol}{subtotal.toFixed(2)}</span>
-        </div>
-        {state.discount > 0 && (
-          <div className="flex justify-between text-rose-600 font-semibold bg-rose-50/50 px-2 py-0.5 rounded">
-            <span>Discount ({state.discountType === "percent" ? `${state.discount}%` : "flat"})</span>
-            <span className="font-mono">-{currencySymbol}{discountAmount.toFixed(2)}</span>
-          </div>
-        )}
-        {state.taxPercent > 0 && (
-          <div className="flex justify-between text-slate-500 font-semibold">
-            <span>Tax ({state.taxPercent}%)</span>
-            <span className="font-mono">{currencySymbol}{((subtotal - discountAmount) * state.taxPercent / 100).toFixed(2)}</span>
-          </div>
-        )}
-        {state.shippingCharge > 0 && (
-          <div className="flex justify-between text-slate-500 font-semibold">
-            <span>Shipping & Handling</span>
-            <span className="font-mono">{currencySymbol}{state.shippingCharge.toFixed(2)}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-slate-800 font-black text-sm pt-2 border-t border-dashed border-slate-200">
-          <span>Grand Total</span>
-          <span className="font-mono text-primary text-base">{currencySymbol}{grandTotal.toFixed(2)}</span>
-        </div>
-      </div>
-    </div>
-  ), [currencySymbol, state.discount, state.discountType, state.taxPercent, state.shippingCharge, subtotal, discountAmount, grandTotal, dispatch]);
+  const handleImportComplete = useCallback((items: LineItem[], columns: TableColumn[]) => {
+    pushUndo(state.items);
+    dispatch({ type: "IMPORT_RFQ", payload: { items, columns } });
+    setCurrentStep(2);
+  }, [dispatch, state.items, pushUndo]);
+
+  const handleSkipUpload = useCallback(() => {
+    if (state.items.length === 0) {
+      handleAddItem();
+    }
+    setCurrentStep(2);
+  }, [state.items.length, handleAddItem]);
+
+  const handleNewQuote = useCallback(() => {
+    pushUndo(state.items);
+    dispatch({ type: "NEW_QUOTATION" });
+    setCurrentStep(1);
+    toastSuccess("Started a new quote! Company details were kept.");
+  }, [dispatch, state.items, pushUndo, toastSuccess]);
+
+  // Grand total calculation for the top bar (Principle 5)
+  const grandTotal = calculateGrandTotal(
+    subtotal,
+    state.discount,
+    state.discountType,
+    state.taxPercent,
+    state.shippingCharge
+  );
+  const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "₹";
 
   return (
-    <main className="flex h-screen bg-background overflow-hidden flex-col md:flex-row pb-20 md:pb-0">
-
-      {/* ===== MOBILE: Builder View ===== */}
-      {activeTab === "builder" && (
-        <div className="flex flex-col h-full w-full md:hidden">
-          {/* Mobile Builder Header */}
-          <div className="px-3 py-2 border-b bg-white flex justify-between items-center z-20 shrink-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="font-bold text-sm shrink-0">RFQ Builder</h1>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNewQuotation}
-                className="h-8 w-8 rounded-lg"
-                title="New Quotation"
-              >
-                <FilePlus className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={state.items.length === 0 || isDownloading}
-                onClick={handleDownloadPDF}
-                className="h-8 w-8 rounded-lg"
-              >
-                {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setActiveTab("preview")}
-                className="text-[11px] h-8 gap-1 px-2.5 rounded-lg"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                Preview
-              </Button>
-            </div>
+    <main className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-900 selection:bg-primary/10 selection:text-primary">
+      {/* ===== NATIVE APP TOOLBAR ===== */}
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/70 px-3 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
+        {/* Brand & Document Info */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
+            <Anchor className="w-4 h-4" />
           </div>
-
-          {/* Mobile Builder Content */}
-          <ScrollArea className="flex-1 px-3 py-3">
-            <Tabs defaultValue="document" className="w-full">
-              <TabsList className="grid mb-3 h-10 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
-                {visibleTabs.map(tab => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-[11px] gap-1 px-1"
-                  >
-                    <tab.icon className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">{tab.label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="document" className="space-y-4 outline-none">
-                <DocumentInfoForm data={state.documentInfo} onUpdate={handleUpdateDocInfo} showMachineInfo={state.builderConfig.showMachineInfo} />
-                <div className="space-y-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Intro Text</p>
-                  <textarea
-                    className="w-full h-[72px] p-2.5 text-xs border rounded-lg focus:ring-1 focus:ring-primary outline-none resize-none bg-white"
-                    value={state.introText}
-                    onChange={(e) => handleUpdateIntroText(e.target.value)}
-                    placeholder="Introductory text for the RFQ..."
-                  />
-                </div>
-              </TabsContent>
-
-              {state.builderConfig.showClientInfo && (
-                <TabsContent value="client" className="space-y-4 outline-none">
-                  <PersonnelSection company={state.company} client={state.client} onUpdateCompany={handleUpdateCompany} onUpdateClient={handleUpdateClient} hideCompany={true} title="Customer Details" />
-                </TabsContent>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none">
+                QuoteCraft
+              </h1>
+              {state.documentInfo.number && (
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60">
+                  {state.documentInfo.number}
+                </span>
               )}
-
-              {state.builderConfig.showTable && (
-                <TabsContent value="parts" className="space-y-4 outline-none">
-                  <ItemsTable
-                    items={state.items}
-                    tableColumns={state.tableColumns}
-                    onUpdate={handleUpdateItem}
-                    onDelete={handleDeleteItem}
-                    onAdd={handleAddItem}
-                    onDuplicate={handleDuplicateItem}
-                    onReorder={handleReorderItem}
-                    onAddColumn={handleAddColumn}
-                    onDeleteColumn={handleDeleteColumn}
-                    onUpdateColumn={handleUpdateColumn}
-                    onImportItems={(items) => dispatch({ type: "SET_ITEMS", payload: items })}
-                    currencySymbol={currencySymbol}
-                  />
-                  {TotalsSection}
-                </TabsContent>
-              )}
-
-              {/* Terms tab content removed and moved inline under Document tab */}
-            </Tabs>
-          </ScrollArea>
-
-        </div>
-      )}
-
-      {/* ===== MOBILE: Preview View ===== */}
-      {activeTab === "preview" && (
-        <div className="flex flex-col h-full w-full md:hidden">
-          {/* Preview Header with Back + Download */}
-          <div className="px-3 py-2 border-b bg-white flex justify-between items-center z-20 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setActiveTab("builder")}
-              className="text-xs h-8 gap-1 -ml-1 rounded-lg"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Builder
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              disabled={state.items.length === 0 || isDownloading}
-              onClick={handleDownloadPDF}
-              className="h-8 w-8"
-            >
-              {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            </Button>
-          </div>
-
-          {/* Mobile Preview Content */}
-          <div className="flex-1 bg-white overflow-y-auto pb-24">
-            {isClient && <PreviewContainer data={state} isMobile={true} />}
-          </div>
-        </div>
-      )}
-
-      {/* ===== DESKTOP: Builder Panel ===== */}
-      <div className="hidden md:flex w-[480px] border-r flex-col h-full bg-slate-50/50">
-        <div className="p-4 border-b flex justify-between items-center bg-white shadow-sm z-10">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <FileText className="w-5 h-5" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight">RFQ Builder</h1>
-              <p className="text-[9px] text-muted-foreground uppercase font-semibold tracking-widest">Marine Document Generator</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNewQuotation}
-              className="h-8 text-xs gap-1 rounded-full"
-              title="New Quotation"
-            >
-              <FilePlus className="w-3.5 h-3.5" />
-              New
-            </Button>
+            <p className="text-[10px] text-slate-400 font-medium hidden sm:block mt-0.5">
+              Marine & Industrial Quotations
+            </p>
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-5 py-5">
-          <Tabs defaultValue="document" className="w-full">
-            <TabsList className="grid mb-5 h-11 bg-white/70 backdrop-blur border p-1 rounded-xl shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
-              {visibleTabs.map(tab => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white transition-all text-[11px] gap-1"
-                >
-                  <tab.icon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="document" className="space-y-5 outline-none">
-              <DocumentInfoForm data={state.documentInfo} onUpdate={handleUpdateDocInfo} showMachineInfo={state.builderConfig.showMachineInfo} />
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Intro Text</p>
-                <textarea
-                  className="w-full h-20 p-3 text-xs border rounded-lg focus:ring-1 focus:ring-primary outline-none resize-none bg-white"
-                  value={state.introText}
-                  onChange={(e) => handleUpdateIntroText(e.target.value)}
-                  placeholder="Introductory text for the RFQ..."
-                />
-              </div>
-            </TabsContent>
-
-            {state.builderConfig.showClientInfo && (
-              <TabsContent value="client" className="space-y-5 outline-none">
-                <PersonnelSection company={state.company} client={state.client} onUpdateCompany={handleUpdateCompany} onUpdateClient={handleUpdateClient} hideCompany={true} title="Customer Details" />
-              </TabsContent>
-            )}
-
-            {state.builderConfig.showTable && (
-              <TabsContent value="parts" className="space-y-5 outline-none">
-                <ItemsTable
-                  items={state.items}
-                  tableColumns={state.tableColumns}
-                  onUpdate={handleUpdateItem}
-                  onDelete={handleDeleteItem}
-                  onAdd={handleAddItem}
-                  onDuplicate={handleDuplicateItem}
-                  onReorder={handleReorderItem}
-                  onAddColumn={handleAddColumn}
-                  onDeleteColumn={handleDeleteColumn}
-                  onUpdateColumn={handleUpdateColumn}
-                  onImportItems={(items) => dispatch({ type: "SET_ITEMS", payload: items })}
-                  currencySymbol={currencySymbol}
-                />
-                {TotalsSection}
-              </TabsContent>
-            )}
-
-            {/* Terms tab content removed and moved inline under Document tab */}
-          </Tabs>
-        </ScrollArea>
-
-        {/* Desktop Download Button */}
-        <div className="p-4 md:px-5 md:pb-5 pt-2 shrink-0 bg-transparent z-20">
-          <Button
-            disabled={state.items.length === 0 || isDownloading}
-            onClick={handleDownloadPDF}
-            className="w-full h-12 text-sm font-bold rounded-2xl shadow-xl shadow-primary/20 gap-2 group border border-primary/20 bg-primary hover:bg-primary hover:brightness-110 transition-all"
-          >
-            {isDownloading ? (
+        {/* Toolbar Controls */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Principle 7: Autosave status chip */}
+          <div className="hidden min-[480px]:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 text-[11px] font-semibold text-slate-600 border border-slate-200/50">
+            {isSaved ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Generating PDF...
+                <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                <span className="text-emerald-700 font-bold">Saved</span>
               </>
             ) : (
               <>
-                <Download className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-                Download PDF
+                <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
+                <span className="text-amber-700">Saving...</span>
               </>
             )}
+          </div>
+
+          {/* Principle 7: Undo button */}
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors active:scale-95"
+            title="Undo (Ctrl+Z)"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Undo</span>
+          </button>
+
+          {/* Principle 4: Company Profile setup (Set up once, never again) */}
+          <button
+            type="button"
+            onClick={() => setShowCompanyModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors border border-slate-200/60 active:scale-95"
+            title="Company logo, bank details, and terms"
+          >
+            <Building2 className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Company Profile</span>
+          </button>
+
+          {/* Principle 5: Live Grand Total pill in header */}
+          {state.items.length > 0 && grandTotal > 0 && (
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200/70 text-xs font-mono font-bold text-emerald-800 shadow-2xs">
+              <span className="text-[10px] font-sans text-emerald-600">Total:</span>
+              <span>{currencySymbol}{grandTotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+            </div>
+          )}
+
+          {/* New Quote button */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleNewQuote}
+            className="h-8 px-2.5 rounded-xl font-bold text-xs gap-1 border-slate-200 text-slate-700 active:scale-95"
+            title="Start fresh quotation"
+          >
+            <FilePlus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">New Quote</span>
           </Button>
         </div>
+      </header>
+
+      {/* ===== PRINCIPLE 1: 4-STEP NATIVE NAVIGATION BAR ===== */}
+      <StepNavigation
+        currentStep={currentStep}
+        onStepChange={(s) => setCurrentStep(s)}
+        itemCount={state.items.length}
+        hasItems={state.items.length > 0}
+      />
+
+      {/* ===== MAIN FLOW SCREENS ===== */}
+      <div className="flex-1 pb-28">
+        {/* STEP 1: Upload buyer's RFQ */}
+        {currentStep === 1 && (
+          <Step1Upload
+            state={state}
+            onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
+            onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
+            onImportComplete={handleImportComplete}
+            onSkipUpload={handleSkipUpload}
+          />
+        )}
+
+        {/* STEP 2: Check items */}
+        {currentStep === 2 && (
+          <Step2CheckItems
+            items={state.items}
+            tableColumns={state.tableColumns}
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
+            onAddItem={handleAddItem}
+            onDuplicateItem={handleDuplicateItem}
+            onReorderItem={handleReorderItem}
+            onUpdateColumn={(id, updates) => dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } })}
+            onDeleteColumn={(id) => dispatch({ type: "DELETE_COLUMN", payload: id })}
+            onAddColumn={(col) => dispatch({ type: "ADD_COLUMN", payload: col })}
+            onSetColumns={(cols) => dispatch({ type: "SET_COLUMNS", payload: cols })}
+            onNext={() => setCurrentStep(3)}
+            onBack={() => setCurrentStep(1)}
+          />
+        )}
+
+        {/* STEP 3: Add prices (Spreadsheet feel) */}
+        {currentStep === 3 && (
+          <Step3AddPrices
+            items={state.items}
+            tableColumns={state.tableColumns}
+            currency={state.currency}
+            discount={state.discount}
+            discountType={state.discountType}
+            taxPercent={state.taxPercent}
+            shippingCharge={state.shippingCharge}
+            onUpdateItem={handleUpdateItem}
+            onBatchUpdatePrices={handleBatchUpdatePrices}
+            onSetCurrency={(c) => dispatch({ type: "SET_CURRENCY", payload: c })}
+            onSetDiscount={(amount, type) => dispatch({ type: "SET_DISCOUNT", payload: { amount, type } })}
+            onSetTaxPercent={(tax) => dispatch({ type: "SET_TAX_PERCENT", payload: tax })}
+            onSetShipping={(ship) => dispatch({ type: "SET_SHIPPING", payload: ship })}
+            onNext={() => setCurrentStep(4)}
+            onBack={() => setCurrentStep(2)}
+          />
+        )}
+
+        {/* STEP 4: Send quote (WhatsApp + PDF) */}
+        {currentStep === 4 && (
+          <Step4SendQuote
+            state={state}
+            onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
+            onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
+            onBack={() => setCurrentStep(3)}
+            onNewQuote={handleNewQuote}
+          />
+        )}
       </div>
 
-      {/* ===== DESKTOP: Preview Panel ===== */}
-      <div className="hidden md:block flex-1 bg-slate-100 overflow-hidden h-full">
-        {isClient && <PreviewContainer data={state} />}
-      </div>
-
-      {/* ===== Custom Confirmation Modal ===== */}
-      {showNewQuoteConfirm && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-300">
-            <div className="p-6 md:p-8 text-center space-y-4">
-              <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                <AlertTriangle className="w-8 h-8" />
-              </div>
-              <h4 className="text-xl font-black text-slate-800">Start New Quotation?</h4>
-              <p className="text-sm font-medium text-slate-500">
-                This will clear all your current line items and document details. Your company branding profile will be kept.
-              </p>
-              
-              <div className="grid grid-cols-2 gap-3 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowNewQuoteConfirm(false)}
-                  className="rounded-2xl font-bold h-12"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={confirmNewQuotation}
-                  className="rounded-2xl font-bold h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-                >
-                  Confirm
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ===== COMPANY PROFILE MODAL (SET UP ONCE, NEVER AGAIN) ===== */}
+      <CompanyProfileModal
+        isOpen={showCompanyModal}
+        onClose={() => setShowCompanyModal(false)}
+        state={state}
+        onUpdateCompany={(c) => dispatch({ type: "SET_COMPANY", payload: c })}
+        onUpdateBranding={(b) => dispatch({ type: "SET_BRANDING", payload: b })}
+        onUpdateTerms={(t) => dispatch({ type: "SET_TERMS", payload: t })}
+      />
     </main>
   );
 }
