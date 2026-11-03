@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     // 1. If user is logged in, try to fetch their custom Gemini API Key from database
     if (session?.user) {
-      const userId = (session.user as any).id;
+      const userId = (session.user as { id?: string }).id;
       if (userId) {
         userApiKey = (await findUserApiKey(userId)) ?? "";
       }
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
 
     const colors = await analyzeLogoColors(image, apiKey);
     return NextResponse.json(colors);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Logo Analysis Error:", error);
-    const errMsg = error?.message || String(error);
+    const errMsg = (error as Error)?.message || String(error);
     let friendlyMessage = "Failed to analyze logo colors.";
     
     if (
