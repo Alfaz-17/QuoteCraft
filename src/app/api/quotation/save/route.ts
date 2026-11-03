@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import {
   findQuotationByUserAndNumber,
   createQuotation,
@@ -9,14 +8,9 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     const state = await req.json();
@@ -40,7 +34,7 @@ export async function POST(req: NextRequest) {
       introText: introText || "",
       company: company || {},
       client: client || {},
-      items: items || [],
+      items: Array.isArray(items) ? items : [],
       terms: terms || "",
       currency: currency || "USD",
       discount: parseFloat(discount) || 0,
@@ -58,9 +52,14 @@ export async function POST(req: NextRequest) {
       quotationId = created.id;
     }
 
-    return NextResponse.json({ message: "Sync successful", quotationId });
+    return NextResponse.json({
+      success: true,
+      quotationId,
+      number: documentInfo.number,
+      message: "Quotation saved successfully",
+    });
   } catch (error) {
     console.error("Save Quotation Error:", error);
-    return NextResponse.json({ error: "Failed to save quotation to cloud" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to save quotation" }, { status: 500 });
   }
 }

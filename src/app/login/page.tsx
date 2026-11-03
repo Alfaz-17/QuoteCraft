@@ -1,189 +1,92 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { Ship, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useToast } from "@/components/ui/Toast";
-import { Loader2, Ship, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
-function LoginContent() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { status } = useSession();
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const { error: toastError, info: toastInfo } = useToast();
+  const { isSignedIn, isLoaded } = useAuth();
 
-  // Redirect authenticated users away from login
   useEffect(() => {
-    if (status === "authenticated") {
+    if (isLoaded && isSignedIn) {
       router.replace("/");
     }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (searchParams.get("registered") === "true") {
-      setSuccessMsg("Account created successfully! Please sign in below.");
-    }
-  }, [searchParams]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccessMsg("");
-
-    try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        phone,
-        password,
-      });
-
-      if (res?.error) {
-        throw new Error(res.error || "Failed to sign in. Please verify your credentials.");
-      }
-
-      router.push("/");
-      router.refresh();
-    } catch (err: unknown) {
-      const errMsg = (err as Error).message || "An unexpected error occurred";
-      if (errMsg === "No user found with this phone number or email") {
-        setError(errMsg);
-        toastInfo("No account found! Please register first.");
-      } else {
-        setError(errMsg);
-        toastError(errMsg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [isLoaded, isSignedIn, router]);
 
   return (
-    <main className="min-h-screen bg-slate-50/50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Dynamic Background Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 -z-10" />
+    <main className="min-h-screen bg-[#071329] text-white flex flex-col justify-between p-6 relative overflow-hidden select-none">
+      {/* Subtle ocean grid pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#1e3a8a_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 px-4">
-        <div className="mx-auto w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20">
-          <Ship className="w-6 h-6 animate-pulse" />
+      {/* Top Header */}
+      <div className="relative z-10 pt-4 flex flex-col items-center text-center space-y-2">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
+          <Ship className="w-6 h-6 stroke-[2.2]" />
         </div>
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h2>
-        <p className="text-sm text-muted-foreground font-medium">Log in to sync and generate commercial B2B documents</p>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
+            QuoteCraft
+          </h1>
+          <p className="text-xs text-blue-300 font-semibold tracking-wider uppercase mt-1">
+            Marine Quotation Assistant
+          </p>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <Card className="border-none shadow-xl bg-white/70 backdrop-blur-md">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-lg font-bold">Sign In</CardTitle>
-            <CardDescription className="text-xs">Enter your phone number and secure password below to unlock the workspace</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {successMsg && (
-                <div className="p-3 text-xs bg-green-50 text-green-600 rounded-lg border border-green-100 font-medium flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  {successMsg}
-                </div>
-              )}
+      {/* Center Vessel Visual */}
+      <div className="relative z-10 my-auto py-6 flex flex-col items-center text-center max-w-sm mx-auto space-y-6">
+        <div className="relative w-full max-w-[280px] sm:max-w-xs aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-b from-blue-900/40 via-blue-950/60 to-[#071329] border border-blue-500/20 shadow-2xl flex items-center justify-center p-4">
+          <div className="space-y-3 text-center">
+            <div className="w-24 h-24 rounded-full bg-blue-500/20 text-blue-400 mx-auto flex items-center justify-center border border-blue-400/30 shadow-inner">
+              <Ship className="w-14 h-14 stroke-[1.5]" />
+            </div>
+            <div className="space-y-0.5">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-blue-400">
+                Marine & Ship Supplies
+              </span>
+              <p className="text-xs text-blue-200 font-mono">Fast • Accurate • Branded</p>
+            </div>
+          </div>
+        </div>
 
-              {error === "No user found with this phone number or email" ? (
-                <div className="p-4 text-xs bg-amber-50 text-amber-800 rounded-lg border border-amber-200 font-medium flex flex-col gap-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="leading-snug">We couldn&apos;t find an account with that number.</p>
-                  </div>
-                  <Button type="button" variant="outline" className="w-full text-xs h-9 bg-white border-amber-200 hover:bg-amber-100 hover:text-amber-900 transition-colors" onClick={() => router.push("/register")}>
-                    Create a new account
-                  </Button>
-                </div>
-              ) : error ? (
-                <div className="p-3 text-xs bg-red-50 text-red-600 rounded-lg border border-red-100 font-medium flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 shrink-0" />
-                  {error}
-                </div>
-              ) : null}
+        <div className="space-y-2">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+            Turn RFQs into Professional Quotations
+          </h2>
+          <p className="text-xs sm:text-sm text-blue-200/80 font-medium max-w-xs mx-auto">
+            Extract items from buyer spreadsheets and PDFs in seconds. Built for marine suppliers and ship chandlers.
+          </p>
+        </div>
+      </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-tight">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  required
-                  placeholder="e.g. +1 555 0199"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="h-10 text-xs"
-                />
-              </div>
+      {/* Bottom Actions (Screen 1 in Mobile Mockup) */}
+      <div className="relative z-10 w-full max-w-sm mx-auto space-y-3 pb-4">
+        <Button
+          asChild
+          className="w-full h-12 rounded-2xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/30 min-h-[48px]"
+        >
+          <Link href="/sign-in">
+            Sign In <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Link>
+        </Button>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs font-bold uppercase tracking-tight">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-10 text-xs"
-                />
-              </div>
+        <Button
+          asChild
+          variant="outline"
+          className="w-full h-12 rounded-2xl font-bold text-sm bg-white hover:bg-slate-100 text-slate-900 border-none shadow-md min-h-[48px]"
+        >
+          <Link href="/sign-up">Create Account</Link>
+        </Button>
 
-              <Button type="submit" disabled={loading} className="w-full h-10 font-bold text-xs gap-1.5 shadow-md shadow-primary/10 mt-2">
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
-                  </>
-                ) : (
-                  <>
-                    Sign In <ArrowRight className="w-3.5 h-3.5" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="pt-2 flex justify-center border-t py-4">
-            <p className="text-xs text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary font-bold hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-
-        <div className="mt-6 flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-          <ShieldCheck className="w-4 h-4 text-green-500" /> Secure B2B Cloud Session Enabled
+        <div className="pt-2 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-blue-300/70">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+          <span>Trusted by Marine Suppliers</span>
         </div>
       </div>
     </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-slate-50/50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3 px-4">
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20 animate-pulse">
-            <Ship className="w-6 h-6" />
-          </div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back</h2>
-          <p className="text-sm text-muted-foreground font-medium">Securing session...</p>
-        </div>
-      </main>
-    }>
-      <LoginContent />
-    </Suspense>
   );
 }

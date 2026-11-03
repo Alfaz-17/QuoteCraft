@@ -1,12 +1,15 @@
 export interface LineItem {
   id: string;
+  sno?: number;
   itemName: string;
   description?: string;
+  technicalSpecification?: string;
   partNumber?: string;
   quantity: number;
   unit: string;
   condition?: string;
   unitPrice: number;
+  total?: number;
   needsReview?: boolean;
   isMissingQty?: boolean;
   [key: string]: string | number | boolean | undefined; // Allow dynamic fields

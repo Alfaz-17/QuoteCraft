@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { getUserProfile, upsertUserProfile } from "@/lib/prisma";
 
 // GET /api/user/profile — Load saved settings config for the logged-in user
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const profile = await getUserProfile(userId);
@@ -32,21 +26,15 @@ export async function GET() {
 // POST /api/user/profile — Save settings config (company, branding, terms, tableColumns, builderConfig)
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
     const { company, branding, terms, tableColumns, builderConfig } = body;
 
-    // Strip the logo (base64 image) from branding before storing — it's too large for DB
-    // The logo is kept in localStorage only
+    // Strip the logo (base64 image) from branding before storing
     const brandingWithoutLogo = branding
       ? { ...branding, logo: null }
       : {};
@@ -59,7 +47,7 @@ export async function POST(req: NextRequest) {
       builderConfig: builderConfig ?? {},
     });
 
-    return NextResponse.json({ message: "Profile saved successfully" });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Save Profile Error:", error);
     return NextResponse.json({ error: "Failed to save profile" }, { status: 500 });

@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { getUserQuotations, createQuotation } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -30,14 +24,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
     const body = await req.json();
@@ -55,16 +44,16 @@ export async function POST(req: NextRequest) {
       introText: body.introText || "",
       company: body.company || {},
       client: body.client || {},
-      items: body.items || [],
+      items: Array.isArray(body.items) ? body.items : [],
       terms: body.terms || "",
       currency: body.currency || "USD",
-      discount: parseFloat(body.discount) || 0,
+      discount: typeof body.discount === "number" ? body.discount : 0,
       discountType: body.discountType || "flat",
-      taxPercent: parseFloat(body.taxPercent) || 0,
-      shippingCharge: parseFloat(body.shippingCharge) || 0,
+      taxPercent: typeof body.taxPercent === "number" ? body.taxPercent : 0,
+      shippingCharge: typeof body.shippingCharge === "number" ? body.shippingCharge : 0,
     });
 
-    return NextResponse.json({ message: "Quotation created successfully", quotation: created }, { status: 201 });
+    return NextResponse.json({ quotation: created }, { status: 201 });
   } catch (error) {
     console.error("Create Quotation Error:", error);
     return NextResponse.json({ error: "Failed to create quotation" }, { status: 500 });

@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { 
   LayoutDashboard, 
   FileText, 
-  History, 
+  Layers, 
   Settings, 
   Ship, 
-  ChevronRight, 
   LogOut, 
-  User 
+  LifeBuoy,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,139 +20,155 @@ const menuItems = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    description: "Overview & quick actions",
     mobileLabel: "Dashboard",
   },
   {
-    name: "RFQ Builder",
-    href: "/",
+    name: "My Quotations",
+    href: "/quotations",
     icon: FileText,
-    description: "Create quotations",
-    mobileLabel: "Builder",
+    mobileLabel: "Quotes",
   },
   {
-    name: "Quotations",
-    href: "/quotations",
-    icon: History,
-    description: "History & records",
-    mobileLabel: "Quotes",
+    name: "Templates",
+    href: "/templates",
+    icon: Layers,
+    mobileLabel: "Templates",
   },
   {
     name: "Settings",
     href: "/settings",
     icon: Settings,
-    description: "Branding & profile",
     mobileLabel: "Settings",
+  },
+  {
+    name: "Help & Support",
+    href: "mailto:support@quotecraft.app?subject=QuoteCraft%20Support%20Request",
+    icon: LifeBuoy,
+    mobileLabel: "Help",
+    isExternal: true,
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
 
-  // Don't render sidebar at all if not authenticated
-  if (status !== "authenticated") return null;
+  // Don't render sidebar if not authenticated
+  if (!isLoaded || !isSignedIn) return null;
+
+  const displayName = user?.fullName || user?.firstName || user?.username || "Marine Supplier";
+  const userInitial = displayName.charAt(0).toUpperCase() || "M";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+  const userRole = "Marine Supplier";
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-white h-screen sticky top-0 shrink-0 z-30">
-        <div className="p-5 border-b flex items-center gap-3 bg-gradient-to-br from-primary/5 to-transparent">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-md rotate-3 overflow-hidden">
-            <Ship className="w-5 h-5" />
+      {/* Desktop Sidebar: Dark Navy Theme from Mockup */}
+      <aside className="hidden md:flex flex-col w-60 bg-[#0B1528] text-slate-200 h-screen sticky top-0 shrink-0 z-30 select-none border-r border-slate-800/80">
+        {/* Brand Header */}
+        <div className="p-5 flex items-center gap-3 border-b border-slate-800/60">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
+            <Ship className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-900 leading-none">QuoteCraft</h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider mt-1">Marine & Industrial</p>
+            <h1 className="text-base font-black tracking-tight text-white leading-none">
+              QuoteCraft
+            </h1>
+            <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-1">
+              Marine & Industrial
+            </p>
           </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+        {/* Navigation Menu */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
+            const Component = item.isExternal ? "a" : Link;
             return (
-              <Link
-                key={item.href}
+              <Component
+                key={item.name}
                 href={item.href}
+                {...(item.isExternal ? { target: "_blank", rel: "noreferrer" } : {})}
                 className={cn(
-                  "group flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 min-h-[44px]",
-                  isActive 
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.01]" 
-                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                  "group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 min-h-[42px]",
+                  isActive
+                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 font-bold"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                 )}
               >
-                <item.icon className={cn("w-4.5 h-4.5 shrink-0", isActive ? "text-white" : "text-slate-500 group-hover:text-primary transition-colors")} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-xs leading-none">{item.name}</p>
-                  <p className={cn("text-[10px] mt-1 truncate", isActive ? "text-white/80" : "text-slate-400")}>
-                    {item.description}
-                  </p>
-                </div>
-                <ChevronRight className={cn("w-3.5 h-3.5 opacity-0 -translate-x-1 transition-all shrink-0", isActive && "opacity-100 translate-x-0")} />
-              </Link>
+                <item.icon
+                  className={cn(
+                    "w-4 h-4 shrink-0 transition-colors",
+                    isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                  )}
+                />
+                <span className="flex-1 truncate">{item.name}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-blue-200 shrink-0" />}
+              </Component>
             );
           })}
         </nav>
 
-        {/* User Info & Logout */}
-        <div className="p-3 border-t mt-auto space-y-2 bg-slate-50/50">
-          {session?.user && (
-            <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white border border-slate-200/70">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <User className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-800 truncate">{session.user.name || "User"}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{session.user.email}</p>
+        {/* User Profile & Sign Out Footer */}
+        <div className="p-3 border-t border-slate-800/80 mt-auto bg-[#070D1A]">
+          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-900/60 border border-slate-800/60">
+            <div className="flex items-center gap-2.5 min-w-0">
+              {user?.imageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={user.imageUrl}
+                  alt={displayName}
+                  className="w-8 h-8 rounded-full object-cover border border-blue-400/30 shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 font-bold text-xs flex items-center justify-center shrink-0">
+                  {userInitial}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate leading-tight">
+                  {displayName}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate leading-tight mt-0.5" title={userEmail}>
+                  {userRole}
+                </p>
               </div>
             </div>
-          )}
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors text-xs font-bold min-h-[40px]"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out</span>
-          </button>
+
+            <button
+              onClick={() => signOut({ redirectUrl: "/login" })}
+              title="Sign Out"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur-md shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]">
-        <div className="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-1 px-3 rounded-2xl transition-all relative min-h-[48px]",
-                  isActive
-                    ? "text-primary font-bold"
-                    : "text-slate-500 hover:text-slate-900 active:scale-95"
-                )}
-              >
-                {/* Active indicator pill */}
-                {isActive && (
-                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full animate-in fade-in zoom-in-50 duration-200" />
-                )}
-                <div className={cn(
-                  "flex items-center justify-center w-8 h-8 rounded-xl transition-all",
-                  isActive
-                    ? "bg-primary/10 text-primary scale-105"
-                    : "text-slate-500"
-                )}>
-                  <item.icon className="w-4.5 h-4.5" />
-                </div>
-                <span className="text-[10px] tracking-tight leading-none">
-                  {item.mobileLabel}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* Mobile Bottom Navigation Bar (Part of Mobile-First Architecture) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0B1528] border-t border-slate-800/80 z-50 px-2 py-1.5 flex items-center justify-around safe-area-bottom shadow-lg">
+        {menuItems.slice(0, 4).map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center justify-center py-1 px-3 rounded-xl text-[10px] font-semibold transition-all min-h-[44px]",
+                isActive 
+                  ? "text-blue-400 font-bold bg-blue-500/10" 
+                  : "text-slate-400 hover:text-slate-200"
+              )}
+            >
+              <item.icon className={cn("w-4 h-4 mb-1", isActive && "text-blue-400")} />
+              <span>{item.mobileLabel}</span>
+            </Link>
+          );
+        })}
+      </div>
     </>
   );
 }

@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-parser";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const userId = await getAuthenticatedUserId();
     let userApiKey = "";
 
-    if (session?.user) {
-      const userId = (session.user as { id?: string }).id;
-      if (userId) {
-        userApiKey = (await findUserApiKey(userId)) ?? "";
-      }
+    if (userId) {
+      userApiKey = (await findUserApiKey(userId)) ?? "";
     }
 
     // 1. Parse input payload

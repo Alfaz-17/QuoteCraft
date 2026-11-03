@@ -1,6 +1,9 @@
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
-const handler = NextAuth(authOptions);
+export async function GET(req: NextRequest) {
+  return NextResponse.redirect(new URL("/login", req.url));
+}
 
-export { handler as GET, handler as POST };
+export async function POST() {
+  return NextResponse.json({ message: "Authentication migrated to Clerk" });
+}

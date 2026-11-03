@@ -1,15 +1,22 @@
 "use client";
 
 import { QuotationProvider } from "@/hooks/useQuotationState";
-import { SessionProvider } from "next-auth/react";
+import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#2563eb",
+          colorBackground: "#ffffff",
+        },
+      }}
+    >
       <ToastProvider>
         <QuotationProvider>{children}</QuotationProvider>
       </ToastProvider>
-    </SessionProvider>
+    </ClerkProvider>
   );
 }

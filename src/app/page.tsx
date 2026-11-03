@@ -6,6 +6,7 @@ import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
 import { Step1Upload } from "@/components/flow/Step1Upload";
 import { Step2CheckItems } from "@/components/flow/Step2CheckItems";
 import { Step3AddPrices } from "@/components/flow/Step3AddPrices";
+import { StepCustomizeColumns } from "@/components/flow/StepCustomizeColumns";
 import { Step4SendQuote } from "@/components/flow/Step4SendQuote";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
@@ -299,8 +300,19 @@ export default function Home() {
           />
         )}
 
-        {/* STEP 4: Send quote (WhatsApp + PDF) */}
+        {/* STEP 4: Choose what appears in quotation (Custom columns & layout) */}
         {currentStep === 4 && (
+          <StepCustomizeColumns
+            state={state}
+            onUpdateColumn={(id, updates) => dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } })}
+            onSetColumns={(cols) => dispatch({ type: "SET_COLUMNS", payload: cols })}
+            onNext={() => setCurrentStep(5)}
+            onBack={() => setCurrentStep(3)}
+          />
+        )}
+
+        {/* STEP 5: Preview & Finalize (WhatsApp + PDF) */}
+        {currentStep === 5 && (
           <Step4SendQuote
             state={state}
             onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
@@ -310,7 +322,7 @@ export default function Home() {
               if (u.pdfLayoutMode) dispatch({ type: "SET_PDF_LAYOUT_MODE", payload: u.pdfLayoutMode });
               if (u.pdfShowSignatureBlock !== undefined) dispatch({ type: "SET_PDF_SHOW_SIGNATURE", payload: u.pdfShowSignatureBlock });
             }}
-            onBack={() => setCurrentStep(3)}
+            onBack={() => setCurrentStep(4)}
             onNewQuote={handleNewQuote}
           />
         )}

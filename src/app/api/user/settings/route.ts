@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey, updateUserGeminiKey } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const geminiApiKey = await findUserApiKey(userId);
@@ -27,14 +21,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = (session.user as { id?: string }).id;
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { geminiApiKey } = await req.json();

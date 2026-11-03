@@ -4,7 +4,7 @@ import React, {
   createContext, useContext, useReducer, useEffect,
   useMemo, useState, useRef, useCallback,
 } from "react";
-import { useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import { quotationReducer, initialState, QuotationAction } from "./quotationReducer";
 import { QuotationState } from "../types/quotation.types";
 import { calculateSubtotal } from "../utils/calculations";
@@ -49,7 +49,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [syncStatus, setSyncStatus]   = useState<SyncStatus>("local");
 
-  const { data: session, status: sessionStatus } = useSession();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
 
   const profileLoadedRef = useRef(false);
 
@@ -82,7 +82,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
 
   // ── 2. Load profile from DB on login (once per session) ───────────────────
   useEffect(() => {
-    if (sessionStatus !== "authenticated" || !session || !isHydrated) return;
+    if (!isSignedIn || !authLoaded || !isHydrated) return;
     if (profileLoadedRef.current) return;
 
     let cancelled = false;
@@ -111,7 +111,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
     })();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, session, isHydrated]);
+  }, [isSignedIn, authLoaded, isHydrated]);
 
   // ── 3. Debounced localStorage save ────────────────────────────────────────
   const saveLocal = useCallback((s: QuotationState) => {
@@ -166,9 +166,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isHydrated) return;
-    if (sessionStatus !== "authenticated" || !session) { setSyncStatus("local"); return; }
+    if (!isSignedIn) { setSyncStatus("local"); return; }
     debouncedSyncQuotation(state);
-  }, [state, isHydrated, sessionStatus, session]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, isHydrated, isSignedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 5. Debounced cloud sync — settings/profile only ───────────────────────
   // Stable identity derived values so the effect only fires when SETTINGS change,
@@ -214,14 +214,14 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
     builderCfgRef.current = state.builderConfig;
 
     if (!isHydrated || !profileLoadedRef.current) return;
-    if (sessionStatus !== "authenticated" || !session) return;
+    if (!isSignedIn) return;
     if (!profileChanged) return;
 
     debouncedSyncProfile(state);
   }, [ // eslint-disable-line react-hooks/exhaustive-deps
     state.company, state.branding, state.terms,
     state.tableColumns, state.builderConfig,
-    isHydrated, sessionStatus, session,
+    isHydrated, isSignedIn,
   ]);
 
   const subtotal = useMemo(() => calculateSubtotal(state.items, state.tableColumns), [state.items, state.tableColumns]);

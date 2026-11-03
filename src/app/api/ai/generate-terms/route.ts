@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
 import { generateCommercialTerms } from "@/lib/ai-service";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
     const apiKey = (await findUserApiKey(userId)) || "";
     if (!apiKey) {
       return NextResponse.json(
