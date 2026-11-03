@@ -4,7 +4,8 @@ import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { MarineTemplate } from "./MarineTemplate";
 import { useEffect, useRef, useState } from "react";
 import type React from "react";
-import { calculateDiscountAmount, calculateGrandTotal, calculateRowTotal, calculateSubtotal, calculateTaxAmount } from "@/utils/calculations";
+import { itemTitle } from "@/utils/importMapping";
+import { toNumber, getRoleKey, calculateDiscountAmount, calculateGrandTotal, calculateRowTotal, calculateSubtotal, calculateTaxAmount } from "@/utils/calculations";
 import { CalendarDays, FileText, Ship, UserRound, Package, ReceiptText } from "lucide-react";
 
 interface PreviewContainerProps {
@@ -65,7 +66,7 @@ function MobilePreview({ data }: { data: QuotationState }) {
   const { branding, documentInfo, company, client, items, terms, introText } = data;
   const primaryColor = branding.primaryColor || "#2563eb";
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
-  const subtotal = calculateSubtotal(items);
+  const subtotal = calculateSubtotal(items, data.tableColumns);
   const discount = calculateDiscountAmount(subtotal, data.discount, data.discountType);
   const tax = calculateTaxAmount(subtotal - discount, data.taxPercent);
   const grandTotal = calculateGrandTotal(subtotal, data.discount, data.discountType, data.taxPercent, data.shippingCharge);
@@ -153,17 +154,17 @@ function MobilePreview({ data }: { data: QuotationState }) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-[10px] font-black text-slate-400">#{index + 1}</p>
-                      <p className="text-sm font-black text-slate-900">{item.itemName || "Unnamed item"}</p>
+                      <p className="text-sm font-black text-slate-900">{itemTitle(item, data.tableColumns) || "Unnamed item"}</p>
                     </div>
                     <p className="shrink-0 text-sm font-black" style={{ color: primaryColor }}>
-                      {currencySymbol}{formatValue(calculateRowTotal(item))}
+                      {currencySymbol}{formatValue(calculateRowTotal(item, data.tableColumns))}
                     </p>
                   </div>
                   {item.description && <p className="mt-1 text-xs leading-relaxed text-slate-500">{item.description}</p>}
                   <div className="mt-2 grid grid-cols-3 gap-1.5">
-                    <InfoPill label="Qty" value={`${item.quantity || 0}`} />
-                    <InfoPill label="Unit" value={(item.unit || "pcs").toUpperCase()} />
-                    <InfoPill label="Price" value={`${currencySymbol}${formatValue(item.unitPrice || 0)}`} />
+                    <InfoPill label="Qty" value={`${toNumber(item[getRoleKey(data.tableColumns, "qty") ?? "quantity"]) || 0}`} />
+                    <InfoPill label="Unit" value={String(item.unit || "pcs").toUpperCase()} />
+                    <InfoPill label="Price" value={`${currencySymbol}${formatValue(toNumber(item[getRoleKey(data.tableColumns, "price") ?? "unitPrice"]))}`} />
                   </div>
                   {visibleColumns.some((column) => column.key === "partNumber") && item.partNumber && (
                     <p className="mt-2 text-[11px] font-semibold text-slate-500">Part No: {item.partNumber}</p>
