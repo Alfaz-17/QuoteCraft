@@ -4,11 +4,11 @@ export const DEFAULT_COLUMNS: TableColumn[] = [
   { id: "sno", label: "S.No", key: "sno", type: "auto", visible: true, width: "50px" },
   { id: "name", label: "Item Name", key: "itemName", type: "text", visible: true },
   { id: "partNumber", label: "Part No.", key: "partNumber", type: "text", visible: true, width: "110px" },
-  { id: "qty", label: "Qty", key: "quantity", type: "number", visible: true, width: "70px" },
+  { id: "qty", label: "Qty", key: "quantity", type: "number", role: "qty", visible: true, width: "70px" },
   { id: "unit", label: "Unit", key: "unit", type: "text", visible: true, width: "70px" },
   { id: "condition", label: "Condition", key: "condition", type: "text", visible: true, width: "100px" },
-  { id: "rate", label: "Rate", key: "unitPrice", type: "number", visible: true, width: "90px" },
-  { id: "total", label: "Total", key: "total", type: "auto", visible: true, width: "90px" },
+  { id: "rate", label: "Rate", key: "unitPrice", type: "number", role: "price", visible: true, width: "90px" },
+  { id: "total", label: "Total", key: "total", type: "auto", role: "total", visible: true, width: "90px" },
 ];
 
 export const EMPTY_COMPANY: QuotationState["company"] = {
@@ -17,12 +17,14 @@ export const EMPTY_COMPANY: QuotationState["company"] = {
   phone: "",
   email: "",
   website: "",
+  bankDetails: "",
 };
 
 export const EMPTY_CLIENT: QuotationState["client"] = {
   name: "",
   companyName: "",
   address: "",
+  phone: "",
   attn: "",
 };
 
@@ -99,6 +101,7 @@ export type QuotationAction =
   | { type: "SET_COMPANY"; payload: Partial<QuotationState["company"]> }
   | { type: "SET_CLIENT"; payload: Partial<QuotationState["client"]> }
   | { type: "SET_ITEMS"; payload: QuotationState["items"] }
+  | { type: "IMPORT_RFQ"; payload: { items: QuotationState["items"]; columns: TableColumn[] } }
   | { type: "ADD_ITEM"; payload: QuotationState["items"][0] }
   | { type: "UPDATE_ITEM"; payload: { id: string; updates: Partial<QuotationState["items"][0]> } }
   | { type: "DELETE_ITEM"; payload: string }
@@ -133,6 +136,8 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
       return { ...state, client: { ...state.client, ...action.payload } };
     case "SET_ITEMS":
       return { ...state, items: action.payload };
+    case "IMPORT_RFQ":
+      return { ...state, items: action.payload.items, tableColumns: action.payload.columns };
     case "ADD_ITEM":
       return { ...state, items: [...state.items, action.payload] };
     case "UPDATE_ITEM":
@@ -199,11 +204,11 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
     case "SET_COLUMNS":
       return { ...state, tableColumns: action.payload };
     case "NEW_QUOTATION":
-      // Keep company, branding, builderConfig, tableColumns, and terms — reset everything else
+      // Keep company, branding, builderConfig, and terms — reset everything else
       return {
         ...createFreshQuotation(state.company, state.branding),
         terms: state.terms,
-        tableColumns: state.tableColumns,
+        tableColumns: [...DEFAULT_COLUMNS], // columns now follow each uploaded RFQ
         builderConfig: state.builderConfig,
       };
     case "RESET":
