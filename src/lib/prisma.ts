@@ -167,6 +167,65 @@ export async function updateQuotation(id: string, data: {
   );
 }
 
+export async function getUserQuotations(
+  userId: string,
+  options?: { search?: string; type?: string; limit?: number }
+) {
+  const params: unknown[] = [userId];
+  let query = `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
+                      company, client, items, terms, currency, discount, "discountType",
+                      "taxPercent", "shippingCharge", "createdAt", "updatedAt"
+               FROM "Quotation" WHERE "userId" = $1`;
+
+  if (options?.type && options.type !== "all") {
+    params.push(options.type);
+    query += ` AND type = $${params.length}`;
+  }
+
+  if (options?.search && options.search.trim()) {
+    params.push(`%${options.search.trim().toLowerCase()}%`);
+    const pIndex = params.length;
+    query += ` AND (LOWER(number) LIKE $${pIndex} OR LOWER(COALESCE(vessel, '')) LIKE $${pIndex} OR LOWER(COALESCE(reference, '')) LIKE $${pIndex} OR LOWER(client::text) LIKE $${pIndex})`;
+  }
+
+  query += ` ORDER BY "updatedAt" DESC`;
+
+  if (options?.limit && options.limit > 0) {
+    params.push(options.limit);
+    query += ` LIMIT $${params.length}`;
+  }
+
+  const { rows } = await db.query(query, params);
+  return rows;
+}
+
+export async function getQuotationById(userId: string, id: string) {
+  const { rows } = await db.query(
+    `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
+            "introText", company, client, items, terms, currency, discount, "discountType",
+            "taxPercent", "shippingCharge", "createdAt", "updatedAt"
+     FROM "Quotation" WHERE "userId" = $1 AND id = $2 LIMIT 1`,
+    [userId, id]
+  );
+  return rows[0] ?? null;
+}
+
+export async function deleteQuotation(userId: string, id: string) {
+  const { rowCount } = await db.query(
+    `DELETE FROM "Quotation" WHERE "userId" = $1 AND id = $2`,
+    [userId, id]
+  );
+  return (rowCount ?? 0) > 0;
+}
+
+export async function getRecentClients(userId: string) {
+  const { rows } = await db.query(
+    `SELECT DISTINCT client FROM "Quotation" WHERE "userId" = $1 AND client IS NOT NULL ORDER BY "updatedAt" DESC LIMIT 20`,
+    [userId]
+  );
+  return rows.map((r) => r.client).filter(Boolean);
+}
+
 // ---------------------------------------------------------------------------
 // UserProfile helpers — stores settings config per user
 // ---------------------------------------------------------------------------

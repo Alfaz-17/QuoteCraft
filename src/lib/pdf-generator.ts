@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
-import { calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
+import { toNumber, calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
 
 const getImageDimensions = (base64: string): Promise<{ width: number; height: number; img: HTMLImageElement | null }> => {
   return new Promise((resolve) => {
@@ -43,12 +43,13 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   // Helper to get cell value
   const getCellValue = (item: typeof data.items[0], colKey: string, index: number): string => {
     if (colKey === "sno") return (index + 1).toString();
-    if (colKey === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item))}`;
-    if (colKey === "unitPrice") return `${currencySymbol}${formatValue(item.unitPrice || 0)}`;
+    const col = data.tableColumns.find(c => c.key === colKey);
+    if (colKey === "total" || col?.role === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item, data.tableColumns))}`;
+    if (col?.role === "price" || colKey === "unitPrice") return `${currencySymbol}${formatValue(toNumber(item[colKey]))}`;
     
     if (colKey === "itemName") {
       const name = (item.itemName || "-").toUpperCase();
-      if (item.description) {
+      if (item.description && !visibleColumns.some(c => c.key === "description")) {
         return `${name}\n${item.description}`;
       }
       return name;
@@ -327,7 +328,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       }
       
       let halign: "left" | "center" | "right" = "left";
-      if (col.key === "sno" || col.key === "unit" || col.type === "number" || col.key === "total" || col.key === "unitPrice") {
+      if (col.key === "sno" || col.key === "unit" || col.type === "number" || col.type === "auto" || col.role) {
         halign = "center";
       }
 
@@ -350,7 +351,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
 
   // 7. Totals Section
   if (visibleColumns.some(c => c.key === "total")) {
-    const subtotal = calculateSubtotal(data.items);
+    const subtotal = calculateSubtotal(data.items, data.tableColumns);
     const discountAmt = calculateDiscountAmount(subtotal, data.discount, data.discountType);
     const afterDiscount = subtotal - discountAmt;
     const taxAmt = calculateTaxAmount(afterDiscount, data.taxPercent);

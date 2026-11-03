@@ -225,7 +225,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
     isHydrated, sessionStatus, session,
   ]);
 
-  const subtotal = useMemo(() => calculateSubtotal(state.items), [state.items]);
+  const subtotal = useMemo(() => calculateSubtotal(state.items, state.tableColumns), [state.items, state.tableColumns]);
 
   return (
     <QuotationContext.Provider value={{ state, dispatch, subtotal, isSaved, lastSavedAt, syncStatus }}>

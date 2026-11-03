@@ -1,7 +1,7 @@
 "use client";
 
 import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
-import { calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
+import { toNumber, calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
 
 interface TemplateProps {
   data: QuotationState;
@@ -13,7 +13,7 @@ export function MarineTemplate({ data }: TemplateProps) {
   const primaryColor = branding.primaryColor || "#2563eb";
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
 
-  const subtotal = calculateSubtotal(items);
+  const subtotal = calculateSubtotal(items, data.tableColumns);
   const discountAmt = calculateDiscountAmount(subtotal, data.discount, data.discountType);
   const afterDiscount = subtotal - discountAmt;
   const taxAmt = calculateTaxAmount(afterDiscount, data.taxPercent);
@@ -27,8 +27,8 @@ export function MarineTemplate({ data }: TemplateProps) {
 
   const getCellValue = (item: typeof items[0], col: typeof visibleColumns[0], index: number): string => {
     if (col.key === "sno") return (index + 1).toString();
-    if (col.key === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item))}`;
-    if (col.key === "unitPrice") return `${currencySymbol}${formatValue(item.unitPrice || 0)}`;
+    if (col.key === "total" || col.role === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item, data.tableColumns))}`;
+    if (col.role === "price" || col.key === "unitPrice") return `${currencySymbol}${formatValue(toNumber(item[col.key]))}`;
     const val = item[col.key];
     if (val === undefined || val === null) return "-";
     if (col.key === "unit") return String(val).toUpperCase();
@@ -178,13 +178,13 @@ export function MarineTemplate({ data }: TemplateProps) {
                 <td
                   key={col.id}
                   className={`py-2 px-2.5 border-r border-gray-200 last:border-r-0 ${
-                    col.key === "sno" || col.type === "number" || col.key === "total" || col.key === "unitPrice" ? "text-center font-medium" : ""
+                    col.key === "sno" || col.type === "number" || col.type === "auto" || col.role ? "text-center font-medium" : ""
                   } ${col.key === "itemName" ? "font-bold uppercase" : ""} ${col.key === "total" ? "font-bold" : ""}`}
                 >
                   {col.key === "itemName" ? (
                     <div>
                       <span className="font-bold uppercase">{item.itemName || "-"}</span>
-                      {item.description && (
+                      {item.description && !visibleColumns.some(c => c.key === "description") && (
                         <p className="text-[10px] text-gray-500 normal-case mt-0.5 font-normal">{item.description}</p>
                       )}
                     </div>

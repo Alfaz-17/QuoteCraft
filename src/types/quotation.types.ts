@@ -39,12 +39,14 @@ export interface CompanyInfo {
   email: string;
   website?: string;
   taxId?: string;
+  bankDetails?: string;
 }
 
 export interface ClientInfo {
   name: string;
   companyName?: string;
   address: string;
+  phone?: string;
   email?: string;
   country?: string;
   attn?: string;
@@ -56,6 +58,8 @@ export interface TableColumn {
   label: string;
   key: string; // maps to LineItem field
   type: "text" | "number" | "auto"; // auto = computed like Total
+  /** Which column drives the maths. Exactly one "qty", one "price" and one "total" per table. */
+  role?: "qty" | "price" | "total";
   visible: boolean;
   width?: string;
 }
