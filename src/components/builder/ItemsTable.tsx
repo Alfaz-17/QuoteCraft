@@ -3,9 +3,9 @@
 import { LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Settings2, X, Eye, EyeOff, Copy, ChevronUp, ChevronDown, Sparkles, FileText, UploadCloud, Loader2, AlertCircle, GripVertical } from "lucide-react";
-import { calculateRowTotal } from "@/utils/calculations";
+import { calculateRowTotal, getRoleKey, toNumber } from "@/utils/calculations";
+import { mapImport, itemTitle } from "@/utils/importMapping";
 import { COMMON_MARINE_PARTS } from "@/constants/marine-parts";
 import { useEffect, useState, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,7 +24,8 @@ interface ItemsTableProps {
   onAddColumn: (col: TableColumn) => void;
   onDeleteColumn: (id: string) => void;
   onUpdateColumn: (id: string, updates: Partial<TableColumn>) => void;
-  onImportItems?: (items: LineItem[]) => void;
+  onImportRfq?: (items: LineItem[], columns: TableColumn[]) => void;
+  onSetColumns: (columns: TableColumn[]) => void;
   currencySymbol?: string;
 }
 
@@ -39,7 +40,8 @@ export function ItemsTable({
   onAddColumn,
   onDeleteColumn,
   onUpdateColumn,
-  onImportItems,
+  onImportRfq,
+  onSetColumns,
   currencySymbol = "$",
 }: ItemsTableProps) {
   const [showColumnManager, setShowColumnManager] = useState(false);
@@ -87,7 +89,7 @@ export function ItemsTable({
 
   const handleAddColumn = () => {
     if (!newColumnLabel.trim()) return;
-    const key = newColumnLabel.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const key = `x_${newColumnLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || Date.now()}`;
     onAddColumn({
       id: `custom_${Date.now()}`,
       label: newColumnLabel.trim(),
@@ -99,12 +101,27 @@ export function ItemsTable({
     setNewColumnLabel("");
   };
 
-  const getCellValue = (item: LineItem, col: TableColumn, index: number): string => {
-    if (col.key === "sno") return (index + 1).toString();
-    if (col.key === "total") return calculateRowTotal(item).toFixed(2);
-    const val = item[col.key];
-    if (val === undefined || val === null) return "";
-    return String(val);
+  const qtyKey = getRoleKey(tableColumns, "qty") ?? "quantity";
+  const priceKey = getRoleKey(tableColumns, "price") ?? "unitPrice";
+
+  const moveColumn = (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= tableColumns.length) return;
+    const next = [...tableColumns];
+    [next[index], next[target]] = [next[target], next[index]];
+    onSetColumns(next);
+  };
+
+  // Only one column may be the Quantity and one the Rate; they drive every total.
+  const setColumnRole = (col: TableColumn, value: string) => {
+    let next = tableColumns.map(c => ({ ...c }));
+    if (value === "qty" || value === "price") {
+      next = next.map(c => (c.role === value && c.id !== col.id ? { ...c, role: undefined } : c));
+      next = next.map(c => (c.id === col.id ? { ...c, role: value, type: "number" as const } : c));
+    } else {
+      next = next.map(c => (c.id === col.id ? { ...c, role: undefined, type: value as "text" | "number" } : c));
+    }
+    onSetColumns(next);
   };
 
   // Convert file to Base64
@@ -175,37 +192,33 @@ export function ItemsTable({
         throw new Error(data.error || "Failed to process RFQ with AI.");
       }
 
-      if (data.items && Array.isArray(data.items)) {
-        if (data.items.length === 0) {
-          throw new Error("No structured marine parts found in the input. Please try copy-pasting the raw text.");
-        }
-
-        const formattedItems = data.items.map((item: any, idx: number) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-          id: (Date.now() + idx).toString(),
-          itemName: item.itemName || "Exhaust Spares",
-          description: item.description || "",
-          partNumber: item.partNumber || "",
-          quantity: parseFloat(item.quantity) || 1,
-          unit: item.unit || "pcs",
-          condition: item.condition || "",
-          unitPrice: parseFloat(item.unitPrice) || 0,
-        }));
-
-        if (onImportItems) {
-          if (importMode === "replace") {
-            onImportItems(formattedItems);
-          } else {
-            onImportItems([...items, ...formattedItems]);
-          }
-        }
-        
-        setShowAIModal(false);
-        setAiText("");
-        setSelectedFile(null);
-        success(`Successfully extracted ${formattedItems.length} marine line items!`);
-      } else {
+      if (!Array.isArray(data.columns) || !Array.isArray(data.rows)) {
         throw new Error("The AI failed to format the extracted line items correctly.");
       }
+      const mapped = mapImport({ columns: data.columns, rows: data.rows });
+      if (mapped.items.length === 0) {
+        throw new Error("No line items found in the input. Please try copy-pasting the raw text.");
+      }
+
+      if (onImportRfq) {
+        if (importMode === "replace") {
+          // Table takes the shape of the buyer's file
+          onImportRfq(mapped.items, mapped.columns);
+        } else {
+          // Append: keep current columns, add any new ones just before Total
+          const have = new Set(tableColumns.map(c => c.key));
+          const extra = mapped.columns.filter(c => !have.has(c.key) && c.key !== "total" && c.key !== "sno");
+          const totalIdx = tableColumns.findIndex(c => c.role === "total");
+          const merged = [...tableColumns];
+          merged.splice(totalIdx === -1 ? merged.length : totalIdx, 0, ...extra);
+          onImportRfq([...items, ...mapped.items], merged);
+        }
+      }
+
+      setShowAIModal(false);
+      setAiText("");
+      setSelectedFile(null);
+      success(`Extracted ${mapped.items.length} items with ${mapped.columns.filter(c => c.type !== "auto").length} columns from the RFQ.`);
     } catch (err: any) {
       const errMsg = err.message || "An unexpected error occurred during AI analysis.";
       setAiError(errMsg);
@@ -259,31 +272,41 @@ export function ItemsTable({
       {showColumnManager && (
         <div className="p-4 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <p className="text-xs font-black uppercase tracking-widest text-slate-400">Manage Columns</p>
-          <div className="flex flex-wrap gap-2">
-            {tableColumns.map(col => (
-              <div
-                key={col.id}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
-                  col.visible ? "bg-primary/10 text-primary border-primary/30" : "bg-slate-100 text-slate-500 border-transparent hover:border-slate-300"
-                }`}
-              >
-                <button
-                  onClick={() => onUpdateColumn(col.id, { visible: !col.visible })}
-                  className="hover:scale-110 transition-transform flex items-center justify-center"
-                >
-                  {col.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 opacity-60" />}
-                </button>
-                <span className="ml-1">{col.label}</span>
-                {col.id.startsWith("custom_") && (
-                  <button
-                    onClick={() => onDeleteColumn(col.id)}
-                    className="text-destructive hover:scale-125 transition-transform ml-1 font-black"
-                  >
-                    ×
+          <div className="space-y-2">
+            {tableColumns.map((col, i) => {
+              const isAuto = col.type === "auto";
+              return (
+                <div key={col.id} className={`flex flex-wrap items-center gap-2 p-2 rounded-xl border ${col.visible ? "bg-white border-slate-200" : "bg-slate-50 border-transparent opacity-70"}`}>
+                  <button onClick={() => onUpdateColumn(col.id, { visible: !col.visible })} className="p-1.5 text-slate-500 hover:text-slate-800" title={col.visible ? "Hide column" : "Show column"}>
+                    {col.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
-                )}
-              </div>
-            ))}
+                  <Input
+                    value={col.label}
+                    onChange={e => onUpdateColumn(col.id, { label: e.target.value })}
+                    className="h-8 text-sm font-medium flex-1 min-w-[110px] rounded-lg"
+                  />
+                  {isAuto ? (
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">{col.role === "total" ? "Auto total" : "Auto"}</span>
+                  ) : (
+                    <select
+                      value={col.role ?? (col.type === "number" ? "number" : "text")}
+                      onChange={e => setColumnRole(col, e.target.value)}
+                      className="h-8 rounded-lg border border-slate-200 bg-white text-xs font-bold px-2"
+                    >
+                      <option value="text">Text</option>
+                      <option value="number">Number</option>
+                      <option value="qty">Quantity</option>
+                      <option value="price">Rate / Price</option>
+                    </select>
+                  )}
+                  <button onClick={() => moveColumn(i, -1)} disabled={i === 0} className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30"><ChevronUp className="w-4 h-4" /></button>
+                  <button onClick={() => moveColumn(i, 1)} disabled={i === tableColumns.length - 1} className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30"><ChevronDown className="w-4 h-4" /></button>
+                  {col.role !== "total" && col.role !== "price" && col.key !== "sno" ? (
+                    <button onClick={() => onDeleteColumn(col.id)} className="p-1 text-destructive hover:scale-110 transition-transform" title="Delete column"><X className="w-4 h-4" /></button>
+                  ) : <span className="w-6" />}
+                </div>
+              );
+            })}
           </div>
           <div className="flex gap-2 max-w-sm pt-2">
             <Input
@@ -337,7 +360,9 @@ export function ItemsTable({
         <div className="flex flex-col gap-3">
           {items.map((item, index) => {
             const isActive = activeItemId === item.id;
-            const rowTotal = calculateRowTotal(item);
+            const rowTotal = calculateRowTotal(item, tableColumns);
+            const qtyVal = toNumber(item[qtyKey]);
+            const title = itemTitle(item, tableColumns);
             
             return (
               <div 
@@ -359,23 +384,23 @@ export function ItemsTable({
                   
                   <div className="flex-1 min-w-0">
                     <h5 className={`text-sm md:text-base truncate transition-all ${isActive ? "font-black text-primary" : "font-bold text-slate-800"}`}>
-                      {item.itemName || <span className="text-slate-400 italic font-medium">Unnamed Item</span>}
+                      {title || <span className="text-slate-400 italic font-medium">Unnamed Item</span>}
                     </h5>
                     {/* Mobile subtext */}
                     <p className="text-[11px] text-slate-500 font-medium sm:hidden truncate mt-0.5">
-                      {item.partNumber && `${item.partNumber} • `} {item.quantity || 0} {item.unit || "pcs"}
+                      {item.partNumber && `${item.partNumber} • `} {qtyVal || 0} {item.unit || "pcs"}
                     </p>
                     {/* Desktop description snippet */}
                     <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
                       {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
-                      {item.description || "No description provided"}
+                      {item.itemName ? (item.description || "No description provided") : ""}
                     </p>
                   </div>
 
                   <div className="hidden sm:flex items-center gap-6 px-4 text-right">
                     <div className="text-left w-20">
                       <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Qty / Unit</p>
-                      <p className="text-xs font-black text-slate-700">{item.quantity || 0} <span className="text-slate-500 uppercase">{item.unit || "pcs"}</span></p>
+                      <p className="text-xs font-black text-slate-700">{qtyVal || 0} <span className="text-slate-500 uppercase">{item.unit || "pcs"}</span></p>
                     </div>
                     <div className="text-right w-24">
                       <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Total</p>
@@ -393,118 +418,52 @@ export function ItemsTable({
                   <div className="border-t border-slate-100 bg-slate-50/50 p-4 md:p-5">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                       
-                      {/* Left Block (Name, Part No, Description) */}
-                      <div className="lg:col-span-2 space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {visibleColumns.some(c => c.key === "itemName") && (
-                            <div className="space-y-1.5 min-w-0">
-                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Item Name</label>
-                              <Input
-                                placeholder="e.g. Marine Grade Fasteners"
-                                value={item.itemName || ""}
-                                list="marine-parts-list"
-                                onChange={e => onUpdate(item.id, { itemName: e.target.value })}
-                                className="h-10 text-sm font-medium text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl focus-visible:ring-primary/20"
-                              />
+                      {/* Fields come from the table columns, so they match whatever the RFQ had */}
+                      <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {visibleColumns.filter(c => c.type !== "auto").map(col => {
+                          const wide = col.key === "description";
+                          const isPrice = col.role === "price";
+                          const raw = item[col.key];
+                          return (
+                            <div key={col.id} className={`space-y-1.5 min-w-0 ${wide ? "sm:col-span-2 lg:col-span-3" : ""}`}>
+                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                                {col.label}{isPrice ? ` (${currencySymbol})` : ""}
+                              </label>
+                              {wide ? (
+                                <textarea
+                                  rows={2}
+                                  value={raw === undefined ? "" : String(raw)}
+                                  onChange={e => onUpdate(item.id, { [col.key]: e.target.value })}
+                                  className="w-full px-3 py-2 text-sm font-medium text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                                />
+                              ) : col.type === "number" ? (
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step={isPrice ? "0.01" : "any"}
+                                  value={raw === 0 || raw === undefined || raw === "" ? "" : Number(raw)}
+                                  onChange={e => onUpdate(item.id, { [col.key]: parseFloat(e.target.value) || 0 })}
+                                  className={`h-10 text-sm text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl ${isPrice ? "font-black text-right border-primary/40" : "font-bold text-center"}`}
+                                />
+                              ) : (
+                                <Input
+                                  value={raw === undefined ? "" : String(raw)}
+                                  list={col.key === "itemName" ? "marine-parts-list" : col.key === "unit" ? "unit-list" : undefined}
+                                  onChange={e => onUpdate(item.id, { [col.key]: e.target.value })}
+                                  className="h-10 text-sm font-medium text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl focus-visible:ring-primary/20"
+                                />
+                              )}
                             </div>
-                          )}
-                          {visibleColumns.some(c => c.key === "partNumber") && (
-                            <div className="space-y-1.5 min-w-0">
-                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Part Number</label>
-                              <Input
-                                placeholder="e.g. MF-S316-M12"
-                                value={item.partNumber || ""}
-                                onChange={e => onUpdate(item.id, { partNumber: e.target.value })}
-                                className="h-10 text-sm font-medium text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl focus-visible:ring-primary/20"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {visibleColumns.some(c => c.key === "description") && (
-                          <div className="space-y-1.5 min-w-0">
-                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Description</label>
-                            <textarea
-                              rows={2}
-                              placeholder="Add technical specifications..."
-                              value={item.description || ""}
-                              onChange={e => onUpdate(item.id, { description: e.target.value })}
-                              className="w-full px-3 py-2 text-sm font-medium text-slate-800 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-                            />
-                          </div>
-                        )}
-                        
-                        {/* Dynamic Custom Fields */}
-                        {visibleColumns.filter(c => c.id.startsWith("custom_")).length > 0 && (
-                          <div className="grid grid-cols-2 gap-4">
-                            {visibleColumns.filter(c => c.id.startsWith("custom_")).map(col => (
-                               <div key={col.id} className="space-y-1.5 min-w-0">
-                               <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">{col.label}</label>
-                               <Input
-                                 type={col.type === "number" ? "number" : "text"}
-                                 placeholder={col.label}
-                                 value={getCellValue(item, col, index)}
-                                 onChange={e => {
-                                   const val = col.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
-                                   onUpdate(item.id, { [col.key]: val });
-                                 }}
-                                 className="h-10 text-sm font-medium text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl"
-                               />
-                             </div>
-                            ))}
-                          </div>
-                        )}
+                          );
+                        })}
                       </div>
 
-                      {/* Right Block (Pricing & Quantity) */}
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1.5 min-w-0">
-                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Quantity</label>
-                            <Input
-                              type="number"
-                              min="0"
-                              value={item.quantity === 0 ? "" : item.quantity}
-                              onChange={e => onUpdate(item.id, { quantity: parseFloat(e.target.value) || 0 })}
-                              className="h-10 text-sm font-bold text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl text-center"
-                            />
-                          </div>
-                          {visibleColumns.some(c => c.key === "unit") && (
-                            <div className="space-y-1.5 min-w-0">
-                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Unit</label>
-                              <Select value={item.unit || "pcs"} onValueChange={(v) => onUpdate(item.id, { unit: v })}>
-                                <SelectTrigger className="h-10 text-sm font-bold bg-white border-slate-200 rounded-xl shadow-sm">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                  {UNIT_OPTIONS.map(u => (
-                                    <SelectItem key={u} value={u} className="font-bold">{u.toUpperCase()}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                      {visibleColumns.some(c => c.role === "total") && (
+                        <div className="lg:col-span-3 pt-3 flex items-center justify-between border-t border-slate-200/60">
+                          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Row Total</p>
+                          <p className="text-xl font-black text-primary">{currencySymbol}{rowTotal.toFixed(2)}</p>
                         </div>
-
-                        <div className="space-y-1.5 min-w-0">
-                          <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">Unit Price ({currencySymbol})</label>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={item.unitPrice === 0 ? "" : item.unitPrice}
-                            onChange={e => onUpdate(item.id, { unitPrice: parseFloat(e.target.value) || 0 })}
-                            className="h-10 text-sm font-black text-slate-800 bg-white border-slate-200 shadow-sm rounded-xl text-right"
-                          />
-                        </div>
-
-                        {visibleColumns.some(c => c.key === "total") && (
-                          <div className="pt-3 flex items-center justify-between border-t border-slate-200/60 mt-1">
-                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Row Total</p>
-                            <p className="text-xl font-black text-primary">{currencySymbol}{rowTotal.toFixed(2)}</p>
-                          </div>
-                        )}
-                      </div>
+                      )}
 
                     </div>
 
@@ -619,13 +578,13 @@ export function ItemsTable({
                       onClick={() => fileInputRef.current?.click()}
                       className="border-2 border-dashed border-slate-200 rounded-[2rem] p-8 md:p-10 flex flex-col items-center justify-center gap-4 bg-slate-50/50 hover:bg-slate-50 hover:border-primary/50 transition-all cursor-pointer group"
                     >
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf,image/*,text/plain" className="hidden" />
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf,image/*,text/plain,text/csv,.csv,.xlsx" className="hidden" />
                       <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <UploadCloud className="w-8 h-8 text-primary" />
                       </div>
                       <div className="text-center">
                         <p className="font-black text-sm text-slate-800">Click or drag RFQ file</p>
-                        <p className="text-xs font-medium text-slate-500 mt-1">PDF, PNG, JPG, TXT (Max 4MB)</p>
+                        <p className="text-xs font-medium text-slate-500 mt-1">PDF, Excel (.xlsx), CSV, PNG, JPG, TXT (Max 4MB)</p>
                       </div>
                     </div>
                     
@@ -646,7 +605,7 @@ export function ItemsTable({
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed border-primary/50 rounded-[2rem] p-8 md:p-10 flex flex-col items-center justify-center gap-4 bg-primary/5 cursor-pointer"
                   >
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf,image/*,text/plain" className="hidden" />
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="application/pdf,image/*,text/plain,text/csv,.csv,.xlsx" className="hidden" />
                     <UploadCloud className="w-12 h-12 text-primary mb-2" />
                     <div className="text-center space-y-1">
                       <p className="font-black text-sm text-slate-800">{selectedFile.name}</p>
@@ -670,6 +629,10 @@ export function ItemsTable({
           </div>
         </div>
       )}
+
+      <datalist id="unit-list">
+        {UNIT_OPTIONS.map(u => <option key={u} value={u} />)}
+      </datalist>
 
       {/* Autocomplete */}
       <datalist id="marine-parts-list">
