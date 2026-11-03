@@ -1,25 +1,19 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
   FilePlus, 
-  UploadCloud, 
   Search, 
   Ship, 
-  Calendar, 
   ArrowRight, 
-  FileText, 
   Clock, 
   Download, 
-  Copy, 
-  Trash2, 
-  ExternalLink,
   Loader2,
-  Anchor,
-  TrendingUp,
   Inbox
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -176,7 +176,7 @@ export function Step1Upload({
           Document & Customer Details
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-lg mx-auto">
-          Set up quotation metadata, customer information, and import your buyer's RFQ items.
+          Set up quotation metadata, customer information, and import your buyer&apos;s RFQ items.
         </p>
       </div>
 
@@ -389,7 +389,7 @@ export function Step1Upload({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-              <UploadCloud className="w-3.5 h-3.5 text-primary" /> Import Buyer's RFQ
+              <UploadCloud className="w-3.5 h-3.5 text-primary" /> Import Buyer&apos;s RFQ
             </h4>
             <p className="text-[11px] text-slate-400 mt-0.5">
               Excel files are extracted deterministically with $0 cost. PDFs and text are parsed intelligently.
@@ -587,7 +587,7 @@ export function Step1Upload({
               <Loader2 className="w-7 h-7 animate-spin" />
             </div>
             <div>
-              <h4 className="font-bold text-base text-slate-900">Processing Buyer's RFQ</h4>
+              <h4 className="font-bold text-base text-slate-900">Processing Buyer&apos;s RFQ</h4>
               <p className="text-xs text-slate-500 mt-1">{progressMsg}</p>
             </div>
           </div>

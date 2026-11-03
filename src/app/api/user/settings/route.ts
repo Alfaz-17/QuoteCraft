@@ -3,14 +3,14 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { findUserApiKey, updateUserGeminiKey } from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const userId = (session.user as { id?: string }).id;
     if (!userId) {
       return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
     }
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const maskedKey = hasKey ? "••••••••••••••••" : "";
 
     return NextResponse.json({ geminiApiKey: maskedKey, hasKey });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to load user settings" }, { status: 500 });
   }
 }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const userId = (session.user as { id?: string }).id;
     if (!userId) {
       return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
     }

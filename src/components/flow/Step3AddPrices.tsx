@@ -3,12 +3,8 @@
 import React, { useRef } from "react";
 import { LineItem, TableColumn, Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  ArrowRight, ArrowLeft, DollarSign, Sparkles, Percent, Tag, 
-  HelpCircle, Check 
-} from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import { calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal, getRoleKey, toNumber } from "@/utils/calculations";
 import { useToast } from "@/components/ui/Toast";
 
@@ -166,6 +162,14 @@ export function Step3AddPrices({
           </div>
 
           <Button
+            variant="outline"
+            onClick={onBack}
+            className="h-10 px-3.5 rounded-xl font-bold text-xs sm:text-sm border-slate-200 hover:bg-slate-50 text-slate-700"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
+          </Button>
+
+          <Button
             onClick={onNext}
             className="h-10 px-5 rounded-xl font-bold text-xs sm:text-sm bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 active:scale-[0.98]"
           >
@@ -251,7 +255,7 @@ export function Step3AddPrices({
                           type="number"
                           step="any"
                           min="0"
-                          value={item[priceKey] !== undefined && item[priceKey] !== null ? item[priceKey] : ""}
+                          value={typeof item[priceKey] === "number" ? item[priceKey] : ""}
                           onChange={(e) =>
                             onUpdateItem(item.id, {
                               [priceKey]: e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
@@ -323,7 +327,7 @@ export function Step3AddPrices({
                       type="number"
                       step="any"
                       min="0"
-                      value={item[priceKey] || ""}
+                      value={typeof item[priceKey] === "number" && item[priceKey] !== 0 ? item[priceKey] : ""}
                       onChange={(e) =>
                         onUpdateItem(item.id, {
                           [priceKey]: parseFloat(e.target.value) || 0,
@@ -385,8 +389,22 @@ export function Step3AddPrices({
                 </button>
               </div>
 
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+                <span className="text-slate-400 font-bold">Shipping:</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={shippingCharge || ""}
+                  onChange={(e) => onSetShipping(parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  className="w-16 h-6 text-right font-bold bg-slate-700 text-white rounded border-none px-1 outline-none"
+                />
+                <span className="text-slate-400 font-bold">{currencySymbol}</span>
+              </div>
+
               <div className="text-slate-400 text-xs font-medium hidden sm:inline ml-1">
                 Subtotal: <span className="font-mono text-white font-bold">{currencySymbol}{formatMoney(subtotal)}</span>
+                {taxAmt > 0 && <span className="ml-2">| Tax: <span className="font-mono text-white font-bold">{currencySymbol}{formatMoney(taxAmt)}</span></span>}
               </div>
             </div>
 

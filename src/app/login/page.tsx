@@ -14,7 +14,7 @@ import { Loader2, Ship, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-rea
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,13 +54,14 @@ function LoginContent() {
 
       router.push("/");
       router.refresh();
-    } catch (err: any) {
-      if (err.message === "No user found with this phone number or email") {
-        setError(err.message);
+    } catch (err: unknown) {
+      const errMsg = (err as Error).message || "An unexpected error occurred";
+      if (errMsg === "No user found with this phone number or email") {
+        setError(errMsg);
         toastInfo("No account found! Please register first.");
       } else {
-        setError(err.message || "An unexpected error occurred");
-        toastError(err.message || "An unexpected error occurred");
+        setError(errMsg);
+        toastError(errMsg);
       }
     } finally {
       setLoading(false);
@@ -99,7 +100,7 @@ function LoginContent() {
                 <div className="p-4 text-xs bg-amber-50 text-amber-800 rounded-lg border border-amber-200 font-medium flex flex-col gap-3 shadow-sm">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
-                    <p className="leading-snug">We couldn't find an account with that number.</p>
+                    <p className="leading-snug">We couldn&apos;t find an account with that number.</p>
                   </div>
                   <Button type="button" variant="outline" className="w-full text-xs h-9 bg-white border-amber-200 hover:bg-amber-100 hover:text-amber-900 transition-colors" onClick={() => router.push("/register")}>
                     Create a new account
@@ -153,7 +154,7 @@ function LoginContent() {
           </CardContent>
           <CardFooter className="pt-2 flex justify-center border-t py-4">
             <p className="text-xs text-muted-foreground">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/register" className="text-primary font-bold hover:underline">
                 Register
               </Link>

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
     }
 
-    const userId = (session.user as any).id; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const userId = (session.user as { id?: string }).id;
     if (!userId) {
       return NextResponse.json({ error: "Invalid user session" }, { status: 400 });
     }

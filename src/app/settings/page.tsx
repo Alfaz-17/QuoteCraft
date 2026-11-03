@@ -28,7 +28,7 @@ interface AccordionItemProps {
   children: React.ReactNode;
 }
 
-function AccordionItem({ id, title, description, icon, isOpen, onToggle, badge, toggleSwitch, children }: AccordionItemProps) {
+function AccordionItem({ title, description, icon, isOpen, onToggle, badge, toggleSwitch, children }: AccordionItemProps) {
   return (
     <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm transition-all duration-300">
       {/* Header Button */}
@@ -133,8 +133,8 @@ export default function SettingsPage() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      const errMsg = err.message || "Failed to update password";
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Failed to update password";
       setPasswordError(errMsg);
       toastError(errMsg);
     } finally {
@@ -182,9 +182,10 @@ export default function SettingsPage() {
       } else {
         throw new Error("Failed to save key");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to save custom Gemini key", err);
-      toastError(err.message || "Failed to save Gemini API key.");
+      const msg = err instanceof Error ? err.message : "Failed to save Gemini API key.";
+      toastError(msg);
     } finally {
       setSavingKey(false);
     }
@@ -214,8 +215,6 @@ export default function SettingsPage() {
   const toggleAccordion = (id: string) => {
     setOpenSection(openSection === id ? null : id);
   };
-
-  const primaryColor = state.branding.primaryColor || "#2563eb";
 
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50/50">
@@ -463,15 +462,15 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">2</span>
-                      <span>Click the blue <strong className="text-slate-800">"Get API key"</strong> button on the top-left corner of the sidebar dashboard.</span>
+                      <span>Click the blue <strong className="text-slate-800">&quot;Get API key&quot;</strong> button on the top-left corner of the sidebar dashboard.</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">3</span>
-                      <span>Click <strong className="text-slate-800">"Create API key"</strong>, choose/create a project, and copy the key string (starts with <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px]">AIzaSy...</code>).</span>
+                      <span>Click <strong className="text-slate-800">&quot;Create API key&quot;</strong>, choose/create a project, and copy the key string (starts with <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px]">AIzaSy...</code>).</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">4</span>
-                      <span>Paste the key in the input box above and click <strong className="text-primary">"Save Key"</strong>. You are ready to start AI importing!</span>
+                      <span>Paste the key in the input box above and click <strong className="text-primary">&quot;Save Key&quot;</strong>. You are ready to start AI importing!</span>
                     </div>
                   </div>
                   <div className="pt-2 border-t border-slate-200/50 text-[9.5px] text-slate-400 font-semibold uppercase tracking-tight">
@@ -525,11 +524,11 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">2</span>
-                      <span>Click the blue <strong className="text-slate-800">"Get API key"</strong> button on the top-left corner of the sidebar dashboard.</span>
+                      <span>Click the blue <strong className="text-slate-800">&quot;Get API key&quot;</strong> button on the top-left corner of the sidebar dashboard.</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">3</span>
-                      <span>Click <strong className="text-slate-800">"Create API key"</strong>, agree to standard terms, and copy the key (starts with <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px]">AIzaSy...</code>).</span>
+                      <span>Click <strong className="text-slate-800">&quot;Create API key&quot;</strong>, agree to standard terms, and copy the key (starts with <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9.5px]">AIzaSy...</code>).</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-[10.5px] text-slate-600 font-medium leading-relaxed">
                       <span className="w-4.5 h-4.5 bg-slate-200 text-slate-800 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 mt-0.5">4</span>

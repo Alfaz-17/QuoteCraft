@@ -219,8 +219,8 @@ export function ItemsTable({
       setAiText("");
       setSelectedFile(null);
       success(`Extracted ${mapped.items.length} items with ${mapped.columns.filter(c => c.type !== "auto").length} columns from the RFQ.`);
-    } catch (err: any) {
-      const errMsg = err.message || "An unexpected error occurred during AI analysis.";
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "An unexpected error occurred during AI analysis.";
       setAiError(errMsg);
       toastError(errMsg);
     } finally {

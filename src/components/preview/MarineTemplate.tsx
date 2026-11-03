@@ -1,6 +1,6 @@
 "use client";
 
-import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import { QuotationState, CURRENCY_SYMBOLS, LineItem } from "@/types/quotation.types";
 import { toNumber, calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
 
 interface TemplateProps {
@@ -9,8 +9,9 @@ interface TemplateProps {
 
 export function MarineTemplate({ data }: TemplateProps) {
   const { branding, documentInfo, company, client, items, terms, introText } = data;
-  const visibleColumns = data.tableColumns.filter(c => c.visible);
-  const primaryColor = branding.primaryColor || "#2563eb";
+  const isLandscape = data.pdfOrientation === "landscape";
+  const isCleanMode = data.pdfLayoutMode !== "detailed";
+  const primaryColor = branding.primaryColor || "#1e3a8a";
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
 
   const subtotal = calculateSubtotal(items, data.tableColumns);
@@ -19,249 +20,314 @@ export function MarineTemplate({ data }: TemplateProps) {
   const taxAmt = calculateTaxAmount(afterDiscount, data.taxPercent);
   const grandTotal = calculateGrandTotal(subtotal, data.discount, data.discountType, data.taxPercent, data.shippingCharge);
 
-  const hasExtras = (data.discount > 0) || (data.taxPercent > 0) || (data.shippingCharge > 0);
-
   const formatValue = (num: number): string => {
     return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
   };
 
-  const getCellValue = (item: typeof items[0], col: typeof visibleColumns[0], index: number): string => {
-    if (col.key === "sno") return (index + 1).toString();
-    if (col.key === "total" || col.role === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item, data.tableColumns))}`;
-    if (col.role === "price" || col.key === "unitPrice") return `${currencySymbol}${formatValue(toNumber(item[col.key]))}`;
-    const val = item[col.key];
-    if (val === undefined || val === null) return "-";
-    if (col.key === "unit") return String(val).toUpperCase();
-    if (typeof val === "number") return col.type === "number" ? formatValue(val) : val.toString();
-    return String(val) || "-";
-  };
-
-  // Title based on doc type
   const getTitle = () => {
     switch (documentInfo.type) {
-      case "rfq": return "Request for Quotation";
-      case "proforma": return "Proforma Invoice";
-      default: return "Quotation";
+      case "rfq": return "REQUEST FOR QUOTATION";
+      case "proforma": return "PROFORMA INVOICE";
+      default: return "QUOTATION";
     }
   };
 
-  // Default intro text based on doc type
-  const getDefaultIntro = () => {
-    switch (documentInfo.type) {
-      case "rfq": return "We hereby invite you to submit your best quotation for the items listed below.";
-      case "proforma": return "We are pleased to submit our proforma invoice for the items listed below.";
-      default: return "We are pleased to submit our best quotation for the items listed below.";
+  const defaultIntro = documentInfo.type === "rfq"
+    ? "Please quote your best price and delivery time for the following items:"
+    : "We are pleased to submit our formal commercial quotation for the items detailed below:";
+  const intro = introText || defaultIntro;
+
+  const hasPartNumber = items.some(i => i.partNumber && i.partNumber.trim().length > 0);
+
+  // Sub-detail formatter (Technical specs, brand, custom fields underneath item name)
+  const renderItemSubDetails = (item: LineItem) => {
+    const details: string[] = [];
+    if (!hasPartNumber && item.partNumber) {
+      details.push(`Part No: ${item.partNumber}`);
     }
+    if (item.condition) {
+      details.push(`Condition: ${item.condition}`);
+    }
+
+    const standardKeys = new Set(["id", "itemName", "partNumber", "quantity", "unit", "condition", "unitPrice", "total", "needsReview", "isMissingQty", "description"]);
+    for (const [key, val] of Object.entries(item)) {
+      if (!standardKeys.has(key) && val !== undefined && val !== null && String(val).trim()) {
+        const colDef = data.tableColumns.find(c => c.key === key);
+        const label = colDef?.label || key;
+        details.push(`${label}: ${val}`);
+      }
+    }
+
+    return (
+      <div className="space-y-0.5 mt-0.5">
+        {details.length > 0 && (
+          <p className="text-[10px] text-slate-500 font-medium tracking-normal normal-case">
+            {details.join("  •  ")}
+          </p>
+        )}
+        {item.description && item.description.trim() && (
+          <p className="text-[10px] text-slate-600 font-normal italic tracking-normal normal-case">
+            Spec: {item.description.trim()}
+          </p>
+        )}
+      </div>
+    );
   };
+
+  const hasMissingPrices = items.some(i => !toNumber(i.unitPrice) || toNumber(i.unitPrice) <= 0);
 
   return (
     <div
-      className="bg-white p-[50px] mx-auto min-h-[1123px] w-[794px] flex flex-col border border-gray-100 shadow-sm"
-      style={{ 
-        fontFamily: branding.font,
-        boxSizing: "border-box"
+      className={`bg-white p-8 md:p-12 mx-auto min-h-[1123px] flex flex-col border border-slate-200/90 shadow-sm transition-all duration-200 ${
+        isLandscape ? "w-[1123px]" : "w-[794px]"
+      }`}
+      style={{
+        fontFamily: branding.font || "Inter, system-ui, sans-serif",
+        boxSizing: "border-box",
       }}
     >
-      {/* Header - Logo/Name on Left, Doc Details on Right */}
-      <div className="flex justify-between items-start mb-6 border-b pb-4">
-        {/* Top-Left: Logo & Company Name Side-by-Side */}
-        <div className="flex items-center gap-3">
+      {/* 1. HEADER: SUPPLIER BRANDING (LEFT) & QUOTE METADATA (RIGHT) */}
+      <div className="flex justify-between items-start pb-4 border-b border-slate-200/90 gap-6">
+        {/* Left: Supplier Logo & Name */}
+        <div className="flex items-start gap-3.5 max-w-[60%]">
           {branding.logo && (
-            <img src={branding.logo} alt="Logo" className="max-h-14 object-contain" />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={branding.logo} alt="Logo" className="max-h-14 max-w-[120px] object-contain shrink-0" />
           )}
-          {company.name && (
-            <div>
-              <h1 className="text-lg font-black uppercase tracking-tight" style={{ color: primaryColor }}>
-                {company.name}
-              </h1>
-              {company.website && (
-                <p className="text-[9px] text-gray-400 font-semibold tracking-wider">{company.website.toLowerCase()}</p>
-              )}
+          <div>
+            <h1 className="text-xl font-black uppercase tracking-tight" style={{ color: primaryColor }}>
+              {company.name || "OUR COMPANY"}
+            </h1>
+            {company.address && (
+              <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 max-w-sm">
+                {company.address}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] text-slate-400 font-medium mt-1">
+              {company.phone && <span>Tel: {company.phone}</span>}
+              {company.email && <span>Email: {company.email}</span>}
+              {company.website && <span>{company.website.toLowerCase()}</span>}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Top-Right: Document details */}
-        <div className="text-right">
-          <h2 className="text-base font-extrabold uppercase tracking-widest mb-0.5" style={{ color: primaryColor }}>
+        {/* Right: Document Details Badge */}
+        <div className="text-right shrink-0">
+          <h2 className="text-base font-black uppercase tracking-wider mb-0.5" style={{ color: primaryColor }}>
             {getTitle()}
           </h2>
-          <p className="text-xs font-mono font-bold text-gray-700">{documentInfo.number}</p>
-          <div className="mt-1.5 text-[11px] text-gray-600 space-y-0.5">
-            <p><span className="font-semibold text-gray-500">DATE:</span> {documentInfo.date}</p>
+          <p className="text-xs font-mono font-bold text-slate-800">
+            NO: {documentInfo.number || "QT-DRAFT"}
+          </p>
+          <div className="mt-1 text-[11px] text-slate-600 space-y-0.5">
+            <p><span className="font-semibold text-slate-400">DATE:</span> {documentInfo.date}</p>
             {documentInfo.validUntil && (
-              <p><span className="font-semibold text-gray-500">VALID UNTIL:</span> {documentInfo.validUntil}</p>
+              <p><span className="font-semibold text-slate-400">VALID UNTIL:</span> {documentInfo.validUntil}</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Vessel & Reference row */}
-      {(documentInfo.vessel || documentInfo.reference) && (
-        <div className="flex gap-6 mb-4 text-xs">
+      {/* 2. VESSEL & REFERENCE BANNER */}
+      {(documentInfo.vessel || documentInfo.reference || documentInfo.make || documentInfo.model) && (
+        <div className="my-3.5 p-2.5 px-3.5 rounded-lg bg-slate-50 border border-slate-200/80 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
           {documentInfo.vessel && (
-            <div>
-              <span className="font-bold uppercase text-[10px] tracking-wider" style={{ color: primaryColor }}>Vessel: </span>
-              <span className="font-bold">{documentInfo.vessel}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>VESSEL:</span>
+              <span className="font-black text-slate-900 uppercase">{documentInfo.vessel}</span>
             </div>
           )}
           {documentInfo.reference && (
-            <div>
-              <span className="font-bold uppercase text-[10px] tracking-wider" style={{ color: primaryColor }}>Ref: </span>
-              <span className="font-bold">{documentInfo.reference}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>REF / REQ:</span>
+              <span className="font-medium text-slate-800">{documentInfo.reference}</span>
+            </div>
+          )}
+          {(documentInfo.make || documentInfo.model) && (
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>EQUIPMENT:</span>
+              <span className="font-medium text-slate-800">
+                {[documentInfo.make, documentInfo.model].filter(Boolean).join(" / ")}
+              </span>
             </div>
           )}
         </div>
       )}
 
-      {/* Intro */}
-      <div className="mb-5">
-        <p className="font-bold text-xs mb-2">Dear Team,</p>
-        <p className="text-xs leading-relaxed text-gray-700">
-          {introText || getDefaultIntro()}
-        </p>
+      {/* 3. BUYER (CUSTOMER) DETAILS */}
+      {data.showCustomerDetails !== false && (client.name || client.companyName) && (
+        <div className="mt-2 mb-3 text-xs">
+          <p className="font-bold uppercase text-[9.5px] tracking-wider mb-0.5" style={{ color: primaryColor }}>
+            QUOTATION FOR (BUYER):
+          </p>
+          <p className="font-black text-sm uppercase text-slate-900 leading-tight">
+            {client.companyName || client.name}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-slate-600 mt-0.5">
+            {client.attn && <span>Attn: <strong className="text-slate-800">{client.attn}</strong></span>}
+            {client.address && <span>{client.address}</span>}
+            {client.phone && <span>Tel: {client.phone}</span>}
+            {client.email && <span>Email: {client.email}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Intro Note */}
+      <p className="text-[11px] text-slate-500 mb-2.5 font-medium">
+        {intro}
+      </p>
+
+      {/* 4. MAIN LINE-ITEM QUOTATION TABLE */}
+      <div className="overflow-hidden rounded-md border border-slate-200/90 mb-5">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr style={{ backgroundColor: primaryColor }} className="text-white text-[10px] uppercase font-bold tracking-wider">
+              <th className="py-2 px-2 text-center w-10">#</th>
+              <th className="py-2 px-3">Item Description & Specifications</th>
+              {hasPartNumber && <th className="py-2 px-3 text-center w-32">Part Number</th>}
+              <th className="py-2 px-3 text-center w-20">Qty</th>
+              <th className="py-2 px-3 text-right w-24">Rate ({currencySymbol})</th>
+              <th className="py-2 px-3 text-right w-28">Amount ({currencySymbol})</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {items.map((item, index) => {
+              const qtyVal = toNumber(item.quantity) || 1;
+              const unitStr = (item.unit || "PCS").toUpperCase();
+              const priceVal = toNumber(item.unitPrice);
+              const isMissingPrice = !priceVal || priceVal <= 0;
+
+              return (
+                <tr key={item.id} className={index % 2 === 1 ? "bg-slate-50/50" : "bg-white"}>
+                  <td className="py-2.5 px-2 text-center font-mono text-slate-400 font-semibold align-top text-[11px]">
+                    {index + 1}
+                  </td>
+                  <td className="py-2.5 px-3 align-top">
+                    <p className="font-bold text-slate-900 tracking-tight leading-snug">
+                      {(item.itemName || "Unnamed Item").toUpperCase()}
+                    </p>
+                    {isCleanMode && renderItemSubDetails(item)}
+                  </td>
+                  {hasPartNumber && (
+                    <td className="py-2.5 px-3 text-center font-mono text-slate-600 align-top text-[11px]">
+                      {item.partNumber ? (
+                        <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/70 font-semibold">
+                          {item.partNumber}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
+                    </td>
+                  )}
+                  <td className="py-2.5 px-3 text-center font-semibold text-slate-800 align-top text-[11px]">
+                    {qtyVal} <span className="text-[10px] text-slate-500 uppercase">{unitStr}</span>
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono font-bold align-top text-[11px]">
+                    {isMissingPrice ? (
+                      <span className="text-slate-400 italic font-normal">TBA</span>
+                    ) : (
+                      formatValue(priceVal)
+                    )}
+                  </td>
+                  <td className="py-2.5 px-3 text-right font-mono font-black text-slate-900 align-top text-[11px]">
+                    {isMissingPrice ? (
+                      <span className="text-slate-300 font-normal">-</span>
+                    ) : (
+                      formatValue(calculateRowTotal(item, data.tableColumns))
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Machine Info Table - Dynamic Color */}
-      {data.showMachineInfo !== false && (documentInfo.make || documentInfo.model) && (
-        <div className="mb-6">
-          <table className="w-full text-xs border border-gray-300">
-            <tbody>
-              {[
-                { label: "Make", value: documentInfo.make },
-                { label: "Model", value: documentInfo.model },
-              ].filter(row => row.value).map((row, i) => (
-                <tr key={i} className={i < 1 ? "border-b border-gray-300" : ""}>
-                  <td
-                    className="w-1/4 p-2 text-white font-bold uppercase tracking-wider text-center border-r border-gray-300"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {row.label}
-                  </td>
-                  <td className="p-2 font-bold uppercase text-center">{row.value || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Client Info */}
-      {data.showCustomerDetails !== false && (client.name || client.companyName) && (
-        <div className="mb-5 text-xs">
-          <p className="font-bold uppercase text-[10px] tracking-wider mb-1" style={{ color: primaryColor }}>To (Buyer):</p>
-          <p className="font-black text-sm uppercase text-gray-800">{client.companyName || client.name}</p>
-          {client.address && <p className="text-gray-600 leading-normal">{client.address}</p>}
-          {client.attn && <p className="text-gray-500 mt-1">Attn: <span className="font-semibold text-gray-700">{client.attn}</span></p>}
-        </div>
-      )}
-
-      {/* Dynamic Items Table */}
-      <table className="w-full mb-6 border border-gray-300 text-xs">
-        <thead>
-          <tr>
-            {visibleColumns.map(col => (
-              <th
-                key={col.id}
-                className="py-2 px-2.5 text-center text-[10px] uppercase font-bold tracking-wider text-white border-r border-white/30 last:border-r-0"
-                style={{ backgroundColor: primaryColor, width: col.width }}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, index) => (
-            <tr key={item.id} className="border-b border-gray-200">
-              {visibleColumns.map(col => (
-                <td
-                  key={col.id}
-                  className={`py-2 px-2.5 border-r border-gray-200 last:border-r-0 ${
-                    col.key === "sno" || col.type === "number" || col.type === "auto" || col.role ? "text-center font-medium" : ""
-                  } ${col.key === "itemName" ? "font-bold uppercase" : ""} ${col.key === "total" ? "font-bold" : ""}`}
-                >
-                  {col.key === "itemName" ? (
-                    <div>
-                      <span className="font-bold uppercase">{item.itemName || "-"}</span>
-                      {item.description && !visibleColumns.some(c => c.key === "description") && (
-                        <p className="text-[10px] text-gray-500 normal-case mt-0.5 font-normal">{item.description}</p>
-                      )}
-                    </div>
-                  ) : (
-                    getCellValue(item, col, index)
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Totals Section */}
-      {items.length > 0 && visibleColumns.some(c => c.key === "total") && (
-        <div className="flex justify-end mb-6">
-          <div className="w-64 text-xs space-y-1">
-            <div className="flex justify-between px-3 py-1.5">
-              <span className="font-bold uppercase tracking-wider text-gray-600">Subtotal</span>
-              <span className="font-bold">{currencySymbol}{formatValue(subtotal)}</span>
-            </div>
-            {data.discount > 0 && (
-              <div className="flex justify-between px-3 py-1.5 text-red-600">
-                <span className="font-medium">
-                  Discount {data.discountType === "percent" ? `(${data.discount}%)` : ""}
-                </span>
-                <span className="font-medium">-{currencySymbol}{formatValue(discountAmt)}</span>
-              </div>
-            )}
-            {data.taxPercent > 0 && (
-              <div className="flex justify-between px-3 py-1.5">
-                <span className="font-medium text-gray-600">Tax ({data.taxPercent}%)</span>
-                <span className="font-medium">+{currencySymbol}{formatValue(taxAmt)}</span>
-              </div>
-            )}
-            {data.shippingCharge > 0 && (
-              <div className="flex justify-between px-3 py-1.5">
-                <span className="font-medium text-gray-600">Shipping</span>
-                <span className="font-medium">+{currencySymbol}{formatValue(data.shippingCharge)}</span>
-              </div>
-            )}
-            {/* Grand Total — always show if there are extras, otherwise show as the subtotal line */}
-            <div className="flex justify-between px-3 py-2 rounded-md font-black text-sm border-t-2" style={{ borderColor: primaryColor, color: primaryColor, backgroundColor: `${primaryColor}10` }}>
-              <span className="uppercase tracking-wider">{hasExtras ? "Grand Total" : "Total"}</span>
-              <span>{currencySymbol}{formatValue(hasExtras ? grandTotal : subtotal)}</span>
-            </div>
+      {/* 5. TOTALS SECTION */}
+      <div className="flex justify-end mb-6">
+        <div className="w-72 space-y-1.5 text-xs">
+          <div className="flex justify-between py-0.5 text-slate-600 font-medium">
+            <span>Subtotal:</span>
+            <span className="font-mono font-bold text-slate-800">{currencySymbol} {formatValue(subtotal)}</span>
           </div>
-        </div>
-      )}
 
-      {/* Terms */}
-      {terms && (
-        <div className="mb-6 text-[10px]">
-          <p className="font-bold text-xs uppercase tracking-wider mb-2" style={{ color: primaryColor }}>Commercial Terms:</p>
-          <p className="whitespace-pre-line text-gray-700 leading-relaxed">{terms}</p>
-        </div>
-      )}
+          {data.discount > 0 && (
+            <div className="flex justify-between py-0.5 text-red-600 font-medium">
+              <span>Discount ({data.discountType === "percent" ? `${data.discount}%` : "Flat"}):</span>
+              <span className="font-mono font-bold">-{currencySymbol} {formatValue(discountAmt)}</span>
+            </div>
+          )}
 
+          {data.taxPercent > 0 && (
+            <div className="flex justify-between py-0.5 text-slate-600 font-medium">
+              <span>Tax / VAT ({data.taxPercent}%):</span>
+              <span className="font-mono font-bold text-slate-800">+{currencySymbol} {formatValue(taxAmt)}</span>
+            </div>
+          )}
 
-      {/* Footer Logo */}
-      <div className="mt-auto">
-        <div className="mb-4">
-          {branding.logo ? (
-            <img src={branding.logo} alt="" className="h-8 object-contain opacity-70 grayscale" />
-          ) : (
-            company.name && <p className="font-bold text-gray-400 text-xs">{company.name}</p>
+          {data.shippingCharge > 0 && (
+            <div className="flex justify-between py-0.5 text-slate-600 font-medium">
+              <span>Freight / Shipping:</span>
+              <span className="font-mono font-bold text-slate-800">+{currencySymbol} {formatValue(data.shippingCharge)}</span>
+            </div>
+          )}
+
+          <div
+            className="flex justify-between items-center px-3 py-2 rounded-md text-white font-bold text-sm tracking-tight mt-1"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <span>GRAND TOTAL:</span>
+            <span className="font-mono text-base font-black">{currencySymbol} {formatValue(grandTotal)}</span>
+          </div>
+
+          {hasMissingPrices && (
+            <p className="text-[10px] text-slate-400 italic text-right mt-1">
+              * Items marked TBA are pending final confirmation and excluded from total.
+            </p>
           )}
         </div>
-        <div className="flex justify-between items-end text-[8px] text-gray-500 uppercase font-bold tracking-tight border-t pt-2" style={{ borderColor: `${primaryColor}30` }}>
-          <div>
-            {company.address && <p>{company.address}</p>}
-            <p>{[company.email, company.phone].filter(Boolean).join(" | ")}</p>
-          </div>
-          <div className="text-right">
-            {company.website && <p>Website: {company.website}</p>}
+      </div>
+
+      {/* 6. COMMERCIAL TERMS & SIGNATURE BLOCK */}
+      <div className="mt-auto pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-start gap-6">
+        {/* Left: Terms */}
+        <div className="flex-1 space-y-1 text-xs">
+          <h4 className="font-bold uppercase text-[10px] tracking-wider" style={{ color: primaryColor }}>
+            COMMERCIAL TERMS & CONDITIONS:
+          </h4>
+          <div className="text-[11px] text-slate-600 space-y-1 font-medium leading-relaxed">
+            {terms ? (
+              terms.split("\n").filter(Boolean).map((t, idx) => (
+                <p key={idx}>• {t}</p>
+              ))
+            ) : (
+              <>
+                <p>• Delivery Terms: As agreed / CIF / FOB</p>
+                <p>• Payment Terms: As agreed / 30 Days from invoice</p>
+                <p>• Quotation Validity: 30 days from date of issue</p>
+                <p>• Warranty: Standard manufacturer warranty against defects</p>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Right: Signature & Stamp Box */}
+        {data.pdfShowSignatureBlock !== false && (
+          <div className="w-56 shrink-0 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center space-y-6 bg-slate-50/50">
+            <p className="text-[10.5px] font-bold text-slate-800 uppercase tracking-tight">
+              For {company.name || "OUR COMPANY"}
+            </p>
+            <p className="text-[9.5px] font-semibold text-slate-400 italic">
+              (Authorized Signature & Stamp)
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 7. RUNNING FOOTER */}
+      <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
+        <span>{(company.name || "QuoteCraft").toUpperCase()} • {documentInfo.number || "QUOTATION"}</span>
+        <span>Page 1 of 1</span>
       </div>
     </div>
   );

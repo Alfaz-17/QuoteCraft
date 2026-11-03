@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import { QuotationState, CURRENCY_SYMBOLS, LineItem } from "@/types/quotation.types";
 import { toNumber, calculateRowTotal, calculateSubtotal, calculateDiscountAmount, calculateTaxAmount, calculateGrandTotal } from "@/utils/calculations";
 
 const getImageDimensions = (base64: string): Promise<{ width: number; height: number; img: HTMLImageElement | null }> => {
@@ -21,8 +21,20 @@ const getImageDimensions = (base64: string): Promise<{ width: number; height: nu
 };
 
 export const generateProfessionalPDF = async (data: QuotationState) => {
-  const doc = new jsPDF();
-  const primaryColor = data.branding.primaryColor || "#2563eb";
+  const isLandscape = data.pdfOrientation === "landscape";
+  const doc = new jsPDF({
+    orientation: isLandscape ? "landscape" : "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const rightX = pageWidth - margin;
+  const printableWidth = pageWidth - (margin * 2);
+
+  const primaryColor = data.branding.primaryColor || "#1e3a8a"; // Marine navy by default
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
 
   // Convert hex to RGB
@@ -30,515 +42,561 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result
       ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-      : [37, 99, 235];
+      : [30, 58, 138];
   };
 
   const rgb = hexToRgb(primaryColor);
-  const visibleColumns = data.tableColumns.filter(c => c.visible);
 
   const formatValue = (num: number): string => {
     return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
   };
 
-  // Helper to get cell value
-  const getCellValue = (item: typeof data.items[0], colKey: string, index: number): string => {
-    if (colKey === "sno") return (index + 1).toString();
-    const col = data.tableColumns.find(c => c.key === colKey);
-    if (colKey === "total" || col?.role === "total") return `${currencySymbol}${formatValue(calculateRowTotal(item, data.tableColumns))}`;
-    if (col?.role === "price" || colKey === "unitPrice") return `${currencySymbol}${formatValue(toNumber(item[colKey]))}`;
-    
-    if (colKey === "itemName") {
-      const name = (item.itemName || "-").toUpperCase();
-      if (item.description && !visibleColumns.some(c => c.key === "description")) {
-        return `${name}\n${item.description}`;
-      }
-      return name;
-    }
-
-    const val = item[colKey];
-    if (val === undefined || val === null) return "-";
-    if (colKey === "unit") return String(val).toUpperCase();
-    if (typeof val === "number") return formatValue(val);
-    return String(val) || "-";
-  };
-
-  // Title based on doc type
+  // Helper to determine document title
   const getTitle = () => {
     switch (data.documentInfo.type) {
-      case "rfq": return "Request for Quotation";
-      case "proforma": return "Proforma Invoice";
-      default: return "Quotation";
+      case "rfq": return "REQUEST FOR QUOTATION";
+      case "proforma": return "PROFORMA INVOICE";
+      default: return "QUOTATION";
     }
   };
 
-  // 1. Logo & Company Name Side-by-Side on the Top-Left, Document Info on Top-Right
+  // =========================================================================
+  // 1. TOP HEADER: SUPPLIER BRANDING (LEFT) & QUOTE METADATA (RIGHT)
+  // =========================================================================
+  const headerStartY = 13;
   let logoH = 0;
   let logoW = 0;
   let hasLogo = false;
-  let headerImg: HTMLImageElement | null = null;
 
   if (data.branding.logo) {
     try {
       const dimensions = await getImageDimensions(data.branding.logo);
       if (dimensions.width > 0 && dimensions.height > 0) {
-        headerImg = dimensions.img;
         const aspectRatio = dimensions.width / dimensions.height;
-        const maxWidth = 45;  // Neat logo width limit
-        const maxHeight = 14; // Neat logo height limit to align with text
-        
-        logoW = maxWidth;
-        logoH = maxWidth / aspectRatio;
-        
-        if (logoH > maxHeight) {
-          logoH = maxHeight;
-          logoW = maxHeight * aspectRatio;
+        const maxW = 42;
+        const maxH = 15;
+        logoW = maxW;
+        logoH = maxW / aspectRatio;
+        if (logoH > maxH) {
+          logoH = maxH;
+          logoW = maxH * aspectRatio;
         }
-        
+
         let imgFormat = "PNG";
         if (data.branding.logo.startsWith("data:image/")) {
           const match = data.branding.logo.match(/^data:image\/([a-zA-Z0-9]+);/);
           if (match && match[1]) {
-            imgFormat = match[1].toUpperCase();
-            if (imgFormat === "PNG" || imgFormat === "JPEG" || imgFormat === "WEBP") {
-              // Valid formats for jsPDF
-            }
+            const fmt = match[1].toUpperCase();
+            if (fmt === "PNG" || fmt === "JPEG" || fmt === "WEBP") imgFormat = fmt;
           }
         }
-        
-        // Pass base64 string directly to preserve alpha channel natively in jsPDF
-        doc.addImage(data.branding.logo, imgFormat, 15, 10, logoW, logoH);
+        doc.addImage(data.branding.logo, imgFormat, margin, headerStartY, logoW, logoH);
         hasLogo = true;
       }
-    } catch (e) {
-      console.error("Logo failed", e);
+    } catch (_e) {
+      // ignore logo failure gracefully
     }
   }
 
-  // Draw Supplier Company Name next to the Logo
+  // Supplier Company Name & Details
+  const companyX = hasLogo ? margin + logoW + 5 : margin;
+  let companyY = headerStartY + 3.5;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-  
-  const companyNameX = hasLogo ? 15 + logoW + 5 : 15;
-  // Align Company Name to the same Y-baseline as the Document Title (16)
-  const companyNameY = 16;
-  doc.text((data.company.name || "OUR COMPANY").toUpperCase(), companyNameX, companyNameY);
-  
-  // Under Company Name, show website if exists
-  let websiteY = companyNameY;
-  if (data.company.website) {
-    websiteY += 4.5;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(156, 163, 175); // text-gray-400
-    doc.text(data.company.website.toLowerCase(), companyNameX, websiteY);
-  }
+  doc.text((data.company.name || "OUR COMPANY").toUpperCase(), companyX, companyY);
 
-  // Draw Document Details on Top-Right (aligned right)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-  const title = getTitle().toUpperCase();
-  doc.text(title, 195, 16, { align: "right" });
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(55, 65, 81); // text-gray-700
-  doc.text(data.documentInfo.number, 195, 21, { align: "right" });
-
-  doc.setFontSize(8);
-  // Date Row
-  const dateVal = data.documentInfo.date;
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(107, 114, 128); // text-gray-500
-  const dateLabel = "DATE: ";
-  const dateValW = doc.getTextWidth(dateVal);
-  doc.text(dateVal, 195, 25.5, { align: "right" });
-  doc.setFont("helvetica", "bold");
-  doc.text(dateLabel, 195 - dateValW, 25.5, { align: "right" });
-  
-  let docInfoY = 29.5;
-  if (data.documentInfo.validUntil) {
-    const validVal = data.documentInfo.validUntil;
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(107, 114, 128); // text-gray-500
-    const validLabel = "VALID UNTIL: ";
-    const validValW = doc.getTextWidth(validVal);
-    doc.text(validVal, 195, 27.5, { align: "right" });
-    doc.setFont("helvetica", "bold");
-    doc.text(validLabel, 195 - validValW, 27.5, { align: "right" });
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139); // slate-500
+
+  if (data.company.address) {
+    companyY += 4.5;
+    const splitAddr = doc.splitTextToSize(data.company.address, 95);
+    doc.text(splitAddr[0] || "", companyX, companyY);
   }
 
-  // Set currentY below this premium top header block
-  let currentY = Math.max(10 + logoH, websiteY, 29) + 6;
+  const contactLine = [
+    data.company.phone ? `Tel: ${data.company.phone}` : "",
+    data.company.email ? `Email: ${data.company.email}` : "",
+    data.company.website ? data.company.website.toLowerCase() : "",
+  ].filter(Boolean).join("  •  ");
 
-  // Draw Divider Line
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.3);
-  doc.line(15, currentY, 195, currentY);
-  currentY += 8;
+  if (contactLine) {
+    companyY += 4;
+    doc.text(contactLine, companyX, companyY);
+  }
 
-  // Vessel & Reference
-  if (data.documentInfo.vessel || data.documentInfo.reference) {
-    doc.setFontSize(8.5);
-    let vesRefX = 15;
+  // Right Side: Document Meta Box
+  let metaY = headerStartY + 3;
+
+  // Title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+  doc.text(getTitle(), rightX, metaY, { align: "right" });
+
+  metaY += 5;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 41, 59); // slate-800
+  doc.text(`NO: ${data.documentInfo.number || "QT-DRAFT"}`, rightX, metaY, { align: "right" });
+
+  metaY += 4.2;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Date: ${data.documentInfo.date || new Date().toISOString().split("T")[0]}`, rightX, metaY, { align: "right" });
+
+  if (data.documentInfo.validUntil) {
+    metaY += 3.8;
+    doc.text(`Valid Until: ${data.documentInfo.validUntil}`, rightX, metaY, { align: "right" });
+  }
+
+  let currentY = Math.max(headerStartY + logoH, companyY, metaY) + 5;
+
+  // Header Divider
+  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.setLineWidth(0.35);
+  doc.line(margin, currentY, rightX, currentY);
+  currentY += 5;
+
+  // =========================================================================
+  // 2. VESSEL & REFERENCE BANNER (CRITICAL FOR MARINE TRADING)
+  // =========================================================================
+  const hasVesselInfo = Boolean(
+    data.documentInfo.vessel || 
+    data.documentInfo.reference || 
+    data.documentInfo.make || 
+    data.documentInfo.model
+  );
+
+  if (hasVesselInfo) {
+    doc.setFillColor(248, 250, 252); // slate-50
+    doc.roundedRect(margin, currentY, printableWidth, 8.5, 1.5, 1.5, "F");
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, currentY, printableWidth, 8.5, 1.5, 1.5, "D");
+
+    let vX = margin + 4;
+    const vY = currentY + 5.5;
+
     if (data.documentInfo.vessel) {
       doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
       doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-      doc.text("Vessel: ", vesRefX, currentY);
-      const vW = doc.getTextWidth("Vessel: ");
-      doc.setTextColor(31, 41, 55); // text-gray-800
-      doc.text(data.documentInfo.vessel, vesRefX + vW, currentY);
-      vesRefX += vW + doc.getTextWidth(data.documentInfo.vessel) + 15;
+      doc.text("VESSEL:", vX, vY);
+      vX += doc.getTextWidth("VESSEL:") + 2;
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(15, 23, 42); // slate-900
+      doc.text(data.documentInfo.vessel.toUpperCase(), vX, vY);
+      vX += doc.getTextWidth(data.documentInfo.vessel.toUpperCase()) + 8;
     }
+
     if (data.documentInfo.reference) {
       doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
       doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-      doc.text("Ref: ", vesRefX, currentY);
-      const rW = doc.getTextWidth("Ref: ");
-      doc.setTextColor(31, 41, 55); // text-gray-800
-      doc.text(data.documentInfo.reference, vesRefX + rW, currentY);
+      doc.text("REF / REQ NO:", vX, vY);
+      vX += doc.getTextWidth("REF / REQ NO:") + 2;
+
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(data.documentInfo.reference, vX, vY);
+      vX += doc.getTextWidth(data.documentInfo.reference) + 8;
     }
-    currentY += 7;
+
+    if (data.documentInfo.make || data.documentInfo.model) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text("EQUIPMENT:", vX, vY);
+      vX += doc.getTextWidth("EQUIPMENT:") + 2;
+
+      const equip = [data.documentInfo.make, data.documentInfo.model].filter(Boolean).join(" / ");
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text(equip, vX, vY);
+    }
+
+    currentY += 12;
   }
 
-  // 3. Intro
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(31, 41, 55); // text-gray-800
-  doc.text("Dear Team,", 15, currentY);
-  currentY += 5;
-  
-  // Default intro text based on doc type
-  const getDefaultIntro = () => {
-    switch (data.documentInfo.type) {
-      case "rfq": return "We hereby invite you to submit your best quotation for the items listed below.";
-      case "proforma": return "We are pleased to submit our proforma invoice for the items listed below.";
-      default: return "We are pleased to submit our best quotation for the items listed below.";
-    }
-  };
-
-  const intro = data.introText || getDefaultIntro();
-  const splitIntro = doc.splitTextToSize(intro, 180);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(55, 65, 81); // text-gray-700
-  doc.text(splitIntro, 15, currentY);
-  currentY += splitIntro.length * 4.5 + 4;
-
-  // 4. Machine Info Table (uses primary color)
-  if (data.showMachineInfo !== false && (data.documentInfo.make || data.documentInfo.model)) {
-    const machineRows = [
-      ["Make", (data.documentInfo.make || "-").toUpperCase()],
-      ["Model", (data.documentInfo.model || "-").toUpperCase()],
-    ].filter(row => row[1] !== "-");
-
-    if (machineRows.length > 0) {
-      autoTable(doc, {
-        startY: currentY,
-        body: machineRows,
-        theme: "grid",
-        styles: { 
-          fontSize: 8, 
-          cellPadding: 2.5, 
-          halign: "center", 
-          fontStyle: "bold",
-          lineColor: [209, 213, 219],
-          lineWidth: 0.15,
-        },
-        columnStyles: {
-          0: { fillColor: rgb, textColor: [255, 255, 255], cellWidth: 50 },
-          1: { cellWidth: 130 },
-        },
-        margin: { left: 15, right: 15 },
-      });
-      currentY = (doc as any).lastAutoTable.finalY + 8; // eslint-disable-line @typescript-eslint/no-explicit-any
-    }
-  }
-
-  // 5. Client Info
-  currentY += 2;
-
-  let clientEndY = currentY;
-
-  // Render Client (To) on the Left margin (X = 15)
+  // =========================================================================
+  // 3. BUYER (CUSTOMER) DETAILS & INTRO
+  // =========================================================================
   if (data.showCustomerDetails !== false && (data.client.name || data.client.companyName)) {
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.5);
+    doc.setFontSize(7.5);
     doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-    doc.text("To (Buyer):", 15, currentY);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(31, 41, 55); // text-gray-800
+    doc.text("QUOTATION FOR (BUYER):", margin, currentY);
+
+    currentY += 4.5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10.5);
+    doc.setTextColor(15, 23, 42);
     const buyerName = (data.client.companyName || data.client.name).toUpperCase();
-    doc.text(buyerName, 15, currentY + 5);
-    
+    doc.text(buyerName, margin, currentY);
+
+    currentY += 4;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-    doc.setTextColor(75, 85, 99); // text-gray-600
-    let toY = currentY + 9.5;
-    if (data.client.address) {
-      const splitAddr = doc.splitTextToSize(data.client.address, 170);
-      doc.text(splitAddr, 15, toY);
-      toY += splitAddr.length * 4;
+    doc.setFontSize(8);
+    doc.setTextColor(71, 85, 105); // slate-600
+
+    const clientLines: string[] = [];
+    if (data.client.attn) clientLines.push(`Attn: ${data.client.attn}`);
+    if (data.client.address) clientLines.push(data.client.address);
+    if (data.client.phone) clientLines.push(`Tel: ${data.client.phone}`);
+    if (data.client.email) clientLines.push(`Email: ${data.client.email}`);
+
+    if (clientLines.length > 0) {
+      const clientStr = clientLines.join("  |  ");
+      const splitClient = doc.splitTextToSize(clientStr, printableWidth);
+      doc.text(splitClient, margin, currentY);
+      currentY += (splitClient.length * 3.8);
     }
-    if (data.client.attn) {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(107, 114, 128); // text-gray-500
-      doc.text("Attn: ", 15, toY);
-      const attnLabelW = doc.getTextWidth("Attn: ");
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(55, 65, 81); // text-gray-700
-      doc.text(data.client.attn, 15 + attnLabelW, toY);
-      toY += 4;
-    }
-    clientEndY = toY;
+    currentY += 2;
   }
 
-  // Calculate final Y position after client column (borderless vertical padding matching preview height)
-  currentY = clientEndY + 4;
+  // Introductory Note
+  const defaultIntro = data.documentInfo.type === "rfq"
+    ? "Please quote your best price and delivery time for the following items:"
+    : "We are pleased to submit our formal commercial quotation for the items detailed below:";
+  const intro = data.introText || defaultIntro;
 
-  // 6. Dynamic Items Table (uses primary color for headers)
-  const tableHead = visibleColumns.map(col => col.label);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(intro, margin, currentY);
+  currentY += 5;
 
-  autoTable(doc, {
-    startY: currentY,
-    head: [tableHead],
-    body: data.items.map((item, i) =>
-      visibleColumns.map(col => getCellValue(item, col.key, i))
-    ),
-    theme: "grid",
-    headStyles: {
-      fillColor: rgb,
-      fontSize: 8.5,
-      fontStyle: "bold",
-      halign: "center",
-      cellPadding: 3,
-      textColor: [255, 255, 255],
-      lineColor: [255, 255, 255],
-      lineWidth: 0.1,
-    },
-    columnStyles: visibleColumns.reduce((styles, col, idx) => {
-      let cellWidth: number | "auto" = "auto";
-      if (col.width && col.key !== "itemName") {
-        const px = parseInt(col.width, 10);
-        if (!isNaN(px)) {
-          // Map pixels directly to mm (0.259 mm per px) based on 180mm total table width
-          cellWidth = Math.round(px * 0.259);
-        }
+  // =========================================================================
+  // 4. INTELLIGENT QUOTATION TABLE (SEPARATION OF EDITOR VS PDF LAYOUT)
+  // =========================================================================
+  // Key marine strategy: Do NOT cram 10 raw editor columns horizontally!
+  // Instead, use 5-6 clean columns with secondary details rendered cleanly underneath.
+  const hasPartNumber = data.items.some(i => i.partNumber && i.partNumber.trim().length > 0);
+  const isCleanMode = data.pdfLayoutMode !== "detailed";
+
+  // Build the secondary sub-text for each item (Technical specification, brand, remarks)
+  const formatItemDescription = (item: LineItem): string => {
+    const lines: string[] = [];
+    const mainTitle = (item.itemName || "Unnamed Item").trim().toUpperCase();
+    lines.push(mainTitle);
+
+    const subDetails: string[] = [];
+    // If clean mode doesn't have a separate Part No column, include it in subDetails
+    if (!hasPartNumber && item.partNumber) {
+      subDetails.push(`Part No: ${item.partNumber}`);
+    }
+    if (item.condition) {
+      subDetails.push(`Condition: ${item.condition}`);
+    }
+
+    // Add any custom fields or dynamic attributes
+    const standardKeys = new Set(["id", "itemName", "partNumber", "quantity", "unit", "condition", "unitPrice", "total", "needsReview", "isMissingQty", "description"]);
+    for (const [key, val] of Object.entries(item)) {
+      if (!standardKeys.has(key) && val !== undefined && val !== null && String(val).trim()) {
+        const colDef = data.tableColumns.find(c => c.key === key);
+        const label = colDef?.label || key;
+        subDetails.push(`${label}: ${val}`);
       }
-      
+    }
+
+    if (subDetails.length > 0) {
+      lines.push(subDetails.join("   •   "));
+    }
+
+    if (item.description && item.description.trim()) {
+      lines.push(`Spec: ${item.description.trim()}`);
+    }
+
+    return lines.join("\n");
+  };
+
+  // Define Columns and Widths
+  interface PdfColConfig {
+    header: string;
+    width: number;
+    halign: "left" | "center" | "right";
+  }
+
+  const columnsConfig: PdfColConfig[] = [];
+  
+  if (isCleanMode) {
+    // Standard Professional Marine 5-6 column layout
+    columnsConfig.push({ header: "#", width: isLandscape ? 12 : 10, halign: "center" });
+    
+    if (hasPartNumber) {
+      const descWidth = isLandscape ? 140 : 86;
+      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+      columnsConfig.push({ header: "Part Number", width: isLandscape ? 35 : 28, halign: "center" });
+    } else {
+      const descWidth = isLandscape ? 175 : 114;
+      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+    }
+
+    columnsConfig.push({ header: "Qty", width: isLandscape ? 22 : 16, halign: "center" });
+    columnsConfig.push({ header: `Rate (${currencySymbol})`, width: isLandscape ? 28 : 22, halign: "right" });
+    columnsConfig.push({ header: `Amount (${currencySymbol})`, width: isLandscape ? 30 : 24, halign: "right" });
+  } else {
+    // Detailed layout: use visible columns with normalized width proportions
+    const visibleCols = data.tableColumns.filter(c => c.visible);
+    const totalAssignedPx = visibleCols.reduce((acc, c) => acc + (parseInt(c.width || "80", 10) || 80), 0);
+    
+    for (const c of visibleCols) {
+      const px = parseInt(c.width || "80", 10) || 80;
+      const colWidth = Math.max(12, Math.round((px / totalAssignedPx) * printableWidth));
       let halign: "left" | "center" | "right" = "left";
-      if (col.key === "sno" || col.key === "unit" || col.type === "number" || col.type === "auto" || col.role) {
-        halign = "center";
+      if (c.role === "qty" || c.key === "sno" || c.key === "unit") halign = "center";
+      if (c.role === "price" || c.role === "total") halign = "right";
+      columnsConfig.push({ header: c.label, width: colWidth, halign });
+    }
+  }
+
+  // Build Table Rows
+  let hasMissingPrices = false;
+  const tableRows = data.items.map((item, index) => {
+    const qtyVal = toNumber(item.quantity) || 1;
+    const unitStr = (item.unit || "PCS").toUpperCase();
+    const priceVal = toNumber(item.unitPrice);
+    const isPriceMissing = !priceVal || priceVal <= 0;
+
+    if (isPriceMissing) {
+      hasMissingPrices = true;
+    }
+
+    const priceText = isPriceMissing ? "TBA" : formatValue(priceVal);
+    const rowTotalText = isPriceMissing ? "-" : formatValue(calculateRowTotal(item, data.tableColumns));
+
+    if (isCleanMode) {
+      const row = [
+        (index + 1).toString(),
+        formatItemDescription(item),
+      ];
+
+      if (hasPartNumber) {
+        row.push(item.partNumber || "-");
       }
 
-      styles[idx] = { halign, cellWidth };
-      return styles;
-    }, {} as Record<number, any>), // eslint-disable-line @typescript-eslint/no-explicit-any
-    styles: { 
-      fontSize: 8.5, 
-      cellPadding: 3, 
-      halign: "left",
-      lineColor: [229, 231, 235], // border-gray-200
-      lineWidth: 0.15,
-      textColor: [55, 65, 81], // text-gray-700
-    },
-    alternateRowStyles: { fillColor: [255, 255, 255] },
-    margin: { left: 15, right: 15, bottom: 25 },
+      row.push(`${qtyVal} ${unitStr}`);
+      row.push(priceText);
+      row.push(rowTotalText);
+      return row;
+    } else {
+      // Detailed mode row mapping
+      return data.tableColumns.filter(c => c.visible).map(c => {
+        if (c.key === "sno") return (index + 1).toString();
+        if (c.role === "qty") return `${qtyVal} ${unitStr}`;
+        if (c.role === "price") return priceText;
+        if (c.role === "total") return rowTotalText;
+        if (c.key === "itemName") return (item.itemName || "-").toUpperCase();
+        const val = item[c.key];
+        return val !== undefined && val !== null ? String(val) : "-";
+      });
+    }
   });
 
-  let finalY = (doc as any).lastAutoTable.finalY + 5; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Render Table with autoTable
+  autoTable(doc, {
+    startY: currentY,
+    head: [columnsConfig.map(c => c.header)],
+    body: tableRows,
+    theme: "grid",
+    showHead: "everyPage", // REPEAT TABLE HEADERS ON EVERY SUBSEQUENT PAGE!
+    styles: {
+      fontSize: 8,
+      cellPadding: 2.2,
+      lineColor: [226, 232, 240], // slate-200
+      lineWidth: 0.15,
+      textColor: [30, 41, 59], // slate-800
+      valign: "top",
+      overflow: "linebreak", // PREVENTS LETTER BREAKS (NO "CYLINDE R")!
+    },
+    headStyles: {
+      fillColor: rgb,
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      fontSize: 8,
+      cellPadding: 2.5,
+      halign: "center",
+      valign: "middle",
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252], // slate-50
+    },
+    columnStyles: columnsConfig.reduce((acc, col, idx) => {
+      acc[idx] = { cellWidth: col.width, halign: col.halign };
+      return acc;
+    }, {} as Record<number, { cellWidth: number; halign: "left" | "center" | "right" }>),
+    margin: { left: margin, right: margin, bottom: 20 },
+    pageBreak: "auto",
+    rowPageBreak: "avoid", // PREVENTS ROWS FROM SPLITTING AWKWARDLY
+  });
 
-  // 7. Totals Section
-  if (visibleColumns.some(c => c.key === "total")) {
-    const subtotal = calculateSubtotal(data.items, data.tableColumns);
-    const discountAmt = calculateDiscountAmount(subtotal, data.discount, data.discountType);
-    const afterDiscount = subtotal - discountAmt;
-    const taxAmt = calculateTaxAmount(afterDiscount, data.taxPercent);
-    const grandTotal = calculateGrandTotal(subtotal, data.discount, data.discountType, data.taxPercent, data.shippingCharge);
-    const hasExtras = (data.discount > 0) || (data.taxPercent > 0) || (data.shippingCharge > 0);
+  // Calculate final Y after table
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let finalY = (doc as any).lastAutoTable.finalY + 5;
 
-    const totalsX = 130; // Shift totals left slightly to provide premium text breathing room
-    const valX = 195;    // Align perfectly, pixel-for-pixel, with the table right edge!
+  // =========================================================================
+  // 5. TOTALS SECTION
+  // =========================================================================
+  const subtotal = calculateSubtotal(data.items, data.tableColumns);
+  const discountAmt = calculateDiscountAmount(subtotal, data.discount, data.discountType);
+  const afterDiscount = subtotal - discountAmt;
+  const taxAmt = calculateTaxAmount(afterDiscount, data.taxPercent);
+  const grandTotal = calculateGrandTotal(subtotal, data.discount, data.discountType, data.taxPercent, data.shippingCharge);
 
-    // Dynamically calculate the vertical height needed for the totals section
-    const totalsHeight = 8 + (data.discount > 0 ? 5 : 0) + (data.taxPercent > 0 ? 5 : 0) + (data.shippingCharge > 0 ? 5 : 0);
+  const totalsBoxWidth = 75;
+  const totalsLeft = rightX - totalsBoxWidth;
 
-    // If it overflows the printable vertical limit (255mm), insert a clean new page
-    if (finalY + totalsHeight > 255) {
-      doc.addPage();
-      finalY = 25; // Reset top margin for the totals section
-    }
-
-    let totY = finalY + 3;
-
-    doc.setFontSize(8.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(75, 85, 99); // text-gray-600
-    doc.text("Subtotal", totalsX, totY);
-    doc.text(`${currencySymbol}${formatValue(subtotal)}`, valX, totY, { align: "right" });
-
-    if (data.discount > 0) {
-      totY += 5;
-      doc.setTextColor(220, 38, 38); // text-red-600
-      const discLabel = data.discountType === "percent" ? `Discount (${data.discount}%)` : "Discount";
-      doc.text(discLabel, totalsX, totY);
-      doc.text(`-${currencySymbol}${formatValue(discountAmt)}`, valX, totY, { align: "right" });
-    }
-
-    if (data.taxPercent > 0) {
-      totY += 5;
-      doc.setTextColor(75, 85, 99); // text-gray-600
-      doc.text(`Tax (${data.taxPercent}%)`, totalsX, totY);
-      doc.text(`+${currencySymbol}${formatValue(taxAmt)}`, valX, totY, { align: "right" });
-    }
-
-    if (data.shippingCharge > 0) {
-      totY += 5;
-      doc.setTextColor(75, 85, 99); // text-gray-600
-      doc.text("Shipping", totalsX, totY);
-      doc.text(`+${currencySymbol}${formatValue(data.shippingCharge)}`, valX, totY, { align: "right" });
-    }
-
-    // Grand Total line - draw filled capsule behind Grand Total
-    totY += 3;
-    
-    // Top border-line of Grand Total (borderColor: primaryColor, weight: 0.4)
-    doc.setDrawColor(rgb[0], rgb[1], rgb[2]);
-    doc.setLineWidth(0.4);
-    doc.line(totalsX, totY - 1.2, valX, totY - 1.2);
-    
-    totY += 5.5;
-
-    // Calculate 10% tint for background capsule
-    const tintR = Math.round(rgb[0] + (255 - rgb[0]) * 0.9);
-    const tintG = Math.round(rgb[1] + (255 - rgb[1]) * 0.9);
-    const tintB = Math.round(rgb[2] + (255 - rgb[2]) * 0.9);
-    
-    doc.setFillColor(tintR, tintG, tintB);
-    doc.rect(totalsX, totY - 4.5, valX - totalsX, 6.5, "F");
-
-    doc.setFontSize(9.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-    doc.text(hasExtras ? "Grand Total" : "Total", totalsX + 2, totY);
-    doc.text(`${currencySymbol}${formatValue(hasExtras ? grandTotal : subtotal)}`, valX - 2, totY, { align: "right" });
-
-    finalY = totY + 5;
-  }
-
-  let contentY = finalY + 5;
-
-  // 8. Terms
-  if (data.terms) {
-    const splitTerms = doc.splitTextToSize(data.terms, 170);
-    const termsHeight = 6 + splitTerms.length * 4;
-
-    // Check if drawing terms overflows the bottom margin
-    if (contentY + termsHeight > 255) {
-      doc.addPage();
-      contentY = 25; // Reset top margin for terms
-    }
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(rgb[0], rgb[1], rgb[2]);
-    doc.text("Commercial Terms:", 15, contentY);
-    doc.setTextColor(55, 65, 81); // text-gray-700
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-    doc.text(splitTerms, 15, contentY + 6);
-    contentY += termsHeight;
-  }
-
-  // 9. Footer Logo Fallback & Logo aspect ratio scale
-  let footerLogoH = 8;
-  let footerLogoW = 18;
-  let hasFooterLogo = false;
-  let footerImg: HTMLImageElement | null = null;
-
-  if (data.branding.logo) {
-    try {
-      const dimensions = await getImageDimensions(data.branding.logo);
-      if (dimensions.width > 0 && dimensions.height > 0) {
-        footerImg = dimensions.img;
-        const aspectRatio = dimensions.width / dimensions.height;
-        footerLogoH = 16; // Match h-16
-        footerLogoW = 16 * aspectRatio;
-        if (footerLogoW > 80) {
-          footerLogoW = 80;
-          footerLogoH = 80 / aspectRatio;
-        }
-        hasFooterLogo = true;
-      }
-    } catch (e) {
-      console.error("Footer logo dimensions failed", e);
-    }
-  }
-
-  const footerLogoHeight = hasFooterLogo ? footerLogoH + 6 : 12;
-  if (contentY + footerLogoHeight > 260) {
+  // Check if totals block fits on the current page
+  if (finalY + 45 > pageHeight - 20) {
     doc.addPage();
-    contentY = 25; // Reset top margin for footer brand
+    finalY = margin + 5;
   }
 
-  if (hasFooterLogo && data.branding.logo) {
-    try {
-      let imgFormat = "PNG";
-      if (data.branding.logo.startsWith("data:image/")) {
-        const match = data.branding.logo.match(/^data:image\/([a-zA-Z0-9]+);/);
-        if (match && match[1]) {
-          imgFormat = match[1].toUpperCase();
-          if (imgFormat === "PNG" || imgFormat === "JPEG" || imgFormat === "WEBP") {
-            // Valid format
-          } else {
-            imgFormat = "PNG"; // Fallback
-          }
-          }
-        }
-      doc.addImage(data.branding.logo, imgFormat, 15, contentY + 5, footerLogoW, footerLogoH);
-    } catch (e) { /* ignore */ }
-  } else if (data.company.name) {
-    doc.setFontSize(9.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(156, 163, 175); // text-gray-400
-    doc.text(data.company.name, 15, contentY + 11);
+  let totY = finalY;
+
+  // Subtotal
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text("Subtotal:", totalsLeft, totY);
+  doc.text(`${currencySymbol} ${formatValue(subtotal)}`, rightX, totY, { align: "right" });
+
+  if (data.discount > 0) {
+    totY += 4.5;
+    doc.setTextColor(220, 38, 38);
+    const discLabel = data.discountType === "percent" ? `Discount (${data.discount}%):` : "Discount:";
+    doc.text(discLabel, totalsLeft, totY);
+    doc.text(`-${currencySymbol} ${formatValue(discountAmt)}`, rightX, totY, { align: "right" });
   }
 
-  // 10. Page Footer (uses primary color accent)
-  const pageCount = (doc as any).internal.getNumberOfPages(); // eslint-disable-line @typescript-eslint/no-explicit-any
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    // Accent line with 30% primary color opacity/tint
-    const lineR = Math.round(rgb[0] + (255 - rgb[0]) * 0.7);
-    const lineG = Math.round(rgb[1] + (255 - rgb[1]) * 0.7);
-    const lineB = Math.round(rgb[2] + (255 - rgb[2]) * 0.7);
-    doc.setDrawColor(lineR, lineG, lineB);
-    doc.setLineWidth(0.4);
-    doc.line(15, 276, 195, 276);
-    
-    // Footer Details
+  if (data.taxPercent > 0) {
+    totY += 4.5;
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Tax / VAT (${data.taxPercent}%):`, totalsLeft, totY);
+    doc.text(`+${currencySymbol} ${formatValue(taxAmt)}`, rightX, totY, { align: "right" });
+  }
+
+  if (data.shippingCharge > 0) {
+    totY += 4.5;
+    doc.setTextColor(71, 85, 105);
+    doc.text("Freight / Shipping:", totalsLeft, totY);
+    doc.text(`+${currencySymbol} ${formatValue(data.shippingCharge)}`, rightX, totY, { align: "right" });
+  }
+
+  // Grand Total Highlight Capsule
+  totY += 3.5;
+  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+  doc.roundedRect(totalsLeft - 2, totY, totalsBoxWidth + 2, 7.5, 1.2, 1.2, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text("GRAND TOTAL:", totalsLeft + 2, totY + 5.2);
+  doc.text(`${currencySymbol} ${formatValue(grandTotal)}`, rightX - 2, totY + 5.2, { align: "right" });
+
+  if (hasMissingPrices) {
+    totY += 12;
+    doc.setFont("helvetica", "italic");
     doc.setFontSize(7.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(107, 114, 128); // text-gray-500
-    
-    let footerY = 280;
-    if (data.company.address) {
-      const splitAddress = doc.splitTextToSize(data.company.address.toUpperCase(), 140);
-      doc.text(splitAddress, 15, footerY);
-      footerY += splitAddress.length * 3.5;
-    }
-    const contactParts = [data.company.email, data.company.phone].filter(Boolean);
-    if (contactParts.length > 0) {
-      doc.text(contactParts.join(" | ").toUpperCase(), 15, footerY);
-    }
-    const website = data.company.website || (data.company.email ? `www.${data.company.email.split("@")[1] || "example.com"}` : "");
-    if (website) {
-      doc.text(`WEBSITE: ${website.toUpperCase()}`, 195, 280, { align: "right" });
-    }
-    doc.text(`PAGE ${i} OF ${pageCount}`, 195, 284, { align: "right" });
+    doc.setTextColor(148, 163, 184); // slate-400
+    doc.text("* Note: Items marked TBA are pending rate confirmation and excluded from grand total.", totalsLeft - 20, totY);
   }
 
-  const filename = `${data.documentInfo.number || "RFQ"}_${data.documentInfo.date || "doc"}.pdf`;
-  doc.save(filename);
+  finalY = totY + 10;
+
+  // =========================================================================
+  // 6. COMMERCIAL TERMS & AUTHORIZED SIGNATURE SECTION
+  // =========================================================================
+  const closingBlockHeight = 42;
+  if (finalY + closingBlockHeight > pageHeight - 20) {
+    doc.addPage();
+    finalY = margin + 5;
+  }
+
+  const termsWidth = printableWidth * 0.58;
+  const signWidth = printableWidth * 0.38;
+  const signLeft = rightX - signWidth;
+
+  // Commercial Terms (Left)
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+  doc.text("COMMERCIAL TERMS & CONDITIONS:", margin, finalY);
+
+  let termLineY = finalY + 4.5;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(51, 65, 85);
+
+  const defaultTermsList = [
+    `• Delivery Terms: As agreed / CIF / FOB`,
+    `• Payment Terms: As agreed / 30 Days from invoice date`,
+    `• Quotation Validity: 30 days from date of issue`,
+    `• Warranty: Standard manufacturer warranty against manufacturing defects`,
+  ];
+
+  const termsToRender = data.terms ? data.terms.split("\n").filter(Boolean) : defaultTermsList;
+  for (const line of termsToRender.slice(0, 5)) {
+    const split = doc.splitTextToSize(line, termsWidth);
+    doc.text(split, margin, termLineY);
+    termLineY += (split.length * 3.6);
+  }
+
+  // Signature Block (Right)
+  if (data.pdfShowSignatureBlock !== false) {
+    doc.setDrawColor(203, 213, 225); // slate-300
+    doc.setLineDashPattern([1.5, 1.5], 0);
+    doc.roundedRect(signLeft, finalY - 1, signWidth, 32, 2, 2, "D");
+    doc.setLineDashPattern([], 0); // reset dash
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(30, 41, 59);
+    doc.text(`For ${(data.company.name || "OUR COMPANY").toUpperCase()}`, signLeft + 4, finalY + 4);
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text("(Authorized Signature & Stamp)", signLeft + (signWidth / 2), finalY + 28, { align: "center" });
+  }
+
+  // =========================================================================
+  // 7. RUNNING FOOTER & PAGE NUMBERING (PAGE X OF Y ON EVERY PAGE)
+  // =========================================================================
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    
+    // Bottom border rule
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.25);
+    doc.line(margin, pageHeight - 10, rightX, pageHeight - 10);
+
+    // Left: Supplier Name & Document Number
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text(
+      `${(data.company.name || "QuoteCraft").toUpperCase()}  •  ${data.documentInfo.number || "QUOTATION"}`,
+      margin,
+      pageHeight - 6.5
+    );
+
+    // Right: Page X of Y
+    doc.text(
+      `Page ${i} of ${totalPages}`,
+      rightX,
+      pageHeight - 6.5,
+      { align: "right" }
+    );
+  }
+
+  // Save the professional PDF document
+  const fileName = `${data.documentInfo.number || "Quotation"}_${data.documentInfo.date || "Quote"}.pdf`;
+  doc.save(fileName);
 };

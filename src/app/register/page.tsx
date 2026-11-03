@@ -55,13 +55,14 @@ export default function RegisterPage() {
 
       // Successful registration -> go to login
       router.push("/login?registered=true");
-    } catch (err: any) {
-      if (err.message === "User with this phone number is already registered") {
-        setError(err.message);
+    } catch (err: unknown) {
+      const errMsg = (err as Error).message || "An unexpected error occurred";
+      if (errMsg === "User with this phone number is already registered") {
+        setError(errMsg);
         toastInfo("Looks like you already have an account! Navigating to login...");
       } else {
-        setError(err.message || "An unexpected error occurred");
-        toastError(err.message || "An unexpected error occurred");
+        setError(errMsg);
+        toastError(errMsg);
       }
     } finally {
       setLoading(false);

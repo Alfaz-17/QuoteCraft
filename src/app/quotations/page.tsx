@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,16 +10,12 @@ import {
   FilePlus, 
   Search, 
   Ship, 
-  Calendar, 
   ArrowRight, 
   Download, 
   Copy, 
   Trash2, 
   Loader2,
-  Inbox,
-  Filter,
-  CheckCircle2,
-  AlertCircle
+  Inbox
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +51,7 @@ interface QuotationRecord {
 
 export default function QuotationsPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { success: toastSuccess, error: toastError } = useToast();
 
   const [quotations, setQuotations] = useState<QuotationRecord[]>([]);

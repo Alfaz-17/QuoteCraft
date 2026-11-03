@@ -19,7 +19,6 @@ import {
   ChevronDown, 
   Copy, 
   Check,
-  ChevronRight,
   Info
 } from "lucide-react";
 import { getRoleKey, toNumber } from "@/utils/calculations";
@@ -221,6 +220,15 @@ export function Step2CheckItems({
                 </div>
 
                 <div className="flex items-center gap-1">
+                  {col.id.startsWith("custom_") && (
+                    <button
+                      onClick={() => onDeleteColumn(col.id)}
+                      className="p-1 text-rose-400 hover:text-rose-600 transition-colors"
+                      title="Delete custom column"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                   <button
                     onClick={() => moveColumn(idx, -1)}
                     disabled={idx === 0}
@@ -313,7 +321,7 @@ export function Step2CheckItems({
                       <input
                         type="number"
                         min={0}
-                        value={item[qtyKey] !== undefined && item[qtyKey] !== 0 ? item[qtyKey] : ""}
+                        value={typeof item[qtyKey] === "number" && item[qtyKey] !== 0 ? item[qtyKey] : ""}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value) || 0;
                           onUpdateItem(item.id, { 
@@ -363,6 +371,24 @@ export function Step2CheckItems({
                             <Check className="w-3.5 h-3.5 stroke-[3]" />
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => onReorderItem(item.id, "up")}
+                          disabled={index === 0}
+                          className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 disabled:opacity-20 transition-colors"
+                          title="Move Up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onReorderItem(item.id, "down")}
+                          disabled={index === displayedItems.length - 1}
+                          className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 disabled:opacity-20 transition-colors"
+                          title="Move Down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => onDuplicateItem(item.id)}
@@ -421,6 +447,24 @@ export function Step2CheckItems({
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
+                    onClick={() => onReorderItem(item.id, "up")}
+                    disabled={index === 0}
+                    className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-20"
+                    title="Move Up"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onReorderItem(item.id, "down")}
+                    disabled={index === displayedItems.length - 1}
+                    className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-20"
+                    title="Move Down"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => onDuplicateItem(item.id)}
                     className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     title="Duplicate"
@@ -472,7 +516,7 @@ export function Step2CheckItems({
                   <input
                     type="number"
                     min={0}
-                    value={item[qtyKey] !== undefined && item[qtyKey] !== 0 ? item[qtyKey] : ""}
+                    value={typeof item[qtyKey] === "number" && item[qtyKey] !== 0 ? item[qtyKey] : ""}
                     onChange={(e) => {
                       const val = parseFloat(e.target.value) || 0;
                       onUpdateItem(item.id, { 

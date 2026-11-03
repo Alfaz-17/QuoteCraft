@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   Download, MessageCircle, ArrowLeft, Loader2, FilePlus, 
-  Eye, Phone, CheckCircle2, Building, User
+  Eye, Phone, CheckCircle2
 } from "lucide-react";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { calculateSubtotal, calculateGrandTotal } from "@/utils/calculations";
@@ -17,7 +17,8 @@ import { useToast } from "@/components/ui/Toast";
 interface Step4SendQuoteProps {
   state: QuotationState;
   onUpdateClient: (client: Partial<QuotationState["client"]>) => void;
-  onUpdateDocInfo: (docInfo: Partial<QuotationState["documentInfo"]>) => void;
+  onUpdateDocInfo?: (docInfo: Partial<QuotationState["documentInfo"]>) => void;
+  onUpdateState?: (updates: Partial<QuotationState>) => void;
   onBack: () => void;
   onNewQuote: () => void;
 }
@@ -25,7 +26,7 @@ interface Step4SendQuoteProps {
 export function Step4SendQuote({
   state,
   onUpdateClient,
-  onUpdateDocInfo,
+  onUpdateState,
   onBack,
   onNewQuote,
 }: Step4SendQuoteProps) {
@@ -54,8 +55,8 @@ export function Step4SendQuote({
       await new Promise((r) => setTimeout(r, 100));
       await generateProfessionalPDF(state);
       toastSuccess("PDF downloaded successfully!");
-    } catch (err: any) {
-      toastError(err.message || "Failed to generate PDF document.");
+    } catch (err: unknown) {
+      toastError((err as Error).message || "Failed to generate PDF document.");
     } finally {
       setIsDownloading(false);
     }
@@ -188,12 +189,18 @@ export function Step4SendQuote({
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5 text-primary" /> Live Document Preview
             </h4>
-            <span className="text-[11px] text-slate-400 font-medium">Standard Marine Format</span>
+            <span className="text-[11px] text-slate-400 font-medium">
+              {state.pdfOrientation === "landscape" ? "A4 Landscape Format" : "Standard Marine Portrait Format"}
+            </span>
           </div>
 
-          <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-100 flex justify-center py-6">
-            <div className="w-full max-w-[794px] shadow-xl rounded-lg overflow-hidden bg-white">
-              <PreviewContainer data={state} isMobile={false} />
+          <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-100/60 p-2 sm:p-4 flex justify-center">
+            <div className="w-full max-w-5xl">
+              <PreviewContainer 
+                data={state} 
+                isMobile={false} 
+                onUpdateState={onUpdateState} 
+              />
             </div>
           </div>
         </div>

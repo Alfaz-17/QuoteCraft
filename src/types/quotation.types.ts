@@ -7,7 +7,9 @@ export interface LineItem {
   unit: string;
   condition?: string;
   unitPrice: number;
-  [key: string]: string | number | undefined; // Allow dynamic fields
+  needsReview?: boolean;
+  isMissingQty?: boolean;
+  [key: string]: string | number | boolean | undefined; // Allow dynamic fields
 }
 
 export interface QuotationBranding {
@@ -62,6 +64,8 @@ export interface TableColumn {
   role?: "qty" | "price" | "total";
   visible: boolean;
   width?: string;
+  pdfVisible?: boolean; // Controls whether this column appears as its own column on the PDF
+  pdfSecondary?: boolean; // If true, shown as technical detail beneath item description
 }
 
 export type Currency = "USD" | "EUR" | "GBP" | "AED" | "INR" | "SGD" | "JPY";
@@ -93,6 +97,9 @@ export interface QuotationState {
   showChecklist?: boolean;
   showMachineInfo?: boolean;
   showCustomerDetails?: boolean;
+  pdfOrientation?: "portrait" | "landscape";
+  pdfLayoutMode?: "clean" | "detailed";
+  pdfShowSignatureBlock?: boolean;
   builderConfig: {
     showBusinessProfile: boolean;
     showClientInfo: boolean;

@@ -83,6 +83,9 @@ export function createFreshQuotation(company?: QuotationState["company"], brandi
     showChecklist: true,
     showMachineInfo: true,
     showCustomerDetails: true,
+    pdfOrientation: "portrait",
+    pdfLayoutMode: "clean",
+    pdfShowSignatureBlock: true,
     builderConfig: {
       showBusinessProfile: true,
       showClientInfo: true,
@@ -116,6 +119,9 @@ export type QuotationAction =
   | { type: "SET_SHOW_CHECKLIST"; payload: boolean }
   | { type: "SET_SHOW_MACHINE_INFO"; payload: boolean }
   | { type: "SET_SHOW_CUSTOMER_DETAILS"; payload: boolean }
+  | { type: "SET_PDF_ORIENTATION"; payload: "portrait" | "landscape" }
+  | { type: "SET_PDF_LAYOUT_MODE"; payload: "clean" | "detailed" }
+  | { type: "SET_PDF_SHOW_SIGNATURE"; payload: boolean }
   | { type: "SET_BUILDER_CONFIG"; payload: Partial<QuotationState["builderConfig"]> }
   | { type: "ADD_COLUMN"; payload: TableColumn }
   | { type: "DELETE_COLUMN"; payload: string }
@@ -185,6 +191,12 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
       return { ...state, showMachineInfo: action.payload };
     case "SET_SHOW_CUSTOMER_DETAILS":
       return { ...state, showCustomerDetails: action.payload };
+    case "SET_PDF_ORIENTATION":
+      return { ...state, pdfOrientation: action.payload };
+    case "SET_PDF_LAYOUT_MODE":
+      return { ...state, pdfLayoutMode: action.payload };
+    case "SET_PDF_SHOW_SIGNATURE":
+      return { ...state, pdfShowSignatureBlock: action.payload };
     case "SET_BUILDER_CONFIG":
       return { 
         ...state, 

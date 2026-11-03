@@ -220,10 +220,27 @@ export async function deleteQuotation(userId: string, id: string) {
 
 export async function getRecentClients(userId: string) {
   const { rows } = await db.query(
-    `SELECT DISTINCT client FROM "Quotation" WHERE "userId" = $1 AND client IS NOT NULL ORDER BY "updatedAt" DESC LIMIT 20`,
+    `SELECT client FROM "Quotation" WHERE "userId" = $1 AND client IS NOT NULL ORDER BY "updatedAt" DESC LIMIT 50`,
     [userId]
   );
-  return rows.map((r) => r.client).filter(Boolean);
+
+  const seen = new Set<string>();
+  const uniqueClients: Record<string, unknown>[] = [];
+
+  for (const r of rows) {
+    const c = r.client as Record<string, unknown> | null;
+    if (!c || typeof c !== "object") continue;
+    const nameStr = typeof c.companyName === "string" ? c.companyName : typeof c.name === "string" ? c.name : "";
+    const identifier = nameStr.trim().toLowerCase();
+    if (!identifier) continue;
+    if (!seen.has(identifier)) {
+      seen.add(identifier);
+      uniqueClients.push(c);
+      if (uniqueClients.length >= 20) break;
+    }
+  }
+
+  return uniqueClients;
 }
 
 // ---------------------------------------------------------------------------
