@@ -13,7 +13,7 @@ import {
   Building2, RotateCcw, FilePlus, Check, Loader2, Anchor 
 } from "lucide-react";
 import { LineItem, TableColumn, CURRENCY_SYMBOLS } from "@/types/quotation.types";
-import { calculateSubtotal, calculateGrandTotal } from "@/utils/calculations";
+import { calculateGrandTotal } from "@/utils/calculations";
 import { useToast } from "@/components/ui/Toast";
 
 export default function Home() {
@@ -22,17 +22,18 @@ export default function Home() {
 
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
   // Undo history stack (Principle 7: Forgive mistakes, Undo available)
   const undoStack = useRef<LineItem[][]>([]);
 
   useEffect(() => {
-    setIsClient(true);
     // If draft already has items, start at Step 3 (Prices) or Step 2 (Check items)
     if (state.items.length > 0 && state.items.some(i => i.itemName || i.partNumber)) {
       const hasAnyPrice = state.items.some(i => (i.unitPrice && i.unitPrice > 0));
-      setCurrentStep(hasAnyPrice ? 3 : 2);
+      const frame = requestAnimationFrame(() => {
+        setCurrentStep(hasAnyPrice ? 3 : 2);
+      });
+      return () => cancelAnimationFrame(frame);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -43,6 +44,17 @@ export default function Home() {
       ...undoStack.current.slice(0, 20),
     ];
   }, []);
+
+  const handleUndo = useCallback(() => {
+    if (undoStack.current.length === 0) {
+      toastInfo("Nothing to undo.");
+      return;
+    }
+    const previous = undoStack.current[0];
+    undoStack.current = undoStack.current.slice(1);
+    dispatch({ type: "SET_ITEMS", payload: previous });
+    toastSuccess("Action undone!");
+  }, [dispatch, toastInfo, toastSuccess]);
 
   // Global Ctrl+Z handler for undo
   useEffect(() => {
@@ -57,18 +69,7 @@ export default function Home() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleUndo = useCallback(() => {
-    if (undoStack.current.length === 0) {
-      toastInfo("Nothing to undo.");
-      return;
-    }
-    const previous = undoStack.current[0];
-    undoStack.current = undoStack.current.slice(1);
-    dispatch({ type: "SET_ITEMS", payload: previous });
-    toastSuccess("Action undone!");
-  }, [dispatch, toastInfo, toastSuccess]);
+  }, [handleUndo]);
 
   // Handlers for state updates
   const handleUpdateItem = useCallback((id: string, updates: Partial<LineItem>) => {
@@ -304,6 +305,11 @@ export default function Home() {
             state={state}
             onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
             onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
+            onUpdateState={(u) => {
+              if (u.pdfOrientation) dispatch({ type: "SET_PDF_ORIENTATION", payload: u.pdfOrientation });
+              if (u.pdfLayoutMode) dispatch({ type: "SET_PDF_LAYOUT_MODE", payload: u.pdfLayoutMode });
+              if (u.pdfShowSignatureBlock !== undefined) dispatch({ type: "SET_PDF_SHOW_SIGNATURE", payload: u.pdfShowSignatureBlock });
+            }}
             onBack={() => setCurrentStep(3)}
             onNewQuote={handleNewQuote}
           />
