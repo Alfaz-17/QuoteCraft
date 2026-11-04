@@ -77,10 +77,11 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   let logoW = 0;
   let hasLogo = false;
 
-  if (data.branding.logo) {
+  const logoToUse = data.branding.logo || (data.branding.showLogo !== false ? "/logo.png" : null);
+  if (logoToUse) {
     try {
-      const dimensions = await getImageDimensions(data.branding.logo);
-      if (dimensions.width > 0 && dimensions.height > 0) {
+      const dimensions = await getImageDimensions(logoToUse);
+      if (dimensions.width > 0 && dimensions.height > 0 && dimensions.img) {
         const aspectRatio = dimensions.width / dimensions.height;
         const maxW = 42;
         const maxH = 15;
@@ -92,14 +93,14 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
         }
 
         let imgFormat = "PNG";
-        if (data.branding.logo.startsWith("data:image/")) {
-          const match = data.branding.logo.match(/^data:image\/([a-zA-Z0-9]+);/);
+        if (logoToUse.startsWith("data:image/")) {
+          const match = logoToUse.match(/^data:image\/([a-zA-Z0-9]+);/);
           if (match && match[1]) {
             const fmt = match[1].toUpperCase();
             if (fmt === "PNG" || fmt === "JPEG" || fmt === "WEBP") imgFormat = fmt;
           }
         }
-        doc.addImage(data.branding.logo, imgFormat, margin, headerStartY, logoW, logoH);
+        doc.addImage(dimensions.img, imgFormat, margin, headerStartY, logoW, logoH);
         hasLogo = true;
       }
     } catch (_e) {

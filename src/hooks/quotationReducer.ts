@@ -41,6 +41,7 @@ export function createFreshQuotation(company?: QuotationState["company"], brandi
   return {
     branding: branding || {
       logo: null,
+      showLogo: true,
       primaryColor: "#0F766E",
       secondaryColor: "#F59E0B",
       textColor: "#0F172A",

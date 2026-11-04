@@ -179,7 +179,12 @@ export default function SettingsPage() {
                       className="max-h-full max-w-full object-contain"
                     />
                   ) : (
-                    <Ship className="w-8 h-8 stroke-[1.8]" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src="/logo-mark.png"
+                      alt="QuoteCraft Logo"
+                      className="max-h-full max-w-full object-contain"
+                    />
                   )}
                 </div>
 
@@ -505,21 +510,37 @@ export default function SettingsPage() {
                       className="max-h-full max-w-full object-contain"
                     />
                   ) : (
-                    <div className="text-center">
-                      <Ship className="w-7 h-7 text-[#0F766E] mx-auto stroke-[2]" />
-                      <span className="text-[9px] font-bold text-slate-400">Default Logo</span>
-                    </div>
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src="/logo-mark.png"
+                      alt="Default Logo"
+                      className="max-h-full max-w-full object-contain"
+                    />
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label
-                    htmlFor="logo-upload"
-                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-2xs"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
-                    Change Logo
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="logo-upload"
+                      className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-2xs"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
+                      {state.branding.logo ? "Change Logo" : "Upload Custom Logo"}
+                    </label>
+                    {state.branding.logo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          dispatch({ type: "SET_BRANDING", payload: { logo: null } });
+                          toastSuccess("Reset to default QuoteCraft logo.");
+                        }}
+                        className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition-colors"
+                      >
+                        Reset to Default
+                      </button>
+                    )}
+                  </div>
                   <input
                     id="logo-upload"
                     type="file"

@@ -19,6 +19,7 @@ export type TemplateLayoutId = "marine" | "minimal" | "classic" | "technical";
 
 export interface QuotationBranding {
   logo: string | null;
+  showLogo?: boolean;
   primaryColor: string;
   secondaryColor: string;
   textColor: string;

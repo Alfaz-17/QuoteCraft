@@ -112,13 +112,13 @@ export function MarineTemplate({ data }: TemplateProps) {
         <div className="space-y-4">
           {/* Centered Logo */}
           <div className="text-center">
-            {branding.logo ? (
+            {branding.showLogo !== false && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={branding.logo} alt="Logo" className="max-h-16 max-w-[160px] mx-auto object-contain" />
-            ) : (
-              <div className="text-xl font-black uppercase tracking-wider" style={{ color: primaryColor }}>
-                {company.name || "OUR COMPANY"}
-              </div>
+              <img
+                src={branding.logo || "/logo.png"}
+                alt="Logo"
+                className="max-h-16 max-w-[200px] mx-auto object-contain"
+              />
             )}
           </div>
 
@@ -195,13 +195,13 @@ export function MarineTemplate({ data }: TemplateProps) {
               </p>
             </div>
             <div className="text-right">
-              {branding.logo ? (
+              {branding.showLogo !== false && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={branding.logo} alt="Logo" className="max-h-12 max-w-[140px] ml-auto object-contain" />
-              ) : (
-                <div className="text-lg font-black tracking-tight" style={{ color: primaryColor }}>
-                  {company.name || "OUR COMPANY"}
-                </div>
+                <img
+                  src={branding.logo || "/logo.png"}
+                  alt="Logo"
+                  className="max-h-12 max-w-[160px] ml-auto object-contain"
+                />
               )}
             </div>
           </div>
@@ -235,9 +235,13 @@ export function MarineTemplate({ data }: TemplateProps) {
           {/* Header */}
           <div className="flex justify-between items-start pb-4 border-b border-slate-200/90 gap-6">
             <div className="flex items-start gap-3.5 max-w-[60%]">
-              {branding.logo && (
+              {branding.showLogo !== false && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={branding.logo} alt="Logo" className="max-h-14 max-w-[120px] object-contain shrink-0" />
+                <img
+                  src={branding.logo || "/logo-mark.png"}
+                  alt="Logo"
+                  className="max-h-14 max-w-[120px] object-contain shrink-0"
+                />
               )}
               <div>
                 <h1 className="text-xl font-black uppercase tracking-tight" style={{ color: primaryColor }}>

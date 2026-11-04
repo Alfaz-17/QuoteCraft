@@ -17,7 +17,8 @@ import {
   ChevronRight,
   FileText,
   ArrowLeft,
-  Check
+  Check,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,30 @@ export default function QuotationsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deleteQuoteTarget, setDeleteQuoteTarget] = useState<QuotationRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteQuotation = async () => {
+    if (!deleteQuoteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/quotations/${deleteQuoteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to delete quotation");
+      }
+      setQuotations((prev) => prev.filter((q) => q.id !== deleteQuoteTarget.id));
+      toastSuccess(`Quotation ${deleteQuoteTarget.number} deleted successfully.`);
+      setDeleteQuoteTarget(null);
+    } catch (err: unknown) {
+      console.error("Delete error:", err);
+      toastError(err instanceof Error ? err.message : "Failed to delete quotation.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fetchQuotations = useCallback(async () => {
     setLoading(true);
@@ -329,6 +354,18 @@ export default function QuotationsPage() {
                       >
                         <Download className="w-3.5 h-3.5" />
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteQuoteTarget(quote);
+                        }}
+                        className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
+                        title="Delete Quotation"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -396,31 +433,42 @@ export default function QuotationsPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4 sm:px-6 text-right">
-                          {isDraft ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handleEdit(quote)}
-                              className="h-8 px-3.5 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[32px]"
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isDraft ? (
+                              <Button
+                                size="sm"
+                                onClick={() => handleEdit(quote)}
+                                className="h-8 px-3 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[32px]"
+                              >
+                                <Edit3 className="w-3 h-3 mr-1" /> Edit
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={downloadingId === quote.id}
+                                onClick={() => handleDownloadPDF(quote)}
+                                className="h-8 px-3 rounded-lg text-xs font-bold border-teal-200 text-[#0F766E] hover:bg-[#E0F2F1] min-h-[32px]"
+                              >
+                                {downloadingId === quote.id ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Download className="w-3 h-3 mr-1" /> Download
+                                  </>
+                                )}
+                              </Button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => setDeleteQuoteTarget(quote)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              title="Delete Quotation"
                             >
-                              <Edit3 className="w-3 h-3 mr-1" /> Edit
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={downloadingId === quote.id}
-                              onClick={() => handleDownloadPDF(quote)}
-                              className="h-8 px-3.5 rounded-lg text-xs font-bold border-teal-200 text-[#0F766E] hover:bg-[#E0F2F1] min-h-[32px]"
-                            >
-                              {downloadingId === quote.id ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <>
-                                  <Download className="w-3 h-3 mr-1" /> Download
-                                </>
-                              )}
-                            </Button>
-                          )}
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -473,6 +521,56 @@ export default function QuotationsPage() {
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteQuoteTarget && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                  <Trash2 className="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-base leading-tight">Delete Quotation?</h3>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">{deleteQuoteTarget.number}</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Are you sure you want to permanently delete quotation <strong className="font-mono text-slate-900">{deleteQuoteTarget.number}</strong> for{" "}
+                <strong className="text-slate-900">{deleteQuoteTarget.client?.companyName || deleteQuoteTarget.client?.name || "Customer"}</strong>? This action cannot be undone.
+              </p>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isDeleting}
+                  onClick={() => setDeleteQuoteTarget(null)}
+                  className="h-9 px-4 rounded-xl text-xs font-bold text-slate-700"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleDeleteQuotation}
+                  className="h-9 px-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs flex items-center gap-1.5"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

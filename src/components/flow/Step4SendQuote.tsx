@@ -17,7 +17,8 @@ import {
   ZoomOut, 
   RotateCcw,
   Ship,
-  FileText
+  FileText,
+  Trash2
 } from "lucide-react";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { calculateSubtotal, calculateGrandTotal } from "@/utils/calculations";
@@ -42,6 +43,48 @@ export function Step4SendQuote({
   const { success: toastSuccess, error: toastError } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteCurrentQuote = async () => {
+    setIsDeleting(true);
+    try {
+      // If there is a quote saved on backend matching this number, delete it
+      if (state.documentInfo.number) {
+        try {
+          const searchRes = await fetch(`/api/quotations?limit=50`);
+          if (searchRes.ok) {
+            const list = await searchRes.json();
+            const match = (list.quotations || []).find(
+              (q: { number: string; id: string }) => q.number === state.documentInfo.number
+            );
+            if (match && match.id) {
+              await fetch(`/api/quotations/${match.id}`, { method: "DELETE" });
+            }
+          }
+        } catch (serverErr) {
+          console.warn("Could not delete from backend:", serverErr);
+        }
+      }
+
+      // Clear local storage draft
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("marine_quotation_draft");
+        localStorage.removeItem("quotation_draft_items");
+      }
+
+      toastSuccess("Quotation draft deleted successfully.");
+      setShowDeleteModal(false);
+      onNewQuote();
+    } catch (err: unknown) {
+      console.error("Delete draft error:", err);
+      toastError("Could not delete quotation from server, draft reset locally.");
+      setShowDeleteModal(false);
+      onNewQuote();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Settings states synced with state or fallback
   const orientation = state.pdfOrientation || "portrait";
@@ -181,6 +224,15 @@ export function Step4SendQuote({
           >
             Create Another Quote
           </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDeleteModal(true)}
+            className="h-9 px-3 rounded-xl text-xs font-bold border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete Quote
+          </Button>
         </div>
       </div>
 
@@ -316,6 +368,15 @@ export function Step4SendQuote({
             >
               <MessageCircle className="w-4 h-4 mr-2 text-emerald-600" /> Share on WhatsApp
             </Button>
+
+            <button
+              type="button"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full py-2.5 px-3 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Quotation
+            </button>
           </div>
         </div>
 
@@ -418,6 +479,55 @@ export function Step4SendQuote({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 text-base leading-tight">Delete Quotation?</h3>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">{state.documentInfo.number || "Draft"}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to permanently delete quotation <strong className="font-mono text-slate-900">{state.documentInfo.number || "this draft"}</strong>? All entered items, prices, and settings for this quote will be discarded.
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isDeleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="h-9 px-4 rounded-xl text-xs font-bold text-slate-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteCurrentQuote}
+                className="h-9 px-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs flex items-center gap-1.5"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
