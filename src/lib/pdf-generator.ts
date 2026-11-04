@@ -36,6 +36,15 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
 
   const primaryColor = data.branding.primaryColor || "#1e3a8a"; // Marine navy by default
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
+  const layout = data.branding.layout || "marine";
+
+  // Dynamic font mapping
+  const selectedFont = (data.branding.font || "").toLowerCase();
+  const pdfFont: "helvetica" | "times" | "courier" = selectedFont.includes("merriweather") || selectedFont.includes("serif")
+    ? "times"
+    : selectedFont.includes("mono") || selectedFont.includes("courier")
+    ? "courier"
+    : "helvetica";
 
   // Convert hex to RGB
   const hexToRgb = (hex: string): [number, number, number] => {
@@ -415,16 +424,19 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       overflow: "linebreak", // PREVENTS LETTER BREAKS (NO "CYLINDE R")!
     },
     headStyles: {
-      fillColor: rgb,
-      textColor: [255, 255, 255],
+      fillColor: layout === "classic" ? [248, 250, 252] : layout === "minimal" ? [255, 255, 255] : rgb,
+      textColor: layout === "classic" || layout === "minimal" ? [30, 41, 59] : [255, 255, 255],
+      font: pdfFont,
       fontStyle: "bold",
       fontSize: 8,
       cellPadding: 2.5,
       halign: "center",
       valign: "middle",
+      lineColor: layout === "classic" || layout === "minimal" ? [203, 213, 225] : [226, 232, 240],
+      lineWidth: layout === "classic" || layout === "minimal" ? 0.3 : 0.15,
     },
     alternateRowStyles: {
-      fillColor: [248, 250, 252], // slate-50
+      fillColor: layout === "classic" ? [245, 245, 245] : [248, 250, 252], // slate-50 / example1 zebra
     },
     columnStyles: columnsConfig.reduce((acc, col, idx) => {
       acc[idx] = { cellWidth: col.width, halign: col.halign };

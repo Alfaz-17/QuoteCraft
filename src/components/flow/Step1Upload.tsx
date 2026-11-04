@@ -264,10 +264,10 @@ export function Step1Upload({
           }}
           className={`border-2 border-dashed rounded-3xl p-8 sm:p-12 transition-all cursor-pointer ${
             isDragOver
-              ? "border-blue-600 bg-blue-50/40 ring-8 ring-blue-500/10"
+              ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-8 ring-[#0F766E]/10"
               : selectedFile
               ? "border-emerald-500 bg-emerald-50/20"
-              : "border-slate-200 hover:border-blue-400 bg-slate-50/40 hover:bg-slate-50"
+              : "border-slate-200 hover:border-[#0F766E]/50 bg-slate-50/40 hover:bg-slate-50"
           }`}
         >
           <input
@@ -318,7 +318,7 @@ export function Step1Upload({
                     e.stopPropagation();
                     handleProcess();
                   }}
-                  className="h-9 px-6 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white min-h-[40px] shadow-md shadow-blue-600/20"
+                  className="h-9 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#115E59] text-white min-h-[40px] shadow-md shadow-[#0F766E]/20"
                 >
                   {isProcessing ? (
                     <>
@@ -334,8 +334,8 @@ export function Step1Upload({
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Cloud upload icon with blue circle */}
-              <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 mx-auto flex items-center justify-center shadow-inner">
+              {/* Cloud upload icon with teal circle */}
+              <div className="w-16 h-16 rounded-full bg-[#E0F2F1] text-[#0F766E] mx-auto flex items-center justify-center shadow-inner">
                 <UploadCloud className="w-8 h-8 stroke-[2.2]" />
               </div>
 
@@ -367,7 +367,7 @@ export function Step1Upload({
                   type="button"
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="h-10 px-6 rounded-xl font-bold text-xs border-blue-600 text-blue-600 hover:bg-blue-50 min-h-[40px]"
+                  className="h-10 px-6 rounded-xl font-bold text-xs border-[#0F766E] text-[#0F766E] hover:bg-[#E0F2F1] min-h-[40px]"
                 >
                   Choose File
                 </Button>
@@ -376,10 +376,10 @@ export function Step1Upload({
           )}
         </div>
 
-        {/* Screen 2 Demo RFQ Tip Box */}
-        <div className="rounded-2xl bg-blue-50/70 border border-blue-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+        {/* Screen 2 Demo RFQ Tip Box (Gold & Cream) */}
+        <div className="rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#0F766E] text-[#F59E0B] flex items-center justify-center shrink-0 shadow-xs">
               <Lightbulb className="w-4 h-4" />
             </div>
             <div>
@@ -396,9 +396,9 @@ export function Step1Upload({
             type="button"
             size="sm"
             onClick={handleLoadDemoRFQ}
-            className="h-8 px-3 rounded-lg text-xs font-bold bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 shrink-0"
+            className="h-8 px-3 rounded-lg text-xs font-bold bg-white text-[#0F766E] border border-teal-200 hover:bg-[#E0F2F1] shrink-0"
           >
-            <Sparkles className="w-3.5 h-3.5 mr-1 text-blue-500" />
+            <Sparkles className="w-3.5 h-3.5 mr-1 text-[#F59E0B]" />
             Load Demo RFQ
           </Button>
         </div>
@@ -408,7 +408,7 @@ export function Step1Upload({
       <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Building className="w-4 h-4 text-blue-600" />
+            <Building className="w-4 h-4 text-[#0F766E]" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Quotation & Customer Details (Optional Now)
             </h4>
@@ -416,7 +416,7 @@ export function Step1Upload({
           <button
             type="button"
             onClick={() => setShowDocDetails(!showDocDetails)}
-            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-[#0F766E] hover:underline flex items-center gap-1"
           >
             <span>{showDocDetails ? "Hide Details" : "Edit Customer & Ref"}</span>
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showDocDetails ? "rotate-180" : ""}`} />
@@ -476,7 +476,7 @@ export function Step1Upload({
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
-                  <Ship className="w-3.5 h-3.5 text-blue-600" /> Vessel Name
+                  <Ship className="w-3.5 h-3.5 text-[#0F766E]" /> Vessel Name
                 </Label>
                 <Input
                   value={state.documentInfo.vessel || ""}
@@ -513,7 +513,7 @@ export function Step1Upload({
       {isProcessing && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 mx-auto flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-[#E0F2F1] text-[#0F766E] mx-auto flex items-center justify-center">
               <Loader2 className="w-7 h-7 animate-spin" />
             </div>
             <div>

@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import Link from "next/link";
+import { 
+  QuotationState, 
+  CURRENCY_SYMBOLS, 
+  QUOTATION_TEMPLATES 
+} from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { 
   Download, 
@@ -148,7 +153,7 @@ export function Step4SendQuote({
             onClick={() => handleOrientationChange("portrait")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold border transition-all ${
               orientation === "portrait"
-                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                ? "bg-[#0F766E] text-white border-[#0F766E] shadow-xs"
                 : "bg-white text-slate-700 border-slate-200"
             }`}
           >
@@ -159,7 +164,7 @@ export function Step4SendQuote({
             onClick={() => handleOrientationChange("landscape")}
             className={`py-1.5 px-3 rounded-xl text-xs font-bold border transition-all ${
               orientation === "landscape"
-                ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                ? "bg-[#0F766E] text-white border-[#0F766E] shadow-xs"
                 : "bg-white text-slate-700 border-slate-200"
             }`}
           >
@@ -184,7 +189,7 @@ export function Step4SendQuote({
         {/* Left: Preview Settings Panel */}
         <div className="lg:col-span-4 bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-6">
           <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-            <FileText className="w-4 h-4 text-blue-600" />
+            <FileText className="w-4 h-4 text-[#0F766E]" />
             Preview Settings
           </h3>
 
@@ -197,7 +202,7 @@ export function Step4SendQuote({
                 onClick={() => handleOrientationChange("portrait")}
                 className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
                   orientation === "portrait"
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                    ? "bg-[#0F766E] text-white border-[#0F766E] shadow-xs"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 }`}
               >
@@ -209,7 +214,7 @@ export function Step4SendQuote({
                 onClick={() => handleOrientationChange("landscape")}
                 className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
                   orientation === "landscape"
-                    ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                    ? "bg-[#0F766E] text-white border-[#0F766E] shadow-xs"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 }`}
               >
@@ -218,19 +223,35 @@ export function Step4SendQuote({
             </div>
           </div>
 
-          {/* Template Style */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700">Template Style</label>
-            <select
-              value={selectedTemplate}
-              onChange={(e) => setSelectedTemplate(e.target.value)}
-              className="w-full h-10 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:border-blue-600 outline-none"
-            >
-              <option value="Marine Professional">Marine Professional (Default)</option>
-              <option value="Minimal Business">Minimal Business</option>
-              <option value="Ocean Blue">Ocean Blue</option>
-              <option value="Modern Clean">Modern Clean</option>
-            </select>
+          {/* Active Template & Brand Info Card (Customizable in Settings) */}
+          <div className="p-4 rounded-2xl bg-[#FAF9F5] border border-slate-200/90 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Template & Branding
+              </span>
+              <Link
+                href="/settings"
+                className="text-[11px] font-bold text-[#0F766E] hover:underline flex items-center gap-0.5"
+              >
+                Change in Settings →
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3 pt-0.5">
+              <div
+                className="w-5 h-5 rounded-lg border border-slate-300 shrink-0 shadow-2xs"
+                style={{ backgroundColor: state.branding.primaryColor || "#0F766E" }}
+                title={`Primary Color: ${state.branding.primaryColor || "#0F766E"}`}
+              />
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800 truncate">
+                  {QUOTATION_TEMPLATES.find((t) => t.id === (state.branding.layout || "marine"))?.name || "Marine Professional"}
+                </p>
+                <p className="text-[10px] text-slate-500 font-medium truncate">
+                  Typography: {state.branding.font || "Manrope"}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Toggles: Show Logo & Footer Note */}
@@ -241,7 +262,7 @@ export function Step4SendQuote({
                 type="button"
                 onClick={() => setShowLogo(!showLogo)}
                 className={`w-10 h-6 rounded-full transition-colors relative p-0.5 ${
-                  showLogo ? "bg-blue-600" : "bg-slate-300"
+                  showLogo ? "bg-[#0F766E]" : "bg-slate-300"
                 }`}
               >
                 <div
@@ -258,7 +279,7 @@ export function Step4SendQuote({
                 type="button"
                 onClick={() => handleSignatureToggle(!showSignature)}
                 className={`w-10 h-6 rounded-full transition-colors relative p-0.5 ${
-                  showSignature ? "bg-blue-600" : "bg-slate-300"
+                  showSignature ? "bg-[#0F766E]" : "bg-slate-300"
                 }`}
               >
                 <div
@@ -275,7 +296,7 @@ export function Step4SendQuote({
             <Button
               onClick={handleDownloadPDF}
               disabled={isDownloading}
-              className="w-full h-11 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+              className="w-full h-11 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 min-h-[44px]"
             >
               {isDownloading ? (
                 <>
@@ -303,7 +324,7 @@ export function Step4SendQuote({
           {/* Zoom Controls Bar */}
           <div className="bg-white rounded-2xl border border-slate-200/90 px-4 py-2 flex items-center justify-between shadow-2xs">
             <div className="flex items-center gap-1 text-xs text-slate-500 font-semibold">
-              <Ship className="w-3.5 h-3.5 text-blue-600 mr-1" />
+              <Ship className="w-3.5 h-3.5 text-[#0F766E] mr-1" />
               <span>A4 Live Document</span>
             </div>
 
@@ -382,7 +403,7 @@ export function Step4SendQuote({
             <Button
               onClick={handleDownloadPDF}
               disabled={isDownloading}
-              className="flex-1 sm:flex-initial h-11 px-6 sm:px-7 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+              className="flex-1 sm:flex-initial h-11 px-6 sm:px-7 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 min-h-[44px]"
             >
               {isDownloading ? (
                 <>

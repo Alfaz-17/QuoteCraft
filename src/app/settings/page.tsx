@@ -3,7 +3,6 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useClerk } from "@clerk/nextjs";
 import { useQuotationState } from "@/hooks/useQuotationState";
 import { Label } from "@/components/ui/label";
@@ -21,17 +20,26 @@ import {
   LifeBuoy, 
   LogOut, 
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Palette,
+  Type,
+  CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { 
+  QUOTATION_TEMPLATES, 
+  PRESET_COLOR_PALETTES, 
+  PRESET_FONTS, 
+  TemplateLayoutId 
+} from "@/types/quotation.types";
 
 export default function SettingsPage() {
   const { state, dispatch } = useQuotationState();
   const { signOut } = useClerk();
   const { success: toastSuccess } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"company" | "business" | "notifications" | "security">("company");
-  const [mobileSection, setMobileSection] = useState<"menu" | "company" | "business">("menu");
+  const [activeTab, setActiveTab] = useState<"company" | "templates" | "business">("company");
+  const [mobileSection, setMobileSection] = useState<"menu" | "company" | "templates" | "business">("menu");
 
   // Company fields
   const [companyName, setCompanyName] = useState(state.company.name || "AURA MARINE SOLUTIONS");
@@ -39,6 +47,12 @@ export default function SettingsPage() {
   const [companyPhone, setCompanyPhone] = useState(state.company.phone || "+971 50 123 4567");
   const [companyAddress, setCompanyAddress] = useState(state.company.address || "123 Maritime Street, Dubai, UAE");
   const [companyTaxNo, setCompanyTaxNo] = useState(state.company.taxId || "");
+
+  // Branding & Template fields
+  const [selectedLayout, setSelectedLayout] = useState<TemplateLayoutId>(state.branding.layout || "marine");
+  const [selectedColor, setSelectedColor] = useState(state.branding.primaryColor || "#0F766E");
+  const [selectedSecondary, setSelectedSecondary] = useState(state.branding.secondaryColor || "#F59E0B");
+  const [selectedFont, setSelectedFont] = useState(state.branding.font || "Manrope");
 
   useEffect(() => {
     if (state.company.name) setCompanyName(state.company.name);
@@ -48,22 +62,82 @@ export default function SettingsPage() {
     if (state.company.taxId) setCompanyTaxNo(state.company.taxId);
   }, [state.company]);
 
+  useEffect(() => {
+    if (state.branding.layout) setSelectedLayout(state.branding.layout);
+    if (state.branding.primaryColor) setSelectedColor(state.branding.primaryColor);
+    if (state.branding.secondaryColor) setSelectedSecondary(state.branding.secondaryColor);
+    if (state.branding.font) setSelectedFont(state.branding.font);
+  }, [state.branding]);
+
   const handleSaveCompany = () => {
+    const updatedCompany = {
+      name: companyName,
+      email: companyEmail,
+      phone: companyPhone,
+      address: companyAddress,
+      taxId: companyTaxNo,
+    };
     dispatch({
       type: "SET_COMPANY",
-      payload: {
-        name: companyName,
-        email: companyEmail,
-        phone: companyPhone,
-        address: companyAddress,
-        taxId: companyTaxNo,
-      },
+      payload: updatedCompany,
     });
+    try {
+      localStorage.setItem("companyProfile", JSON.stringify(updatedCompany));
+    } catch (e) {
+      console.error(e);
+    }
     toastSuccess("Company details updated successfully!");
+  };
+
+  const handleSaveBranding = () => {
+    const updatedBranding = {
+      ...state.branding,
+      layout: selectedLayout,
+      primaryColor: selectedColor,
+      secondaryColor: selectedSecondary,
+      font: selectedFont,
+    };
+    dispatch({
+      type: "SET_BRANDING",
+      payload: updatedBranding,
+    });
+    try {
+      localStorage.setItem("brandingProfile", JSON.stringify(updatedBranding));
+    } catch (e) {
+      console.error(e);
+    }
+    toastSuccess("Template format and color branding updated successfully!");
   };
 
   const handleLogout = async () => {
     await signOut({ redirectUrl: "/login" });
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Logo image should be under 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      const updatedBranding = { ...state.branding, logo: base64 };
+      dispatch({
+        type: "SET_BRANDING",
+        payload: { logo: base64 },
+      });
+      try {
+        localStorage.setItem("brandingProfile", JSON.stringify(updatedBranding));
+      } catch (e) {
+        console.error(e);
+      }
+      toastSuccess("Company logo updated!");
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -81,7 +155,7 @@ export default function SettingsPage() {
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
-            <Settings className="w-4 h-4 text-blue-600" />
+            <Settings className="w-4 h-4 text-[#0F766E]" />
             <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none">
               Settings
             </h1>
@@ -94,9 +168,9 @@ export default function SettingsPage() {
         <div className="block md:hidden space-y-4">
           {mobileSection === "menu" ? (
             <div className="space-y-4">
-              {/* Company Profile Card (Screen 9 in Mobile Mockup) */}
+              {/* Company Profile Card */}
               <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center p-2 shadow-2xs">
+                <div className="w-16 h-16 rounded-2xl bg-[#E0F2F1] text-[#0F766E] border border-teal-200 flex items-center justify-center p-2 shadow-2xs">
                   {state.branding.logo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -116,14 +190,14 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setMobileSection("company")}
-                    className="text-xs font-bold text-blue-600 hover:underline mt-1 inline-block"
+                    className="text-xs font-bold text-[#0F766E] hover:underline mt-1 inline-block"
                   >
                     Edit Profile
                   </button>
                 </div>
               </div>
 
-              {/* Navigation List Items with Chevrons (Screen 9 in Mobile Mockup) */}
+              {/* Navigation List Items with Chevrons */}
               <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs divide-y divide-slate-100 overflow-hidden">
                 <button
                   type="button"
@@ -131,7 +205,7 @@ export default function SettingsPage() {
                   className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
                       <Building className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Company Details</span>
@@ -139,18 +213,19 @@ export default function SettingsPage() {
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
 
-                <Link
-                  href="/templates"
+                <button
+                  type="button"
+                  onClick={() => setMobileSection("templates")}
                   className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
                       <Layers className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Quotation Templates</span>
+                    <span className="text-xs font-bold text-slate-800">Quotation Templates & Color</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Link>
+                </button>
 
                 <button
                   type="button"
@@ -158,7 +233,7 @@ export default function SettingsPage() {
                   className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
                       <Bell className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Notification Preferences</span>
@@ -172,7 +247,7 @@ export default function SettingsPage() {
                   className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
                       <Puzzle className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Integrations</span>
@@ -185,7 +260,7 @@ export default function SettingsPage() {
                   className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
                       <LifeBuoy className="w-4 h-4" />
                     </div>
                     <span className="text-xs font-bold text-slate-800">Help & Support</span>
@@ -208,65 +283,160 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
+          ) : mobileSection === "templates" ? (
+            /* Mobile Templates Sub-Screen */
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-5">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="font-bold text-sm text-slate-900">Template & Branding</h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileSection("menu")}
+                  className="text-xs font-bold text-[#0F766E]"
+                >
+                  Back
+                </button>
+              </div>
+
+              {/* Template Format Options */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-700">Choose Template Format</Label>
+                <div className="space-y-2">
+                  {QUOTATION_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      type="button"
+                      onClick={() => setSelectedLayout(tmpl.id)}
+                      className={`w-full p-3 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 ${
+                        selectedLayout === tmpl.id
+                          ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]"
+                          : "border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{tmpl.name}</span>
+                          <span className="text-[10px] font-semibold text-[#0F766E] bg-[#E0F2F1] px-1.5 py-0.2 rounded">
+                            {tmpl.source}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium">{tmpl.description}</p>
+                      </div>
+                      {selectedLayout === tmpl.id && (
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Color Palette Selector */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-700">Brand Color Palette</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PRESET_COLOR_PALETTES.map((palette) => (
+                    <button
+                      key={palette.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedColor(palette.primaryColor);
+                        setSelectedSecondary(palette.secondaryColor);
+                      }}
+                      className={`p-2 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${
+                        selectedColor.toLowerCase() === palette.primaryColor.toLowerCase()
+                          ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg flex overflow-hidden shadow-2xs">
+                        <div className="w-1/2 h-full" style={{ backgroundColor: palette.primaryColor }} />
+                        <div className="w-1/2 h-full" style={{ backgroundColor: palette.secondaryColor }} />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-700">{palette.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Font Family Selector */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-700">Quotation Font</Label>
+                <select
+                  value={selectedFont}
+                  onChange={(e) => setSelectedFont(e.target.value)}
+                  className="w-full h-10 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/60"
+                >
+                  {PRESET_FONTS.map((font) => (
+                    <option key={font.id} value={font.name}>
+                      {font.name} — {font.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                onClick={handleSaveBranding}
+                className="w-full h-11 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
+              >
+                <Save className="w-4 h-4 mr-1.5" /> Save Template & Colors
+              </Button>
+            </div>
           ) : (
-            /* Mobile Form Sub-Screen */
+            /* Mobile Company Form Sub-Screen */
             <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="font-bold text-sm text-slate-900">Edit Company Profile</h3>
                 <button
                   type="button"
                   onClick={() => setMobileSection("menu")}
-                  className="text-xs font-bold text-blue-600"
+                  className="text-xs font-bold text-[#0F766E]"
                 >
-                  Done
+                  Back
                 </button>
               </div>
 
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label className="text-xs font-bold text-slate-700">Company Name</Label>
-                  <Input
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-bold text-slate-700">Email Address</Label>
-                  <Input
-                    type="email"
-                    value={companyEmail}
-                    onChange={(e) => setCompanyEmail(e.target.value)}
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-bold text-slate-700">Phone</Label>
-                  <Input
-                    value={companyPhone}
-                    onChange={(e) => setCompanyPhone(e.target.value)}
-                    className="h-10 text-xs rounded-xl font-mono"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-xs font-bold text-slate-700">Address / Port</Label>
-                  <Input
-                    value={companyAddress}
-                    onChange={(e) => setCompanyAddress(e.target.value)}
-                    className="h-10 text-xs rounded-xl"
-                  />
-                </div>
-
-                <Button
-                  onClick={handleSaveCompany}
-                  className="w-full h-11 rounded-xl font-bold text-xs bg-blue-600 text-white mt-2"
-                >
-                  <Save className="w-4 h-4 mr-1.5" /> Save Changes
-                </Button>
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Company Name</Label>
+                <Input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="h-10 text-xs rounded-xl"
+                />
               </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Email Address</Label>
+                <Input
+                  type="email"
+                  value={companyEmail}
+                  onChange={(e) => setCompanyEmail(e.target.value)}
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Phone</Label>
+                <Input
+                  value={companyPhone}
+                  onChange={(e) => setCompanyPhone(e.target.value)}
+                  className="h-10 text-xs rounded-xl font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Address / Port</Label>
+                <Input
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                  className="h-10 text-xs rounded-xl"
+                />
+              </div>
+
+              <Button
+                onClick={handleSaveCompany}
+                className="w-full h-11 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
+              >
+                <Save className="w-4 h-4 mr-1.5" /> Save Changes
+              </Button>
             </div>
           )}
         </div>
@@ -279,7 +449,7 @@ export default function SettingsPage() {
               onClick={() => setActiveTab("company")}
               className={`py-3 border-b-2 transition-all whitespace-nowrap ${
                 activeTab === "company"
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-[#0F766E] text-[#0F766E]"
                   : "border-transparent text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -288,10 +458,23 @@ export default function SettingsPage() {
 
             <button
               type="button"
+              onClick={() => setActiveTab("templates")}
+              className={`py-3 border-b-2 transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                activeTab === "templates"
+                  ? "border-[#0F766E] text-[#0F766E]"
+                  : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              Templates & Color Palette
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveTab("business")}
               className={`py-3 border-b-2 transition-all whitespace-nowrap ${
                 activeTab === "business"
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-[#0F766E] text-[#0F766E]"
                   : "border-transparent text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -299,6 +482,7 @@ export default function SettingsPage() {
             </button>
           </div>
 
+          {/* TAB 1: COMPANY DETAILS */}
           {activeTab === "company" && (
             <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
@@ -322,147 +506,316 @@ export default function SettingsPage() {
                     />
                   ) : (
                     <div className="text-center">
-                      <Ship className="w-7 h-7 text-blue-600 mx-auto stroke-[2]" />
+                      <Ship className="w-7 h-7 text-[#0F766E] mx-auto stroke-[2]" />
                       <span className="text-[9px] font-bold text-slate-400">Default Logo</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-800">Company Logo</label>
-                  <p className="text-[11px] text-slate-500">
-                    Recommended size: 300x100px PNG or SVG with transparent background.
+                  <label
+                    htmlFor="logo-upload"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-2xs"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
+                    Change Logo
+                  </label>
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    PNG, JPG, or SVG. Maximum 2MB.
                   </p>
-                  <div className="pt-1">
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Change Logo</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              dispatch({
-                                type: "SET_BRANDING",
-                                payload: { logo: reader.result as string },
-                              });
-                              toastSuccess("Logo updated!");
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
                 </div>
               </div>
 
-              {/* Form Fields: Name, Email, Phone, Address */}
+              {/* Inputs Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5 sm:col-span-2">
                   <Label className="text-xs font-bold text-slate-700">Company Name</Label>
                   <Input
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="AURA MARINE SOLUTIONS"
-                    className="h-10 text-xs sm:text-sm font-semibold rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white"
+                    className="h-11 rounded-xl text-xs font-medium"
+                    placeholder="e.g. AURA MARINE SOLUTIONS"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">Email Address</Label>
+                  <Label className="text-xs font-bold text-slate-700">Official Email</Label>
                   <Input
                     type="email"
                     value={companyEmail}
                     onChange={(e) => setCompanyEmail(e.target.value)}
+                    className="h-11 rounded-xl text-xs font-medium"
                     placeholder="info@auramarine.com"
-                    className="h-10 text-xs sm:text-sm font-medium rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">Phone Number</Label>
+                  <Label className="text-xs font-bold text-slate-700">Phone / WhatsApp</Label>
                   <Input
                     value={companyPhone}
                     onChange={(e) => setCompanyPhone(e.target.value)}
+                    className="h-11 rounded-xl text-xs font-medium font-mono"
                     placeholder="+971 50 123 4567"
-                    className="h-10 text-xs sm:text-sm font-mono font-medium rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white"
                   />
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label className="text-xs font-bold text-slate-700">Office / Port Address</Label>
+                  <Label className="text-xs font-bold text-slate-700">Business Address / Port Base</Label>
                   <Input
                     value={companyAddress}
                     onChange={(e) => setCompanyAddress(e.target.value)}
+                    className="h-11 rounded-xl text-xs font-medium"
                     placeholder="123 Maritime Street, Dubai, UAE"
-                    className="h-10 text-xs sm:text-sm font-medium rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-bold text-slate-700">Tax ID / VAT Registration No. (Optional)</Label>
+                  <Input
+                    value={companyTaxNo}
+                    onChange={(e) => setCompanyTaxNo(e.target.value)}
+                    className="h-11 rounded-xl text-xs font-medium font-mono"
+                    placeholder="e.g. TRN-10029384810"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
                 <Button
                   onClick={handleSaveCompany}
-                  className="h-11 px-6 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+                  className="h-11 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
+                  <Save className="w-4 h-4 mr-2" /> Save Company Details
                 </Button>
               </div>
             </div>
           )}
 
+          {/* TAB 2: TEMPLATES & BRANDING (NEW!) */}
+          {activeTab === "templates" && (
+            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-8">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-[#0F766E]" />
+                  Quotation Templates & Color Palettes
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Select your default layout format, corporate color scheme, and typography for quotation PDFs.
+                </p>
+              </div>
+
+              {/* 1. Template Layout Cards (3-4 Formats including Anvil and Example 1) */}
+              <div className="space-y-3">
+                <Label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  1. Template Format
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {QUOTATION_TEMPLATES.map((tmpl) => {
+                    const isSelected = selectedLayout === tmpl.id;
+                    return (
+                      <div
+                        key={tmpl.id}
+                        onClick={() => setSelectedLayout(tmpl.id)}
+                        className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                          isSelected
+                            ? "border-[#0F766E] bg-[#E0F2F1]/30 shadow-xs"
+                            : "border-slate-200 hover:border-slate-300 bg-white"
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-sm text-slate-900">{tmpl.name}</span>
+                            <span className="text-[10px] font-bold text-[#0F766E] bg-[#E0F2F1] px-2 py-0.5 rounded-full">
+                              {tmpl.source}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-500">{tmpl.tagline}</p>
+                          <p className="text-[11px] text-slate-600 leading-relaxed pt-1">{tmpl.description}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100/80">
+                          <span className={`text-[11px] font-bold ${isSelected ? "text-[#0F766E]" : "text-slate-400"}`}>
+                            {isSelected ? "Active Default Template" : "Click to Select"}
+                          </span>
+                          {isSelected && <CheckCircle2 className="w-4 h-4 text-[#0F766E]" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Color Palette Selector */}
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-[#0F766E]" />
+                    2. Color Palette
+                  </Label>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    Active: {selectedColor}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {PRESET_COLOR_PALETTES.map((palette) => {
+                    const isActive = selectedColor.toLowerCase() === palette.primaryColor.toLowerCase();
+                    return (
+                      <button
+                        key={palette.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedColor(palette.primaryColor);
+                          setSelectedSecondary(palette.secondaryColor);
+                        }}
+                        className={`p-3 rounded-2xl border-2 flex items-center gap-3 text-left transition-all ${
+                          isActive
+                            ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]/30"
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-xl flex overflow-hidden shadow-2xs shrink-0 border border-slate-200/50">
+                          <div className="w-1/2 h-full" style={{ backgroundColor: palette.primaryColor }} />
+                          <div className="w-1/2 h-full" style={{ backgroundColor: palette.secondaryColor }} />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-xs font-bold text-slate-900 truncate">{palette.name}</p>
+                          <p className="text-[10px] text-slate-400 font-mono truncate">{palette.primaryColor}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom Color Input */}
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <input
+                    type="color"
+                    value={selectedColor}
+                    onChange={(e) => setSelectedColor(e.target.value)}
+                    className="w-9 h-9 rounded-xl cursor-pointer border border-slate-300 p-0.5 bg-white shrink-0"
+                    title="Custom Primary Color"
+                  />
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-xs font-bold text-slate-800">Custom Brand Color</p>
+                    <p className="text-[11px] text-slate-500">Choose your exact company hex color code</p>
+                  </div>
+                  <Input
+                    value={selectedColor}
+                    onChange={(e) => setSelectedColor(e.target.value)}
+                    className="w-28 h-9 text-xs font-mono font-bold uppercase rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* 3. Typography / Font Selector */}
+              <div className="space-y-3 pt-4 border-t border-slate-100">
+                <Label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Type className="w-4 h-4 text-[#0F766E]" />
+                  3. Typography & Font Style
+                </Label>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {PRESET_FONTS.map((font) => {
+                    const isSelected = selectedFont.toLowerCase() === font.name.toLowerCase();
+                    return (
+                      <button
+                        key={font.id}
+                        type="button"
+                        onClick={() => setSelectedFont(font.name)}
+                        className={`p-3.5 rounded-2xl border-2 text-left transition-all ${
+                          isSelected
+                            ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]/30"
+                            : "border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-extrabold text-xs text-slate-900" style={{ fontFamily: font.fontFamily }}>
+                            {font.name}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 uppercase">
+                            {font.category}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{font.description}</p>
+                        <p 
+                          className="text-[11px] text-slate-700 mt-2 p-1.5 rounded-lg bg-slate-100/70 truncate"
+                          style={{ fontFamily: font.fontFamily }}
+                        >
+                          CYLINDER LINER • CL-102 • $1,250.00
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Save Branding CTA */}
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <Button
+                  onClick={handleSaveBranding}
+                  className="h-11 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs"
+                >
+                  <Save className="w-4 h-4 mr-2" /> Save Template & Color Branding
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: BUSINESS INFO & TERMS */}
           {activeTab === "business" && (
             <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                  Tax & Registration Information
+                  Business Info & Default Commercial Terms
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  TRN / VAT number and default quotation terms.
+                  Configure default payment, delivery terms, and bank coordinates.
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">TRN / VAT Registration Number</Label>
-                  <Input
-                    value={companyTaxNo}
-                    onChange={(e) => setCompanyTaxNo(e.target.value)}
-                    placeholder="100XXXXXXXX00003"
-                    className="h-10 text-xs sm:text-sm font-mono font-medium rounded-xl border-slate-200 bg-slate-50/40 focus:bg-white max-w-sm"
+                  <Label className="text-xs font-bold text-slate-700">Bank Account Details (Swift / IBAN)</Label>
+                  <textarea
+                    rows={4}
+                    value={state.company.bankDetails || ""}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_COMPANY",
+                        payload: { bankDetails: e.target.value },
+                      })
+                    }
+                    placeholder="Bank: Emirates NBD&#10;IBAN: AE2902600010029384810&#10;SWIFT: ENBDAEAD"
+                    className="w-full text-xs font-mono p-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#0F766E] outline-none leading-relaxed"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-700">Standard Payment & Delivery Terms</Label>
+                  <Label className="text-xs font-bold text-slate-700">Standard Commercial Terms</Label>
                   <textarea
-                    value={state.terms || ""}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_TERMS",
-                        payload: e.target.value,
-                      })
-                    }
-                    rows={4}
-                    className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 bg-slate-50/40 focus:bg-white focus:border-blue-600 outline-none resize-none font-medium text-slate-700"
-                    placeholder="• Payment: 30 days net from invoice date&#10;• Delivery: Ex-Works Sharjah / FOB Jebel Ali&#10;• Validity: 30 days"
+                    rows={5}
+                    value={state.terms}
+                    onChange={(e) => dispatch({ type: "SET_TERMS", payload: e.target.value })}
+                    className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#0F766E] outline-none leading-relaxed"
+                    placeholder="• Delivery: As agreed / Ex-Works / FOB&#10;• Payment: 30 days after delivery&#10;• Validity: 30 days"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-slate-100">
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
                 <Button
-                  onClick={handleSaveCompany}
-                  className="h-11 px-6 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+                  onClick={() => toastSuccess("Business details and commercial terms saved!")}
+                  className="h-11 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
+                  <Save className="w-4 h-4 mr-2" /> Save Business Info
                 </Button>
               </div>
             </div>

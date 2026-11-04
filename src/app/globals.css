@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -21,6 +21,13 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+  --font-sans: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+  --color-brand-deep-teal: #0F766E;
+  --color-brand-gold: #F59E0B;
+  --color-brand-cream: #FFFBEB;
+  --color-brand-slate: #475569;
+  --color-brand-light-teal: #E0F2F1;
+  --color-brand-success: #16A34A;
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -33,19 +40,19 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
+  --primary: 175 77% 26%; /* #0F766E Deep Teal */
   --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
+  --secondary: 48 100% 96%; /* #FFFBEB Cream */
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
+  --accent: 38 92% 50%; /* #F59E0B Gold */
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: 175 77% 26%;
   --radius: 0.75rem;
 }
 
@@ -79,21 +86,21 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     transition-colors: 300ms;
-    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Manrope', var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Manrope', var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     letter-spacing: -0.02em;
   }
   code, pre {
     font-family: var(--font-geist-mono), monospace;
   }
   ::selection {
-    background-color: hsla(221, 83%, 53%, 0.12);
-    color: hsl(221, 83%, 45%);
+    background-color: rgba(15, 118, 110, 0.15);
+    color: #0F766E;
   }
 }
 

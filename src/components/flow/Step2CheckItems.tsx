@@ -118,7 +118,7 @@ export function Step2CheckItems({
           onClick={onAddItem}
           className="h-10 px-3 rounded-xl text-xs font-bold border-slate-200 text-slate-700 hover:bg-slate-50 shrink-0"
         >
-          <Plus className="w-3.5 h-3.5 mr-1 text-blue-600" />
+          <Plus className="w-3.5 h-3.5 mr-1 text-[#0F766E]" />
           Add Item
         </Button>
       </div>
@@ -182,7 +182,7 @@ export function Step2CheckItems({
                       value={item.itemName || ""}
                       onChange={(e) => onUpdateItem(item.id, { itemName: e.target.value })}
                       placeholder="Item Description"
-                      className="w-full font-bold text-xs sm:text-sm text-slate-900 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 rounded p-0.5"
+                      className="w-full font-bold text-xs sm:text-sm text-slate-900 bg-transparent border-0 focus:ring-1 focus:ring-[#0F766E] rounded p-0.5"
                     />
 
                     <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -194,7 +194,7 @@ export function Step2CheckItems({
                         <span className="text-[11px] text-slate-400 italic">No Part No.</span>
                       )}
 
-                      <span className="text-[11px] font-bold text-slate-700 bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
+                      <span className="text-[11px] font-bold text-slate-700 bg-[#E0F2F1] text-[#0F766E] px-1.5 py-0.5 rounded">
                         {qtyVal} {item.unit || "PCS"}
                       </span>
                     </div>
@@ -269,7 +269,7 @@ export function Step2CheckItems({
                       onChange={(e) => onUpdateItem(item.id, { technicalSpecification: e.target.value })}
                       placeholder="e.g. Bore 500mm, Stroke 2000mm"
                       rows={2}
-                      className="w-full p-2 text-xs rounded-lg border border-slate-200 mt-0.5 resize-none outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full p-2 text-xs rounded-lg border border-slate-200 mt-0.5 resize-none outline-none focus:ring-1 focus:ring-[#0F766E]"
                     />
                   </div>
 
@@ -322,7 +322,7 @@ export function Step2CheckItems({
                           value={item.itemName || ""}
                           onChange={(e) => onUpdateItem(item.id, { itemName: e.target.value })}
                           placeholder="e.g. Cylinder liner"
-                          className="w-full font-bold text-xs sm:text-sm text-slate-900 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 rounded p-1"
+                          className="w-full font-bold text-xs sm:text-sm text-slate-900 bg-transparent border-0 focus:ring-1 focus:ring-[#0F766E] rounded p-1"
                         />
                         {item.description && (
                           <p className="text-[11px] text-slate-400 pl-1 truncate max-w-md">
@@ -337,7 +337,7 @@ export function Step2CheckItems({
                           value={item.partNumber || ""}
                           onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
                           placeholder="Part No."
-                          className="w-full font-mono font-semibold text-xs text-slate-700 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 rounded p-1"
+                          className="w-full font-mono font-semibold text-xs text-slate-700 bg-transparent border-0 focus:ring-1 focus:ring-[#0F766E] rounded p-1"
                         />
                       </td>
 
@@ -353,7 +353,7 @@ export function Step2CheckItems({
                               isMissingQty: false,
                             })
                           }
-                          className={`w-16 mx-auto text-center font-mono font-bold text-xs bg-slate-50 border rounded-lg py-1 px-1.5 focus:bg-white focus:ring-1 focus:ring-blue-500 ${
+                          className={`w-16 mx-auto text-center font-mono font-bold text-xs bg-slate-50 border rounded-lg py-1 px-1.5 focus:bg-white focus:ring-1 focus:ring-[#0F766E] ${
                             needsReview && (!item.quantity || item.quantity <= 0)
                               ? "border-amber-400 bg-amber-50/60 text-amber-900"
                               : "border-slate-200 text-slate-800"
@@ -366,7 +366,7 @@ export function Step2CheckItems({
                           type="text"
                           value={item.unit || "PCS"}
                           onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                          className="w-16 mx-auto text-center font-bold text-xs uppercase text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 px-1 focus:bg-white focus:ring-1 focus:ring-blue-500"
+                          className="w-16 mx-auto text-center font-bold text-xs uppercase text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 px-1 focus:bg-white focus:ring-1 focus:ring-[#0F766E]"
                         />
                       </td>
 
@@ -394,7 +394,7 @@ export function Step2CheckItems({
                           <button
                             type="button"
                             onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                            className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-slate-400 hover:text-[#0F766E] hover:bg-slate-100 transition-colors"
                           >
                             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                           </button>
@@ -421,7 +421,7 @@ export function Step2CheckItems({
                                 value={(item.technicalSpecification as string) || ""}
                                 onChange={(e) => onUpdateItem(item.id, { technicalSpecification: e.target.value })}
                                 placeholder="e.g. Bore 500mm, Stroke 2000mm, High-tensile cast iron"
-                                className="w-full text-xs p-2 bg-white border border-slate-200 rounded-xl mt-1 focus:ring-1 focus:ring-blue-500 outline-none resize-none h-16"
+                                className="w-full text-xs p-2 bg-white border border-slate-200 rounded-xl mt-1 focus:ring-1 focus:ring-[#0F766E] outline-none resize-none h-16"
                               />
                             </div>
                             <div>
@@ -432,7 +432,7 @@ export function Step2CheckItems({
                                 value={item.description || ""}
                                 onChange={(e) => onUpdateItem(item.id, { description: e.target.value })}
                                 placeholder="Additional remarks or specifications"
-                                className="w-full text-xs p-2 bg-white border border-slate-200 rounded-xl mt-1 focus:ring-1 focus:ring-blue-500 outline-none resize-none h-16"
+                                className="w-full text-xs p-2 bg-white border border-slate-200 rounded-xl mt-1 focus:ring-1 focus:ring-[#0F766E] outline-none resize-none h-16"
                               />
                             </div>
                           </div>

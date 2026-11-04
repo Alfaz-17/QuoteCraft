@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className="font-sans antialiased text-slate-800"
       >
         <Providers>
           <div className="flex min-h-screen bg-slate-50/30">

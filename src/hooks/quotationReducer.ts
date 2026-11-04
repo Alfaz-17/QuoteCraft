@@ -41,10 +41,10 @@ export function createFreshQuotation(company?: QuotationState["company"], brandi
   return {
     branding: branding || {
       logo: null,
-      primaryColor: "#2563eb",
-      secondaryColor: "#64748b",
-      textColor: "#1e293b",
-      font: "Inter",
+      primaryColor: "#0F766E",
+      secondaryColor: "#F59E0B",
+      textColor: "#0F172A",
+      font: "Manrope",
       layout: "marine",
     },
     documentInfo: {

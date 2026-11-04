@@ -35,6 +35,7 @@ export interface ColorPalettePreset {
 }
 
 export const PRESET_COLOR_PALETTES: ColorPalettePreset[] = [
+  { id: "quotecraft-teal-gold", name: "Teal & Gold (Brand)", primaryColor: "#0F766E", secondaryColor: "#F59E0B", description: "Official QuoteCraft brand: Deep Teal & Gold with warm maritime prestige" },
   { id: "marine-navy", name: "Marine Navy", primaryColor: "#1E3A8A", secondaryColor: "#0284C7", description: "Trusted deep maritime navy & ocean cyan" },
   { id: "ocean-azure", name: "Ocean Azure", primaryColor: "#0284C7", secondaryColor: "#38BDF8", description: "Vibrant coastal blue & bright skies" },
   { id: "slate-steel", name: "Slate & Steel", primaryColor: "#334155", secondaryColor: "#64748B", description: "High-contrast industrial charcoal" },
@@ -53,6 +54,7 @@ export interface FontOption {
 }
 
 export const PRESET_FONTS: FontOption[] = [
+  { id: "manrope", name: "Manrope (Brand)", fontFamily: "'Manrope', system-ui, -apple-system, sans-serif", category: "sans", description: "Official QuoteCraft typography — modern, geometric & ultra-legible", pdfFont: "helvetica" },
   { id: "inter", name: "Inter", fontFamily: "Inter, system-ui, -apple-system, sans-serif", category: "sans", description: "Crisp, clean & modern SaaS standard", pdfFont: "helvetica" },
   { id: "roboto", name: "Roboto", fontFamily: "Roboto, system-ui, sans-serif", category: "sans", description: "Technical, legible & engineering grade", pdfFont: "helvetica" },
   { id: "merriweather", name: "Merriweather", fontFamily: "Georgia, 'Times New Roman', serif", category: "serif", description: "Prestigious, classic & formal commercial", pdfFont: "times" },

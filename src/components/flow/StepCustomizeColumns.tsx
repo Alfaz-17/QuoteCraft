@@ -244,7 +244,7 @@ export function StepCustomizeColumns({
 
           <Button
             onClick={onNext}
-            className="flex-1 sm:flex-initial h-11 px-8 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+            className="flex-1 sm:flex-initial h-11 px-8 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 min-h-[44px]"
           >
             Save Changes
             <ArrowRight className="w-4 h-4 ml-1.5" />

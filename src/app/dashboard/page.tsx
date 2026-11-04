@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Currency, LineItem, TableColumn, QuotationState } from "@/types/quotation.types";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { useToast } from "@/components/ui/Toast";
+import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 
 interface QuotationRecord {
   id: string;
@@ -188,12 +189,10 @@ export default function DashboardPage() {
       <header className="bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3.5 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="md:hidden w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-              <Ship className="w-4 h-4 stroke-[2.2]" />
-            </div>
+            <QuoteCraftLogo size={32} showText={false} />
             <div>
               <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none">
-                QuoteCraft
+                Quote<span className="text-[#0F766E]">Craft</span>
               </h1>
               <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5 hidden sm:block">
                 Marine Dashboard
@@ -210,7 +209,7 @@ export default function DashboardPage() {
                 className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-2xs"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-2xs">
+              <div className="w-9 h-9 rounded-full bg-[#0F766E] text-white font-bold text-xs flex items-center justify-center shadow-2xs">
                 {userInitial}
               </div>
             )}
@@ -229,22 +228,22 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Big Blue Upload Card (Screen 2 in Mobile Mockup) */}
+        {/* Big Brand Upload Card (Screen 2 in Mobile Mockup) */}
         <Link
           href="/"
-          className="group block relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-600 to-blue-700 text-white p-6 sm:p-8 shadow-xl shadow-blue-600/25 border border-blue-500 transition-all active:scale-[0.99] hover:shadow-2xl hover:shadow-blue-600/35"
+          className="group block relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0F766E] via-[#0D6B63] to-[#041E26] text-white p-6 sm:p-8 shadow-xl shadow-[#0F766E]/25 border border-[#115E59] transition-all active:scale-[0.99] hover:shadow-2xl hover:shadow-[#0F766E]/35"
         >
           <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-7 h-7 text-white stroke-[2.2]" />
+            <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+              <UploadCloud className="w-7 h-7 text-[#F59E0B] stroke-[2.2]" />
             </div>
 
             <div className="space-y-1">
               <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
                 Upload Customer Request
               </h3>
-              <p className="text-xs text-blue-100 font-medium">
-                PDF or Excel file
+              <p className="text-xs text-teal-100/90 font-medium">
+                Drag & drop your Excel or PDF RFQ file
               </p>
             </div>
           </div>
@@ -254,7 +253,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* 1. Total RFQs */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -321,7 +320,7 @@ export default function DashboardPage() {
             </h3>
             <Link
               href="/quotations"
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] flex items-center gap-1"
             >
               View All <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -329,7 +328,7 @@ export default function DashboardPage() {
 
           {loading ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#0F766E]" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : quotations.length === 0 ? (
@@ -387,7 +386,7 @@ export default function DashboardPage() {
                         <Button
                           size="sm"
                           onClick={() => handleOpenInBuilder(quote)}
-                          className="h-8 px-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white min-h-[32px]"
+                          className="h-8 px-2.5 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[32px]"
                         >
                           Edit
                         </Button>
@@ -397,7 +396,7 @@ export default function DashboardPage() {
                           variant="outline"
                           disabled={downloadingId === quote.id}
                           onClick={() => handleDownloadPDF(quote)}
-                          className="h-8 px-2.5 rounded-lg text-xs font-bold border-blue-200 text-blue-600 hover:bg-blue-50 min-h-[32px]"
+                          className="h-8 px-2.5 rounded-lg text-xs font-bold border-teal-200 text-[#0F766E] hover:bg-[#E0F2F1] min-h-[32px]"
                         >
                           {downloadingId === quote.id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -156,7 +156,7 @@ export function Step3AddPrices({
           variant="outline"
           size="sm"
           onClick={handleSaveDraft}
-          className="h-9 px-3 rounded-xl text-xs font-bold border-blue-200 text-blue-600 hover:bg-blue-50"
+          className="h-9 px-3 rounded-xl text-xs font-bold border-[#0F766E]/40 text-[#0F766E] hover:bg-[#E0F2F1]"
         >
           <Save className="w-3.5 h-3.5 mr-1" /> Save Draft
         </Button>
@@ -167,14 +167,14 @@ export function Step3AddPrices({
         {/* Document Header Card */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
               <Ship className="w-5 h-5 stroke-[2]" />
             </div>
             <div>
               <h3 className="font-black text-xs sm:text-sm text-slate-900 leading-tight">
                 AURA MARINE SOLUTIONS
               </h3>
-              <p className="text-[11px] font-mono font-bold text-blue-600 mt-0.5">
+              <p className="text-[11px] font-mono font-bold text-[#0F766E] mt-0.5">
                 QT-1075
               </p>
             </div>
@@ -212,7 +212,7 @@ export function Step3AddPrices({
 
             <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-sm">
               <span className="font-black text-slate-900">Grand Total</span>
-              <span className="font-mono font-black text-base text-blue-600">
+              <span className="font-mono font-black text-base text-[#0F766E]">
                 {currencySymbol}{formatMoney(grandTotal)}
               </span>
             </div>
@@ -276,7 +276,7 @@ export function Step3AddPrices({
                           })
                         }
                         placeholder="0"
-                        className="w-full h-10 pl-7 pr-2.5 text-right font-mono font-bold text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 outline-none"
+                        className="w-full h-10 pl-7 pr-2.5 text-right font-mono font-bold text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-[#0F766E] outline-none"
                       />
                     </div>
                   </div>
@@ -368,7 +368,7 @@ export function Step3AddPrices({
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onPaste={(e) => handlePaste(e, index)}
                             placeholder="0"
-                            className="w-full h-9 pl-7 pr-3 text-right font-mono font-bold text-xs sm:text-sm bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                            className="w-full h-9 pl-7 pr-3 text-right font-mono font-bold text-xs sm:text-sm bg-slate-50/60 border border-slate-200 rounded-xl focus:bg-white focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 outline-none transition-all"
                           />
                         </div>
                       </td>
@@ -391,7 +391,7 @@ export function Step3AddPrices({
               <button
                 type="button"
                 onClick={() => setShowDiscountInput(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline py-1.5 px-2.5 rounded-lg hover:bg-blue-50 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] hover:underline py-1.5 px-2.5 rounded-lg hover:bg-[#E0F2F1] transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add Discount
@@ -494,7 +494,7 @@ export function Step3AddPrices({
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
               <span className="text-sm font-black text-slate-900">Grand Total</span>
-              <span className="text-lg sm:text-xl font-black font-mono text-blue-600">
+              <span className="text-lg sm:text-xl font-black font-mono text-[#0F766E]">
                 {currencySymbol}{formatMoney(grandTotal)}
               </span>
             </div>
@@ -515,7 +515,7 @@ export function Step3AddPrices({
 
           <Button
             onClick={onNext}
-            className="flex-1 sm:flex-initial h-11 px-8 rounded-xl font-bold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 min-h-[44px]"
+            className="flex-1 sm:flex-initial h-11 px-8 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 min-h-[44px]"
           >
             <FileText className="w-4 h-4 mr-1.5" />
             Generate Quotation

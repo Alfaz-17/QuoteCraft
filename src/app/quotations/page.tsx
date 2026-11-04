@@ -221,7 +221,7 @@ export default function QuotationsPage() {
 
           <Button
             asChild
-            className="h-9 px-3.5 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-xs"
+            className="h-9 px-3.5 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs"
           >
             <Link href="/">
               <FilePlus className="w-3.5 h-3.5 mr-1" /> New Quote
@@ -262,7 +262,7 @@ export default function QuotationsPage() {
               }}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                 statusFilter === tab.id
-                  ? "bg-blue-600 text-white shadow-xs"
+                  ? "bg-[#0F766E] text-white shadow-xs"
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
               }`}
             >
@@ -275,14 +275,14 @@ export default function QuotationsPage() {
         <div className="block md:hidden space-y-2.5">
           {loading ? (
             <div className="p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+              <Loader2 className="w-5 h-5 animate-spin text-[#0F766E]" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : displayedQuotations.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
               <FileText className="w-8 h-8 text-slate-300 mx-auto" />
               <p className="text-xs font-bold text-slate-700">No quotations found</p>
-              <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs bg-blue-600 text-white">
+              <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
                 <Link href="/">Create Quotation</Link>
               </Button>
             </div>
@@ -324,7 +324,7 @@ export default function QuotationsPage() {
                           e.stopPropagation();
                           handleDownloadPDF(quote);
                         }}
-                        className="p-1 text-blue-600 hover:text-blue-700"
+                        className="p-1 text-[#0F766E] hover:text-[#0D6B63]"
                         title="Download PDF"
                       >
                         <Download className="w-3.5 h-3.5" />
@@ -341,14 +341,14 @@ export default function QuotationsPage() {
         <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
           {loading ? (
             <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <Loader2 className="w-6 h-6 animate-spin text-[#0F766E]" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : displayedQuotations.length === 0 ? (
             <div className="p-12 text-center space-y-3">
               <FileText className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center" />
               <h4 className="font-bold text-sm text-slate-800">No quotations found</h4>
-              <Button asChild className="h-10 px-5 rounded-xl font-bold text-xs bg-blue-600 text-white">
+              <Button asChild className="h-10 px-5 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
                 <Link href="/">Create Quotation</Link>
               </Button>
             </div>
@@ -383,7 +383,7 @@ export default function QuotationsPage() {
                           </p>
                           {quote.vessel && (
                             <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                              <Ship className="w-3 h-3 text-blue-500" /> {quote.vessel}
+                              <Ship className="w-3 h-3 text-[#0F766E]" /> {quote.vessel}
                             </p>
                           )}
                         </td>
@@ -400,7 +400,7 @@ export default function QuotationsPage() {
                             <Button
                               size="sm"
                               onClick={() => handleEdit(quote)}
-                              className="h-8 px-3.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white min-h-[32px]"
+                              className="h-8 px-3.5 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[32px]"
                             >
                               <Edit3 className="w-3 h-3 mr-1" /> Edit
                             </Button>
@@ -410,7 +410,7 @@ export default function QuotationsPage() {
                               variant="outline"
                               disabled={downloadingId === quote.id}
                               onClick={() => handleDownloadPDF(quote)}
-                              className="h-8 px-3.5 rounded-lg text-xs font-bold border-blue-200 text-blue-600 hover:bg-blue-50 min-h-[32px]"
+                              className="h-8 px-3.5 rounded-lg text-xs font-bold border-teal-200 text-[#0F766E] hover:bg-[#E0F2F1] min-h-[32px]"
                             >
                               {downloadingId === quote.id ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -454,7 +454,7 @@ export default function QuotationsPage() {
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center transition-all ${
                     currentPage === i + 1
-                      ? "bg-blue-600 text-white shadow-xs"
+                      ? "bg-[#0F766E] text-white shadow-xs"
                       : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >

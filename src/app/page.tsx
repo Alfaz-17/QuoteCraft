@@ -16,13 +16,22 @@ import {
 import { LineItem, TableColumn, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { calculateGrandTotal } from "@/utils/calculations";
 import { useToast } from "@/components/ui/Toast";
+import { useAuth } from "@clerk/nextjs";
+import { LandingPage } from "@/components/landing/LandingPage";
+import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 
 export default function Home() {
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { state, dispatch, isSaved, subtotal, isHydrated } = useQuotationState();
   const { success: toastSuccess, info: toastInfo } = useToast();
 
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
+
+  // If user is not logged in, render the official brand landing page
+  if (authLoaded && !isSignedIn) {
+    return <LandingPage />;
+  }
 
   // Undo history stack (Principle 7: Forgive mistakes, Undo available)
   const undoStack = useRef<LineItem[][]>([]);
@@ -158,13 +167,11 @@ export default function Home() {
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/70 px-3 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
         {/* Brand & Document Info */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
-            <Anchor className="w-4 h-4" />
-          </div>
+          <QuoteCraftLogo size={30} showText={false} />
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none">
-                QuoteCraft
+                Quote<span className="text-[#0F766E]">Craft</span>
               </h1>
               {isHydrated && state.documentInfo.number && (
                 <span
