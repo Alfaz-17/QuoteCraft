@@ -18,6 +18,7 @@ interface QuotationContextType {
   isSaved: boolean;
   lastSavedAt: Date | null;
   syncStatus: SyncStatus;
+  isHydrated: boolean;
 }
 
 const QuotationContext = createContext<QuotationContextType | null>(null);
@@ -227,7 +228,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
   const subtotal = useMemo(() => calculateSubtotal(state.items, state.tableColumns), [state.items, state.tableColumns]);
 
   return (
-    <QuotationContext.Provider value={{ state, dispatch, subtotal, isSaved, lastSavedAt, syncStatus }}>
+    <QuotationContext.Provider value={{ state, dispatch, subtotal, isSaved, lastSavedAt, syncStatus, isHydrated }}>
       {children}
     </QuotationContext.Provider>
   );

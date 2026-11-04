@@ -6,10 +6,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // This file runs server-side ONLY (API routes). Never import in client components.
 
 function getAiClient(apiKey: string) {
-  if (!apiKey) {
+  const resolvedKey = apiKey || process.env.GEMINI_API_KEY || "";
+  if (!resolvedKey) {
     throw new Error("Gemini API Key is not configured. Please add your API key in Settings.");
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new GoogleGenerativeAI(resolvedKey);
 }
 
 export async function analyzeLogoColors(imageBase64: string, apiKey: string) {

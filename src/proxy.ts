@@ -8,9 +8,18 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/webhooks(.*)",
   "/api/auth(.*)",
+  "/manifest.json",
+  "/manifest.webmanifest",
+  "/favicon.ico",
+  "/robots.txt",
 ]);
 
 const middleware = clerkMiddleware(async (auth, request) => {
+  // Do not redirect API routes to HTML sign-in; API routes enforce their own auth with 401 JSON
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return;
+  }
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

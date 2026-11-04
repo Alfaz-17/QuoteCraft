@@ -15,14 +15,88 @@ export interface LineItem {
   [key: string]: string | number | boolean | undefined; // Allow dynamic fields
 }
 
+export type TemplateLayoutId = "marine" | "minimal" | "classic" | "technical";
+
 export interface QuotationBranding {
   logo: string | null;
   primaryColor: string;
   secondaryColor: string;
   textColor: string;
   font: string;
-  layout: "classic" | "minimal" | "technical" | "marine";
+  layout: TemplateLayoutId;
 }
+
+export interface ColorPalettePreset {
+  id: string;
+  name: string;
+  primaryColor: string;
+  secondaryColor: string;
+  description: string;
+}
+
+export const PRESET_COLOR_PALETTES: ColorPalettePreset[] = [
+  { id: "marine-navy", name: "Marine Navy", primaryColor: "#1E3A8A", secondaryColor: "#0284C7", description: "Trusted deep maritime navy & ocean cyan" },
+  { id: "ocean-azure", name: "Ocean Azure", primaryColor: "#0284C7", secondaryColor: "#38BDF8", description: "Vibrant coastal blue & bright skies" },
+  { id: "slate-steel", name: "Slate & Steel", primaryColor: "#334155", secondaryColor: "#64748B", description: "High-contrast industrial charcoal" },
+  { id: "emerald-maritime", name: "Forest Emerald", primaryColor: "#065F46", secondaryColor: "#059669", description: "Eco-maritime green & clean teal" },
+  { id: "crimson-nautical", name: "Crimson Port", primaryColor: "#881337", secondaryColor: "#E11D48", description: "Strong maritime red & warning accent" },
+  { id: "deep-midnight", name: "Deep Midnight", primaryColor: "#0F172A", secondaryColor: "#3B82F6", description: "Modern executive dark slate & blue" },
+];
+
+export interface FontOption {
+  id: string;
+  name: string;
+  fontFamily: string;
+  category: "sans" | "serif" | "mono";
+  description: string;
+  pdfFont: "helvetica" | "times" | "courier";
+}
+
+export const PRESET_FONTS: FontOption[] = [
+  { id: "inter", name: "Inter", fontFamily: "Inter, system-ui, -apple-system, sans-serif", category: "sans", description: "Crisp, clean & modern SaaS standard", pdfFont: "helvetica" },
+  { id: "roboto", name: "Roboto", fontFamily: "Roboto, system-ui, sans-serif", category: "sans", description: "Technical, legible & engineering grade", pdfFont: "helvetica" },
+  { id: "merriweather", name: "Merriweather", fontFamily: "Georgia, 'Times New Roman', serif", category: "serif", description: "Prestigious, classic & formal commercial", pdfFont: "times" },
+  { id: "mono", name: "JetBrains / Courier", fontFamily: "ui-monospace, 'Courier New', monospace", category: "mono", description: "Industrial chandlery & part-code ledger", pdfFont: "courier" },
+];
+
+export interface TemplateDefinition {
+  id: TemplateLayoutId;
+  name: string;
+  tagline: string;
+  source: string;
+  description: string;
+}
+
+export const QUOTATION_TEMPLATES: TemplateDefinition[] = [
+  {
+    id: "marine",
+    name: "Marine Professional",
+    tagline: "Corporate Maritime Standard",
+    source: "QuoteCraft Standard",
+    description: "Header logo on left, vessel/machinery badge, 5-column item grid with technical specs sub-text, and formal signature seal.",
+  },
+  {
+    id: "minimal",
+    name: "Modern Minimal",
+    tagline: "Borderless Contemporary",
+    source: "Inspired by Anvil Invoice",
+    description: "Sleek Anvil-style minimalist table without heavy outer borders, light divider lines, generous whitespace, and right-aligned card summary.",
+  },
+  {
+    id: "classic",
+    name: "Classic Centered Banner",
+    tagline: "Example 1 Iconic Layout",
+    source: "From example1.zip",
+    description: "Centered logo, bordered uppercase quotation header bar, clean side-by-side metadata tags, striped alternating rows, and bottom notice box.",
+  },
+  {
+    id: "technical",
+    name: "Technical Chandlery",
+    tagline: "High-Density Equipment Ledger",
+    source: "Industrial Spec",
+    description: "Engineered for 50+ item vessel requisition orders with part/IMPA numbers, maker, drawing refs, tight padding, and compact totals.",
+  },
+];
 
 export interface DocumentInfo {
   type: "quotation" | "rfq" | "proforma";

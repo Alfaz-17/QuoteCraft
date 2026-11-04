@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const apiKey = (await findUserApiKey(userId)) || "";
+    const apiKey = (await findUserApiKey(userId)) || process.env.GEMINI_API_KEY || "";
     if (!apiKey) {
       return NextResponse.json(
         { error: "Gemini API Key not configured. Please add your key in Settings." },

@@ -7,13 +7,15 @@ export async function GET() {
     const userId = await getAuthenticatedUserId();
     let hasUserKey = false;
 
-    // 1. Check if logged-in user has custom key in database
+    // 1. Check if logged-in user has custom key in database or global system key
     if (userId) {
       const key = await findUserApiKey(userId);
       if (key) hasUserKey = true;
     }
 
-    return NextResponse.json({ hasKey: hasUserKey });
+    const hasGlobalKey = !!process.env.GEMINI_API_KEY;
+
+    return NextResponse.json({ hasKey: hasUserKey || hasGlobalKey });
   } catch {
     return NextResponse.json({ hasKey: false });
   }

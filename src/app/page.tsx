@@ -18,7 +18,7 @@ import { calculateGrandTotal } from "@/utils/calculations";
 import { useToast } from "@/components/ui/Toast";
 
 export default function Home() {
-  const { state, dispatch, isSaved, subtotal } = useQuotationState();
+  const { state, dispatch, isSaved, subtotal, isHydrated } = useQuotationState();
   const { success: toastSuccess, info: toastInfo } = useToast();
 
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
@@ -166,8 +166,11 @@ export default function Home() {
               <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none">
                 QuoteCraft
               </h1>
-              {state.documentInfo.number && (
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60">
+              {isHydrated && state.documentInfo.number && (
+                <span
+                  suppressHydrationWarning
+                  className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60"
+                >
                   {state.documentInfo.number}
                 </span>
               )}
@@ -218,7 +221,7 @@ export default function Home() {
           </button>
 
           {/* Principle 5: Live Grand Total pill in header */}
-          {state.items.length > 0 && grandTotal > 0 && (
+          {isHydrated && state.items.length > 0 && grandTotal > 0 && (
             <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200/70 text-xs font-mono font-bold text-emerald-800 shadow-2xs">
               <span className="text-[10px] font-sans text-emerald-600">Total:</span>
               <span>{currencySymbol}{grandTotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>

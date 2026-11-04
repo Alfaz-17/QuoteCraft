@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. LAYER B: AI FALLBACK (Requires Gemini API Key)
-    const apiKey = userApiKey;
+    const apiKey = userApiKey || process.env.GEMINI_API_KEY || "";
     if (!apiKey) {
       return NextResponse.json(
         {
