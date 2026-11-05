@@ -32,8 +32,8 @@ export function PersonnelSection({
   onToggleCustomerDetails
 }: PersonnelSectionProps) {
   const [autoFormat, setAutoFormat] = useState(true);
-  const labelClass = "text-[11px] font-black uppercase tracking-widest text-slate-500";
-  const hintClass = "text-[10px] font-semibold text-slate-400";
+  const labelClass = "text-xs font-black uppercase tracking-widest text-slate-500";
+  const hintClass = "text-xs font-semibold text-slate-400";
 
   const formatField = (value: string, type: "name" | "address" | "text") => {
     if (!autoFormat) return value;
@@ -50,7 +50,7 @@ export function PersonnelSection({
       <CardContent className="px-0 space-y-4 md:space-y-6">
         {!hideCompany && (
           <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3 md:space-y-4">
-            <h3 className="text-[10px] font-black text-primary uppercase tracking-widest">Your Business Details</h3>
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Your Business Details</h3>
             <div className="space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="companyName" className={labelClass}>Company Name</Label>
@@ -108,7 +108,7 @@ export function PersonnelSection({
 
         {!hideClient && (
           <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3 md:space-y-4">
-            <h3 className="text-[10px] font-black text-primary uppercase tracking-widest">Customer Details</h3>
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Customer Details</h3>
             <div className="space-y-3">
               <div className="space-y-1 min-w-0">
                 <Label htmlFor="clientName" className={labelClass}>Contact Person</Label>

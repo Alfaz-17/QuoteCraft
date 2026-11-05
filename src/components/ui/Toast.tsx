@@ -129,7 +129,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       <div className="flex items-start gap-2.5">
         <div className="mt-0.5">{icons[type]}</div>
         <div className="flex-1 pr-4">
-          <p className="text-[11px] font-bold tracking-tight text-slate-800 leading-normal">{message}</p>
+          <p className="text-xs font-bold tracking-tight text-slate-800 leading-normal">{message}</p>
         </div>
         <button
           onClick={() => {

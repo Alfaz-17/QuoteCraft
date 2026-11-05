@@ -394,7 +394,7 @@ export function Step2CheckItems({
       </div>
 
       {/* Desktop Table View (>= md) */}
-      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div className="hidden md:block bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
@@ -534,7 +534,7 @@ export function Step2CheckItems({
       {/* Advanced Table Layout Modal */}
       {showColumnsModal && onSetColumns && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Table Columns Layout</h3>

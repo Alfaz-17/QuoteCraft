@@ -3,8 +3,10 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
-import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { useQuotationState } from "@/hooks/useQuotationState";
+import { HeroSailingLoader } from "@/components/ui/Loaders";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,9 +36,17 @@ import {
 } from "@/types/quotation.types";
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
   const { state, dispatch } = useQuotationState();
   const { signOut } = useClerk();
   const { success: toastSuccess } = useToast();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/sign-in");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const [activeTab, setActiveTab] = useState<"company" | "templates" | "business">("company");
   const [mobileSection, setMobileSection] = useState<"menu" | "company" | "templates" | "business">("menu");
@@ -53,6 +63,14 @@ export default function SettingsPage() {
   const [selectedColor, setSelectedColor] = useState(state.branding.primaryColor || "#0F766E");
   const [selectedSecondary, setSelectedSecondary] = useState(state.branding.secondaryColor || "#F59E0B");
   const [selectedFont, setSelectedFont] = useState(state.branding.font || "Manrope");
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+        <HeroSailingLoader statusMessage="Verifying authorization..." />
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (state.company.name) setCompanyName(state.company.name);
@@ -169,8 +187,8 @@ export default function SettingsPage() {
           {mobileSection === "menu" ? (
             <div className="space-y-4">
               {/* Company Profile Card */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-2xl bg-[#E0F2F1] text-[#0F766E] border border-teal-200 flex items-center justify-center p-2 shadow-2xs">
+              <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs flex flex-col items-center text-center space-y-3">
+                <div className="w-16 h-16 rounded-md bg-[#E0F2F1] text-[#0F766E] border border-teal-200 flex items-center justify-center p-2 shadow-2xs">
                   {state.branding.logo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -203,7 +221,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Navigation List Items with Chevrons */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs divide-y divide-slate-100 overflow-hidden">
+              <div className="bg-white rounded-lg border border-slate-200/90 shadow-xs divide-y divide-slate-100 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setMobileSection("company")}
@@ -290,7 +308,7 @@ export default function SettingsPage() {
             </div>
           ) : mobileSection === "templates" ? (
             /* Mobile Templates Sub-Screen */
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-5">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-5">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="font-bold text-sm text-slate-900">Template & Branding</h3>
                 <button
@@ -311,7 +329,7 @@ export default function SettingsPage() {
                       key={tmpl.id}
                       type="button"
                       onClick={() => setSelectedLayout(tmpl.id)}
-                      className={`w-full p-3 rounded-2xl border text-left transition-all flex items-start justify-between gap-3 ${
+                      className={`w-full p-3 rounded-md border text-left transition-all flex items-start justify-between gap-3 ${
                         selectedLayout === tmpl.id
                           ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]"
                           : "border-slate-200 hover:bg-slate-50"
@@ -387,7 +405,7 @@ export default function SettingsPage() {
             </div>
           ) : (
             /* Mobile Company Form Sub-Screen */
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="font-bold text-sm text-slate-900">Edit Company Profile</h3>
                 <button
@@ -489,7 +507,7 @@ export default function SettingsPage() {
 
           {/* TAB 1: COMPANY DETAILS */}
           {activeTab === "company" && (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">
                   Company Details
@@ -500,7 +518,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Logo Row with "Change Logo" */}
-              <div className="flex items-center gap-5 p-4 rounded-2xl bg-slate-50/70 border border-slate-100">
+              <div className="flex items-center gap-5 p-4 rounded-md bg-slate-50/70 border border-slate-100">
                 <div className="w-24 h-16 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-2 shadow-2xs">
                   {state.branding.logo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -621,7 +639,7 @@ export default function SettingsPage() {
 
           {/* TAB 2: TEMPLATES & BRANDING (NEW!) */}
           {activeTab === "templates" && (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-8">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-8">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
                   <Layers className="w-5 h-5 text-[#0F766E]" />
@@ -644,7 +662,7 @@ export default function SettingsPage() {
                       <div
                         key={tmpl.id}
                         onClick={() => setSelectedLayout(tmpl.id)}
-                        className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                        className={`p-4 rounded-md border-2 cursor-pointer transition-all flex flex-col justify-between gap-3 ${
                           isSelected
                             ? "border-[#0F766E] bg-[#E0F2F1]/30 shadow-xs"
                             : "border-slate-200 hover:border-slate-300 bg-white"
@@ -696,7 +714,7 @@ export default function SettingsPage() {
                           setSelectedColor(palette.primaryColor);
                           setSelectedSecondary(palette.secondaryColor);
                         }}
-                        className={`p-3 rounded-2xl border-2 flex items-center gap-3 text-left transition-all ${
+                        className={`p-3 rounded-md border-2 flex items-center gap-3 text-left transition-all ${
                           isActive
                             ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]/30"
                             : "border-slate-200 hover:border-slate-300"
@@ -716,7 +734,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Custom Color Input */}
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center gap-3 p-3.5 rounded-md bg-slate-50 border border-slate-200">
                   <input
                     type="color"
                     value={selectedColor}
@@ -751,7 +769,7 @@ export default function SettingsPage() {
                         key={font.id}
                         type="button"
                         onClick={() => setSelectedFont(font.name)}
-                        className={`p-3.5 rounded-2xl border-2 text-left transition-all ${
+                        className={`p-3.5 rounded-md border-2 text-left transition-all ${
                           isSelected
                             ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]/30"
                             : "border-slate-200 hover:border-slate-300"
@@ -792,7 +810,7 @@ export default function SettingsPage() {
 
           {/* TAB 3: BUSINESS INFO & TERMS */}
           {activeTab === "business" && (
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">
                   Business Info & Default Commercial Terms

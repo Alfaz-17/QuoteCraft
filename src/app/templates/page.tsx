@@ -2,17 +2,36 @@
 
 export const dynamic = "force-dynamic";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { Ship, Check, ArrowRight, Palette, Sliders } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/Toast";
 import { useQuotationState } from "@/hooks/useQuotationState";
 import { QUOTATION_TEMPLATES, TemplateLayoutId } from "@/types/quotation.types";
+import { HeroSailingLoader } from "@/components/ui/Loaders";
 
 export default function TemplatesPage() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
   const { state, dispatch } = useQuotationState();
   const { success: toastSuccess } = useToast();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/sign-in");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+        <HeroSailingLoader statusMessage="Verifying authorization..." />
+      </div>
+    );
+  }
 
   const selectedId = state.branding.layout || "marine";
 
@@ -80,7 +99,7 @@ export default function TemplatesPage() {
                 <div
                   key={tpl.id}
                   onClick={() => handleSelectTemplate(tpl.id, tpl.name)}
-                  className={`bg-white rounded-3xl border-2 p-5 transition-all cursor-pointer relative flex flex-col justify-between ${
+                  className={`bg-white rounded-lg border-2 p-5 transition-all cursor-pointer relative flex flex-col justify-between ${
                     isSelected
                       ? "border-[#0F766E] shadow-md ring-4 ring-[#0F766E]/10"
                       : "border-slate-200/90 hover:border-slate-300 hover:shadow-xs"
@@ -94,7 +113,7 @@ export default function TemplatesPage() {
                   )}
 
                   {/* Template Visual Thumbnail Skeleton */}
-                  <div className="bg-[#FAF9F5] rounded-2xl border border-slate-200/80 p-4 mb-4 space-y-2 h-44 flex flex-col justify-between overflow-hidden">
+                  <div className="bg-[#FAF9F5] rounded-md border border-slate-200/80 p-4 mb-4 space-y-2 h-44 flex flex-col justify-between overflow-hidden">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                       <div 
                         className="w-16 h-3 rounded"
@@ -110,7 +129,7 @@ export default function TemplatesPage() {
                     </div>
 
                     <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
-                      <span className="text-[9px] font-mono font-bold text-slate-400 uppercase">
+                      <span className="text-xs font-mono font-bold text-slate-400 uppercase">
                         {tpl.tagline}
                       </span>
                       <div 
@@ -124,7 +143,7 @@ export default function TemplatesPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-sm text-slate-900">{tpl.name}</h4>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E0F2F1] text-[#0F766E]">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#E0F2F1] text-[#0F766E]">
                         {tpl.source}
                       </span>
                     </div>
@@ -138,9 +157,9 @@ export default function TemplatesPage() {
           </div>
 
           {/* Right Callout Banner Card (4 cols) */}
-          <div className="lg:col-span-4 bg-gradient-to-br from-[#041E26] via-[#0A333C] to-[#0D4D47] text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl border border-[#0D3845] flex flex-col justify-between">
+          <div className="lg:col-span-4 bg-gradient-to-br from-[#041E26] via-[#0A333C] to-[#0D4D47] text-white rounded-lg p-6 sm:p-8 space-y-6 shadow-xl border border-[#0D3845] flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#0F766E] text-[#F59E0B] flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 rounded-md bg-[#0F766E] text-[#F59E0B] flex items-center justify-center shadow-md">
                 <Ship className="w-6 h-6 stroke-[2]" />
               </div>
 

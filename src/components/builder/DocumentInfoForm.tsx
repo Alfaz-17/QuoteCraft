@@ -13,8 +13,8 @@ interface DocumentInfoFormProps {
 }
 
 export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: DocumentInfoFormProps) {
-  const labelClass = "text-[11px] font-black uppercase tracking-widest text-slate-500";
-  const hintClass = "text-[10px] font-semibold text-slate-400";
+  const labelClass = "text-xs font-black uppercase tracking-widest text-slate-500";
+  const hintClass = "text-xs font-semibold text-slate-400";
 
   return (
     <Card className="border-none shadow-none bg-transparent">
@@ -24,7 +24,7 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
       <CardContent className="px-0 space-y-3 md:space-y-4">
         {/* Document Type & Number */}
         <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Basic Document Info</p>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">Basic Document Info</p>
         <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
           <div className="space-y-1.5 min-w-0">
             <Label htmlFor="docType" className={labelClass}>Document Type</Label>
@@ -62,7 +62,7 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
 
         {/* Vessel & Reference */}
         <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Vessel / Enquiry Details</p>
+          <p className="text-xs font-black uppercase tracking-widest text-primary">Vessel / Enquiry Details</p>
         <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
           <div className="space-y-1.5 min-w-0">
             <Label htmlFor="vessel" className={labelClass}>Vessel Name</Label>
@@ -80,7 +80,7 @@ export function DocumentInfoForm({ data, onUpdate, showMachineInfo = true }: Doc
         {showMachineInfo && (
           <>
             <div className="rounded-xl border bg-white/80 p-3 shadow-sm space-y-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary">Machine Information</p>
+              <p className="text-xs font-black uppercase tracking-widest text-primary">Machine Information</p>
               <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 md:gap-3">
                 <div className="space-y-1.5 min-w-0">
                   <Label htmlFor="make" className={labelClass}>Maker / Brand</Label>

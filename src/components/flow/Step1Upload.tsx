@@ -362,7 +362,7 @@ export function Step1Upload({
       </div>
 
       {/* Main Ingestion Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-8 shadow-xs space-y-5">
+      <div className="bg-white rounded-lg border border-slate-200/90 p-5 sm:p-8 shadow-xs space-y-5">
         {inputMode === "file" ? (
           <div
             onDragOver={(e) => {
@@ -546,7 +546,7 @@ export function Step1Upload({
       </div>
 
       {/* Optional Details (Customer, Vessel, Quote No) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
+      <div className="bg-white rounded-lg border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Building className="w-4 h-4 text-brand-600" />
@@ -654,7 +654,7 @@ export function Step1Upload({
       {/* Stepped Progress Modal */}
       {isProcessing && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
             <OrigamiDrawLoader showText={false} />
             <div className="space-y-1">
               <h4 className="font-extrabold text-base text-slate-900">Reading Customer RFQ</h4>

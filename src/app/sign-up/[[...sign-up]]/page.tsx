@@ -13,7 +13,7 @@ export default function SignUpPage() {
       <div className="absolute top-6 left-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0F766E] transition-colors py-1.5 px-3 rounded-full hover:bg-slate-100"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0F766E] transition-colors py-1.5 px-3 rounded-md hover:bg-slate-100"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
         </Link>
@@ -30,7 +30,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Clerk Auth Box */}
-      <div className="w-full max-w-md flex justify-center shadow-xl rounded-2xl overflow-hidden border border-slate-200/80 bg-white">
+      <div className="w-full max-w-md flex justify-center shadow-md rounded-lg overflow-hidden border border-slate-200 bg-white">
         <SignUp
           routing="path"
           path="/sign-up"
@@ -40,7 +40,7 @@ export default function SignUpPage() {
       </div>
 
       {/* Bottom Maritime Flourish */}
-      <div className="mt-8 text-center text-[11px] font-semibold text-slate-400">
+      <div className="mt-8 text-center text-xs font-semibold text-slate-400">
         QuoteCraft &bull; Simple. Powerful. Built for Marine Business.
       </div>
     </div>

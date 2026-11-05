@@ -1,19 +1,27 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { LandingPage } from "@/components/landing/LandingPage";
+import { HeroSailingLoader } from "@/components/ui/Loaders";
 
 export default function LoginPage() {
   const router = useRouter();
   const { isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      router.replace("/dashboard");
+    if (isLoaded) {
+      if (isSignedIn) {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/sign-in");
+      }
     }
   }, [isLoaded, isSignedIn, router]);
 
-  return <LandingPage />;
+  return (
+    <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+      <HeroSailingLoader statusMessage="Redirecting to secure sign in..." />
+    </div>
+  );
 }

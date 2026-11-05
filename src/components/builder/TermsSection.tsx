@@ -33,7 +33,7 @@ export function TermsSection({ terms, onUpdate }: TermsSectionProps) {
             variant="outline"
             size="sm"
             onClick={() => setShowTemplates(!showTemplates)}
-            className="w-full justify-between text-[11px] md:text-xs h-8 rounded-lg"
+            className="w-full justify-between text-xs md:text-xs h-8 rounded-lg"
           >
             <span className="flex items-center gap-1.5">
               <span>⚡</span> Quick Insert Templates
@@ -50,7 +50,7 @@ export function TermsSection({ terms, onUpdate }: TermsSectionProps) {
                   className="flex items-center gap-1.5 px-2 py-1.5 md:px-2.5 md:py-2 rounded-lg border bg-white hover:bg-primary/5 hover:border-primary/30 transition-all text-left group"
                 >
                   <span className="text-sm">{tmpl.emoji}</span>
-                  <span className="text-[10px] font-medium text-muted-foreground group-hover:text-primary transition-colors truncate">
+                  <span className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors truncate">
                     {tmpl.label}
                   </span>
                 </button>
@@ -77,7 +77,7 @@ export function TermsSection({ terms, onUpdate }: TermsSectionProps) {
             variant="ghost"
             size="sm"
             onClick={() => onUpdate("")}
-            className="text-[10px] text-destructive/70 hover:text-destructive h-6 px-2"
+            className="text-xs text-destructive/70 hover:text-destructive h-6 px-2"
           >
             Clear All Terms
           </Button>

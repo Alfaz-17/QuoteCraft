@@ -308,7 +308,7 @@ export function Step3AddPricesAndSend({
 
       {/* Customer & Vessel Metadata Drawer / Card */}
       {showDocMetadata && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4 animate-in fade-in duration-150">
+        <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4 animate-in fade-in duration-150">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 className="text-xs sm:text-sm font-bold text-slate-800">
               Quotation Header Details
@@ -393,7 +393,7 @@ export function Step3AddPricesAndSend({
           </div>
 
           {/* Desktop Table View */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -473,7 +473,7 @@ export function Step3AddPricesAndSend({
           </div>
 
           {/* Pricing Adjustments: Discount, Tax & Delivery */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3">
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3">
             <h4 className="text-xs sm:text-sm font-bold text-slate-800">
               Quotation Adjustments
             </h4>
@@ -550,7 +550,7 @@ export function Step3AddPricesAndSend({
 
         {/* Right Column: Live Branded PDF Preview (lg:col-span-5) */}
         <div className={`${showLivePreviewOnDesktop ? "lg:col-span-5" : "hidden"} ${activeMobileView === "pricing" ? "hidden sm:block" : "block"} space-y-4`}>
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs space-y-3">
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4 text-brand-600" />
@@ -682,7 +682,7 @@ export function Step3AddPricesAndSend({
       {/* Retention / Follow-up Reminder Modal */}
       {showFollowupModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 sm:p-7 max-w-sm w-full text-center space-y-4 shadow-xl border border-slate-100 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-lg p-6 sm:p-7 max-w-sm w-full text-center space-y-4 shadow-xl border border-slate-100 animate-in zoom-in-95 duration-150">
             <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
               <Check className="w-6 h-6 stroke-[3]" />
             </div>
@@ -725,7 +725,7 @@ export function Step3AddPricesAndSend({
       {/* Delete Draft Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150 text-center">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150 text-center">
             <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
               <Trash2 className="w-6 h-6" />
             </div>

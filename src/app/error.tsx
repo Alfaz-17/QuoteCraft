@@ -18,12 +18,12 @@ export default function ErrorBoundary({
 
   return (
     <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-6 text-center font-sans">
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl max-w-lg w-full p-8 space-y-6 animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-lg border border-slate-200/90 shadow-xl max-w-lg w-full p-8 space-y-6 animate-in zoom-in-95 duration-200">
         <div className="flex justify-center">
           <QuoteCraftLogo size={42} showTagline={false} />
         </div>
 
-        <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 mx-auto flex items-center justify-center">
+        <div className="w-14 h-14 rounded-md bg-amber-50 text-amber-600 border border-amber-200 mx-auto flex items-center justify-center">
           <AlertTriangle className="w-7 h-7 stroke-[2]" />
         </div>
 
@@ -35,7 +35,7 @@ export default function ErrorBoundary({
             {error?.message || "A client-side exception occurred while rendering this page."}
           </p>
           {error?.digest && (
-            <p className="text-[10px] font-mono text-slate-400">
+            <p className="text-xs font-mono text-slate-400">
               Error Digest: {error.digest}
             </p>
           )}

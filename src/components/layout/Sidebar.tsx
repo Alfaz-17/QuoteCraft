@@ -164,7 +164,7 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-3 rounded-2xl transition-all duration-150 min-w-[56px]",
+                "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-150 min-w-[56px]",
                 isActive
                   ? "text-[#0F766E] font-bold"
                   : "text-slate-400 hover:text-slate-700"

@@ -85,11 +85,11 @@ export function CompanyProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/80 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-lg shadow-2xl border border-slate-200/80 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export function CompanyProfileModal({
                       className="flex flex-col items-center justify-center h-16 w-32 border border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 transition-colors"
                     >
                       <UploadCloud className="w-4 h-4 mb-0.5 text-primary" />
-                      <span className="text-[11px] font-semibold">Upload Logo</span>
+                      <span className="text-xs font-semibold">Upload Logo</span>
                     </button>
                   )}
                   <input
@@ -183,7 +183,7 @@ export function CompanyProfileModal({
                     className="hidden"
                     onChange={handleLogoUpload}
                   />
-                  <div className="text-[11px] text-slate-400 font-medium">
+                  <div className="text-xs text-slate-400 font-medium">
                     <p>PNG or JPG format. Recommended 400x120px.</p>
                     <p>Placed in the header of every quotation PDF.</p>
                   </div>
@@ -264,9 +264,9 @@ export function CompanyProfileModal({
                 value={company.bankDetails || ""}
                 onChange={(e) => setCompany({ ...company, bankDetails: e.target.value })}
                 placeholder="Bank: HDFC Bank&#10;A/C Name: Apex Marine Spares&#10;A/C No: 50200012345678&#10;IFSC: HDFC0001234&#10;Branch: Gandhidham"
-                className="w-full h-36 p-3 text-xs sm:text-sm font-mono border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
+                className="w-full h-36 p-3 text-xs sm:text-sm font-mono border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Printed on the PDF quotation so buyers can pay directly to your bank account.
               </p>
             </div>
@@ -281,9 +281,9 @@ export function CompanyProfileModal({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 placeholder="1. Delivery: Ex-Stock / 3-5 working days.&#10;2. Payment: 100% against proforma invoice.&#10;3. Quote Validity: 30 days from date of issue.&#10;4. Taxes: GST as applicable."
-                className="w-full h-36 p-3 text-xs sm:text-sm border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
+                className="w-full h-36 p-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-400">
                 Automatically included in every quote. You can edit this anytime.
               </p>
             </div>

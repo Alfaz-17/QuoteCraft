@@ -435,7 +435,7 @@ export function MarineTemplate({ data }: TemplateProps) {
       <div className="flex justify-end mb-6">
         <div className={`w-72 space-y-1.5 text-xs ${
           layout === "minimal" 
-            ? "p-4 rounded-2xl bg-slate-50/80 border border-slate-200/60" 
+            ? "p-4 rounded-lg bg-slate-50/80 border border-slate-200/60" 
             : ""
         }`}>
           <div className="flex justify-between py-0.5 text-slate-600 font-medium">

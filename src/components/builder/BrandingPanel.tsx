@@ -188,7 +188,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                   {isAnalyzing && (
                     <div className="flex items-center gap-1.5 mt-1">
                       <Loader2 className="w-3 h-3 animate-spin text-primary" />
-                      <span className="text-[10px] text-primary font-medium animate-pulse">AI analyzing colors...</span>
+                      <span className="text-xs text-primary font-medium animate-pulse">AI analyzing colors...</span>
                     </div>
                   )}
                 </div>
@@ -200,7 +200,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                   size="sm"
                   variant="outline"
                   onClick={() => analyzeWithAI(branding.logo!)}
-                  className="h-8 text-[11px] md:text-xs font-bold rounded-lg md:rounded-full gap-1 border-primary/20 hover:border-primary/50 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
+                  className="h-8 text-xs md:text-xs font-bold rounded-lg md:rounded-full gap-1 border-primary/20 hover:border-primary/50 text-primary bg-primary/5 hover:bg-primary/10 transition-colors"
                 >
                   <Sparkles className="w-3 h-3" />
                   Analyze Colors
@@ -210,7 +210,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
 
             {/* If no API key configured, show subtle hint */}
             {!hasApiKey && (
-              <p className="text-[10px] text-slate-400 font-medium">
+              <p className="text-xs text-slate-400 font-medium">
                 💡 Tip: Add a Gemini API Key in <strong>AI Integration Settings</strong> to automatically extract color combinations from your logo.
               </p>
             )}
@@ -226,11 +226,11 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                 <span className="text-xs font-bold text-primary">AI Detected Palette</span>
               </div>
               {applied ? (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                   <Check className="w-3 h-3" /> Applied
                 </span>
               ) : (
-                <Button size="sm" variant="outline" onClick={handleApplyAIColors} className="h-6 text-[10px] rounded-full gap-1">
+                <Button size="sm" variant="outline" onClick={handleApplyAIColors} className="h-6 text-xs rounded-full gap-1">
                   Apply Colors
                 </Button>
               )}
@@ -238,18 +238,18 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
             <div className="flex gap-2">
               <div className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full h-10 rounded-lg shadow-sm border border-white/50" style={{ backgroundColor: aiColors.primary }} />
-                <span className="text-[9px] font-mono font-bold text-muted-foreground">{aiColors.primary}</span>
-                <span className="text-[8px] text-muted-foreground">Primary</span>
+                <span className="text-xs font-mono font-bold text-muted-foreground">{aiColors.primary}</span>
+                <span className="text-xs text-muted-foreground">Primary</span>
               </div>
               <div className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full h-10 rounded-lg shadow-sm border border-white/50" style={{ backgroundColor: aiColors.secondary }} />
-                <span className="text-[9px] font-mono font-bold text-muted-foreground">{aiColors.secondary}</span>
-                <span className="text-[8px] text-muted-foreground">Secondary</span>
+                <span className="text-xs font-mono font-bold text-muted-foreground">{aiColors.secondary}</span>
+                <span className="text-xs text-muted-foreground">Secondary</span>
               </div>
               <div className="flex-1 flex flex-col items-center gap-1">
                 <div className="w-full h-10 rounded-lg shadow-sm border border-white/50" style={{ backgroundColor: aiColors.textColor }} />
-                <span className="text-[9px] font-mono font-bold text-muted-foreground">{aiColors.textColor}</span>
-                <span className="text-[8px] text-muted-foreground">Text</span>
+                <span className="text-xs font-mono font-bold text-muted-foreground">{aiColors.textColor}</span>
+                <span className="text-xs text-muted-foreground">Text</span>
               </div>
             </div>
           </div>
@@ -259,7 +259,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
         {aiError && !isAnalyzing && (
           <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 animate-in fade-in duration-200">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-[10px] font-medium">{aiError}</span>
+            <span className="text-xs font-medium">{aiError}</span>
           </div>
         )}
 
@@ -308,7 +308,7 @@ export function BrandingPanel({ branding, onUpdate }: BrandingPanelProps) {
                 }`}
               >
                 <p className="text-sm font-bold" style={{ fontFamily: font.name }}>{font.name}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5" style={{ fontFamily: font.name }}>
+                <p className="text-xs text-muted-foreground mt-0.5" style={{ fontFamily: font.name }}>
                   {font.sample} — Aa Bb Cc 123
                 </p>
               </button>

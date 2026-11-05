@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Currency, LineItem, TableColumn, QuotationState } from "@/types/quotation.types";
-import { DualOrbitalSpinner } from "@/components/ui/Loaders";
+import { DualOrbitalSpinner, HeroSailingLoader } from "@/components/ui/Loaders";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { useToast } from "@/components/ui/Toast";
 
@@ -104,12 +104,22 @@ export default function QuotationsPage() {
   }, [toastError]);
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      fetchQuotations();
-    } else if (isLoaded && !isSignedIn) {
-      setLoading(false);
+    if (isLoaded) {
+      if (!isSignedIn) {
+        router.replace("/sign-in");
+      } else {
+        fetchQuotations();
+      }
     }
-  }, [isLoaded, isSignedIn, fetchQuotations]);
+  }, [isLoaded, isSignedIn, router, fetchQuotations]);
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+        <HeroSailingLoader statusMessage="Verifying authorization..." />
+      </div>
+    );
+  }
 
   const handleDownloadPDF = async (quote: QuotationRecord) => {
     setDownloadingId(quote.id);
@@ -305,10 +315,10 @@ export default function QuotationsPage() {
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : displayedQuotations.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center space-y-3">
               <FileText className="w-8 h-8 text-slate-300 mx-auto" />
               <p className="text-xs font-bold text-slate-700">No quotations found</p>
-              <Button asChild size="sm" className="h-9 px-4 rounded-xl text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
+              <Button asChild size="sm" className="h-9 px-4 rounded-md text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
                 <Link href="/">Create Quotation</Link>
               </Button>
             </div>
@@ -324,7 +334,7 @@ export default function QuotationsPage() {
                 <div
                   key={quote.id}
                   onClick={() => handleEdit(quote)}
-                  className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-2.5 cursor-pointer hover:border-blue-400 transition-all active:scale-[0.99]"
+                  className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-xs space-y-2.5 cursor-pointer hover:border-blue-400 transition-all active:scale-[0.99]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-0.5 min-w-0 flex-1">
@@ -336,7 +346,7 @@ export default function QuotationsPage() {
                       </h4>
                     </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${statusClass}`}>
+                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold border shrink-0 ${statusClass}`}>
                       {statusLabel}
                     </span>
                   </div>
@@ -376,7 +386,7 @@ export default function QuotationsPage() {
         </div>
 
         {/* ── DESKTOP TABLE VIEW (hidden md:block) ── */}
-        <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="hidden md:block bg-white rounded-lg border border-slate-200/90 shadow-xs overflow-hidden">
           {loading ? (
             <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
               <DualOrbitalSpinner size="lg" />
@@ -384,9 +394,9 @@ export default function QuotationsPage() {
             </div>
           ) : displayedQuotations.length === 0 ? (
             <div className="p-12 text-center space-y-3">
-              <FileText className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center" />
+              <FileText className="w-12 h-12 rounded-md bg-slate-100 text-slate-400 mx-auto flex items-center justify-center" />
               <h4 className="font-bold text-sm text-slate-800">No quotations found</h4>
-              <Button asChild className="h-10 px-5 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
+              <Button asChild className="h-10 px-5 rounded-md font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white">
                 <Link href="/">Create Quotation</Link>
               </Button>
             </div>
@@ -526,9 +536,9 @@ export default function QuotationsPage() {
         {/* Delete Confirmation Modal */}
         {deleteQuoteTarget && (
           <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="bg-white rounded-lg max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-md bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
                   <Trash2 className="w-5 h-5 stroke-[2.2]" />
                 </div>
                 <div>

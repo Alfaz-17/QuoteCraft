@@ -96,7 +96,7 @@ export function LandingPage() {
                 </Link>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Create Quote <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
@@ -111,7 +111,7 @@ export function LandingPage() {
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Get Started <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
@@ -143,7 +143,7 @@ export function LandingPage() {
             {/* Left Column: Headlines, Subhead, Badges & CTAs */}
             <div className="lg:col-span-5 space-y-6">
               {/* Badge: Smart Quotation Solution */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-xs font-bold tracking-tight shadow-2xs">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-xs font-bold tracking-tight shadow-2xs">
                 <span className="w-2 h-2 rounded-full bg-[#F59E0B] animate-pulse" />
                 Smart Quotation Solution
               </div>
@@ -163,7 +163,7 @@ export function LandingPage() {
               <div className="flex flex-wrap items-center gap-3.5 pt-1">
                 <Link
                   href={isSignedIn ? "/dashboard" : "/sign-up"}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-lg shadow-[#0F766E]/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-lg shadow-[#0F766E]/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isSignedIn ? "Go to Dashboard" : "Start Free Trial"} <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
@@ -171,7 +171,7 @@ export function LandingPage() {
                 <button
                   type="button"
                   onClick={() => setShowDemoModal(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 text-[#334155] text-sm font-bold border border-slate-300/80 shadow-xs transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-white hover:bg-slate-50 text-[#334155] text-sm font-bold border border-slate-300/80 shadow-xs transition-colors"
                 >
                   <Play className="w-4 h-4 fill-[#0F766E] text-[#0F766E]" />
                   Watch Demo
@@ -212,11 +212,11 @@ export function LandingPage() {
             {/* Right Column: 3D Perspective Floating Dashboard Mockup */}
             <div className="lg:col-span-7 relative">
               <div 
-                className="relative rounded-3xl transition-transform duration-300 hover:scale-[1.01]"
+                className="relative rounded-lg transition-transform duration-300 hover:scale-[1.01]"
                 style={{ perspective: "1200px" }}
               >
                 <div 
-                  className="bg-white rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden flex flex-col md:flex-row"
+                  className="bg-white rounded-lg border border-slate-200/90 shadow-2xl overflow-hidden flex flex-col md:flex-row"
                   style={{
                     boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.8)",
                   }}
@@ -310,7 +310,7 @@ export function LandingPage() {
 
                     {/* Upload Box + Recent Quotations */}
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
-                      <div className="sm:col-span-7 border-2 border-dashed border-[#0F766E]/30 bg-[#E0F2F1]/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-2">
+                      <div className="sm:col-span-7 border-2 border-dashed border-[#0F766E]/30 bg-[#E0F2F1]/20 rounded-lg p-4 flex flex-col items-center justify-center text-center space-y-2">
                         <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] shadow-xs flex items-center justify-center">
                           <UploadCloud className="w-5 h-5" />
                         </div>
@@ -384,7 +384,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-16">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E0F2F1] text-[#0F766E] text-xs font-bold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#E0F2F1] text-[#0F766E] text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
               End-to-End Maritime Workflow
             </div>
@@ -401,13 +401,13 @@ export function LandingPage() {
             
             <div 
               onClick={() => setActiveWorkflowTab(1)}
-              className={`rounded-3xl border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
+              className={`rounded-lg border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
                 activeWorkflowTab === 1 
                   ? "bg-[#FAF9F5] border-[#0F766E] shadow-md ring-2 ring-[#0F766E]/20" 
                   : "bg-[#FAF9F5] border-slate-200/80 hover:border-slate-300"
               }`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-lg bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
                 <UploadCloud className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
@@ -421,13 +421,13 @@ export function LandingPage() {
 
             <div 
               onClick={() => setActiveWorkflowTab(2)}
-              className={`rounded-3xl border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
+              className={`rounded-lg border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
                 activeWorkflowTab === 2 
                   ? "bg-[#FAF9F5] border-[#0F766E] shadow-md ring-2 ring-[#0F766E]/20" 
                   : "bg-[#FAF9F5] border-slate-200/80 hover:border-slate-300"
               }`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-lg bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
                 <FileCheck2 className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
@@ -441,13 +441,13 @@ export function LandingPage() {
 
             <div 
               onClick={() => setActiveWorkflowTab(3)}
-              className={`rounded-3xl border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
+              className={`rounded-lg border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
                 activeWorkflowTab === 3 
                   ? "bg-[#FAF9F5] border-[#0F766E] shadow-md ring-2 ring-[#0F766E]/20" 
                   : "bg-[#FAF9F5] border-slate-200/80 hover:border-slate-300"
               }`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-lg bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Calculator className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
@@ -462,7 +462,7 @@ export function LandingPage() {
           </div>
 
           {/* Interactive Deep-Dive Workflow Showcase */}
-          <div className="rounded-3xl bg-[#FAF9F5] border border-slate-200/90 p-6 sm:p-10 shadow-sm">
+          <div className="rounded-lg bg-[#FAF9F5] border border-slate-200/90 p-6 sm:p-10 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
               <div className="lg:col-span-5 space-y-4">
@@ -539,7 +539,7 @@ export function LandingPage() {
                 <div className="pt-2">
                   <Link
                     href={isSignedIn ? "/" : "/sign-up"}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-all shadow-md shadow-[#0F766E]/20"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-all shadow-md shadow-[#0F766E]/20"
                   >
                     {isSignedIn ? "Launch Workflow Now" : "Try This Workflow Now"} <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
                   </Link>
@@ -547,7 +547,7 @@ export function LandingPage() {
               </div>
 
               {/* Right Mockup Display for Active Step */}
-              <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 shadow-md space-y-4">
+              <div className="lg:col-span-7 bg-white rounded-lg border border-slate-200/90 p-5 shadow-md space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-rose-400" />
@@ -561,7 +561,7 @@ export function LandingPage() {
                 </div>
 
                 {activeWorkflowTab === 1 && (
-                  <div className="border-2 border-dashed border-[#0F766E]/30 bg-[#E0F2F1]/10 rounded-2xl p-8 text-center space-y-3">
+                  <div className="border-2 border-dashed border-[#0F766E]/30 bg-[#E0F2F1]/10 rounded-lg p-8 text-center space-y-3">
                     <div className="w-14 h-14 rounded-full bg-[#E0F2F1] text-[#0F766E] mx-auto flex items-center justify-center shadow-xs">
                       <UploadCloud className="w-7 h-7" />
                     </div>
@@ -569,7 +569,7 @@ export function LandingPage() {
                       <p className="text-sm font-bold text-slate-800">M/V Oceanic Star Requisition.xlsx</p>
                       <p className="text-xs text-slate-400 mt-0.5">24 line items extracted in 1.4 seconds</p>
                     </div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
                       <Check className="w-3 h-3" /> Ready for commercial pricing
                     </div>
                   </div>
@@ -617,7 +617,7 @@ export function LandingPage() {
                         <p className="font-mono tabular-nums font-black text-[#0F766E] mt-0.5">$8,027.50</p>
                       </div>
                     </div>
-                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                    <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-xs">
                           PDF
@@ -661,7 +661,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+          <div className="max-w-4xl mx-auto bg-white rounded-lg border border-slate-200/90 shadow-sm overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
               
               {/* Old Excel Way */}
@@ -750,7 +750,7 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center font-bold">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
@@ -760,7 +760,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center font-bold">
                 <Ship className="w-5 h-5" />
               </div>
@@ -770,7 +770,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center font-bold">
                 <DollarSign className="w-5 h-5" />
               </div>
@@ -780,7 +780,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center font-bold">
                 <Layers className="w-5 h-5" />
               </div>
@@ -790,7 +790,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center font-bold">
                 <MessageCircle className="w-5 h-5" />
               </div>
@@ -800,7 +800,7 @@ export function LandingPage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-3">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-3">
               <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center font-bold">
                 <ShieldCheck className="w-5 h-5" />
               </div>
@@ -828,11 +828,11 @@ export function LandingPage() {
             </p>
 
             {/* Monthly / Annual Toggle */}
-            <div className="inline-flex items-center p-1 rounded-full bg-slate-200/80 border border-slate-300/80 mt-2">
+            <div className="inline-flex items-center p-1 rounded-lg bg-slate-200/80 border border-slate-300/80 mt-2">
               <button
                 type="button"
                 onClick={() => setBillingCycle("monthly")}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
                   billingCycle === "monthly"
                     ? "bg-white text-slate-900 shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
@@ -843,7 +843,7 @@ export function LandingPage() {
               <button
                 type="button"
                 onClick={() => setBillingCycle("annual")}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
                   billingCycle === "annual"
                     ? "bg-[#0F766E] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
@@ -860,7 +860,7 @@ export function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
             
             {/* Plan 1: Free Trial / Starter */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-8 flex flex-col justify-between space-y-6 shadow-xs">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-8 flex flex-col justify-between space-y-6 shadow-xs">
               <div className="space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-[#0F172A]">Starter Chandlery</h3>
@@ -892,14 +892,14 @@ export function LandingPage() {
 
               <Link
                 href={isSignedIn ? "/settings" : "/sign-up"}
-                className="w-full py-3 rounded-full text-center font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+                className="w-full py-3 rounded-lg text-center font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               >
                 {isSignedIn ? "Current Plan" : "Start Free 14-Day Trial"}
               </Link>
             </div>
 
             {/* Plan 2: Pro Supplier (Featured / Most Popular) */}
-            <div className="bg-white rounded-3xl border-2 border-[#0F766E] p-8 flex flex-col justify-between space-y-6 shadow-xl relative scale-[1.02]">
+            <div className="bg-white rounded-lg border-2 border-[#0F766E] p-8 flex flex-col justify-between space-y-6 shadow-xl relative scale-[1.02]">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#F59E0B] text-slate-900 text-xs font-black uppercase tracking-wider shadow-sm">
                 Most Popular
               </div>
@@ -940,14 +940,14 @@ export function LandingPage() {
 
               <Link
                 href={isSignedIn ? "/settings" : "/sign-up"}
-                className="w-full py-3.5 rounded-full text-center font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-lg shadow-[#0F766E]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full py-3.5 rounded-lg text-center font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-lg shadow-[#0F766E]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isSignedIn ? "Manage Subscription →" : "Get Started with Pro →"}
               </Link>
             </div>
 
             {/* Plan 3: Enterprise Fleet */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-8 flex flex-col justify-between space-y-6 shadow-xs">
+            <div className="bg-white rounded-lg border border-slate-200/90 p-8 flex flex-col justify-between space-y-6 shadow-xs">
               <div className="space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-lg font-black text-[#0F172A]">Enterprise Fleet</h3>
@@ -981,7 +981,7 @@ export function LandingPage() {
 
               <a
                 href="mailto:sales@quotecraft.app?subject=QuoteCraft%20Enterprise%20Inquiry"
-                className="w-full py-3 rounded-full text-center font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+                className="w-full py-3 rounded-lg text-center font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               >
                 Contact Enterprise Sales
               </a>
@@ -997,7 +997,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-14">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFFBEB] text-[#B45309] text-xs font-bold border border-[#FDE68A]">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#B45309] text-xs font-bold border border-[#FDE68A]">
               <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
               Loved by Marine Traders Worldwide
             </div>
@@ -1008,7 +1008,7 @@ export function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-4">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
               <div className="flex items-center gap-1 text-[#F59E0B]">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
@@ -1023,7 +1023,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-4">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
               <div className="flex items-center gap-1 text-[#F59E0B]">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
@@ -1038,7 +1038,7 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="p-6 rounded-3xl bg-[#FAF9F5] border border-slate-200/80 space-y-4">
+            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
               <div className="flex items-center gap-1 text-[#F59E0B]">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-current" />
@@ -1098,7 +1098,7 @@ export function LandingPage() {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden transition-all"
+                  className="bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden transition-all"
                 >
                   <button
                     type="button"
@@ -1128,7 +1128,7 @@ export function LandingPage() {
       {/* ── BOTTOM CALLOUT BANNER ── */}
       <section className="py-16 bg-[#FAF9F5] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-8">
-          <div className="relative rounded-3xl bg-white border border-slate-200/90 p-8 sm:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden">
+          <div className="relative rounded-lg bg-white border border-slate-200/90 p-8 sm:p-12 shadow-xl flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden">
             
             <div className="w-full md:w-5/12 max-w-sm shrink-0">
               <ContainerShipIllustration variant="banner" className="w-full h-auto" />
@@ -1146,7 +1146,7 @@ export function LandingPage() {
             <div className="shrink-0 relative z-10">
               <Link
                 href={isSignedIn ? "/dashboard" : "/sign-up"}
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-lg shadow-[#0F766E]/25 transition-all hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-lg shadow-[#0F766E]/25 transition-all hover:scale-105 active:scale-95"
               >
                 {isSignedIn ? "Open Dashboard" : "Get Started Free"} <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
@@ -1200,7 +1200,7 @@ export function LandingPage() {
       {/* ── WATCH DEMO VIDEO / INTERACTIVE WALKTHROUGH MODAL ── */}
       {showDemoModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-5 relative animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg max-w-2xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-5 relative animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Play className="w-5 h-5 fill-[#0F766E] text-[#0F766E]" />
@@ -1208,13 +1208,13 @@ export function LandingPage() {
               </div>
               <button
                 onClick={() => setShowDemoModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
+                className="w-8 h-8 rounded-md bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="aspect-video bg-gradient-to-br from-[#041E26] to-[#0A333C] rounded-2xl flex flex-col items-center justify-center p-6 text-center text-white space-y-3 relative overflow-hidden shadow-inner">
+            <div className="aspect-video bg-gradient-to-br from-[#041E26] to-[#0A333C] rounded-lg flex flex-col items-center justify-center p-6 text-center text-white space-y-3 relative overflow-hidden shadow-inner">
               <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform">
                 <Play className="w-8 h-8 fill-[#F59E0B] text-[#F59E0B] ml-1" />
               </div>
@@ -1229,7 +1229,7 @@ export function LandingPage() {
               <Link
                 href="/sign-up"
                 onClick={() => setShowDemoModal(false)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold"
               >
                 Start Free Trial Now <ArrowRight className="w-3.5 h-3.5" />
               </Link>
@@ -1241,14 +1241,14 @@ export function LandingPage() {
       {/* ── DESIGN PRINCIPLES & STYLEGUIDE MODAL ── */}
       {showStyleguide && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6 relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg max-w-3xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6 relative animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <QuoteCraftLogo size={36} showTagline={true} />
               </div>
               <button
                 onClick={() => setShowStyleguide(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+                className="w-8 h-8 rounded-md bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1260,7 +1260,7 @@ export function LandingPage() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#0F766E] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#0F766E] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #0F766E
                   </div>
                   <p className="text-xs font-bold text-slate-900">Deep Teal</p>
@@ -1268,7 +1268,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#F59E0B] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#F59E0B] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #F59E0B
                   </div>
                   <p className="text-xs font-bold text-slate-900">Gold</p>
@@ -1276,7 +1276,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#FFFBEB] border border-amber-200 shadow-sm flex items-end p-2 text-amber-900 text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#FFFBEB] border border-amber-200 shadow-sm flex items-end p-2 text-amber-900 text-xs font-mono font-bold">
                     #FFFBEB
                   </div>
                   <p className="text-xs font-bold text-slate-900">Cream</p>
@@ -1284,7 +1284,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#475569] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#475569] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #475569
                   </div>
                   <p className="text-xs font-bold text-slate-900">Slate</p>
@@ -1292,7 +1292,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#E0F2F1] border border-teal-200 shadow-sm flex items-end p-2 text-[#0F766E] text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#E0F2F1] border border-teal-200 shadow-sm flex items-end p-2 text-[#0F766E] text-xs font-mono font-bold">
                     #E0F2F1
                   </div>
                   <p className="text-xs font-bold text-slate-900">Light Teal</p>
@@ -1300,7 +1300,7 @@ export function LandingPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#16A34A] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
+                  <div className="h-14 rounded-lg bg-[#16A34A] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #16A34A
                   </div>
                   <p className="text-xs font-bold text-slate-900">Success</p>
@@ -1314,7 +1314,7 @@ export function LandingPage() {
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
                   Typography
                 </h3>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                <div className="p-4 rounded-lg bg-slate-50 border border-slate-100 flex items-center gap-4">
                   <span className="text-4xl font-extrabold text-slate-900">Aa</span>
                   <div>
                     <h4 className="text-base font-extrabold text-slate-900 leading-tight">Manrope</h4>
@@ -1327,7 +1327,7 @@ export function LandingPage() {
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
                   Design Principles
                 </h3>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                <div className="p-4 rounded-lg bg-slate-50 border border-slate-100 space-y-2">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                     <div className="w-4 h-4 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shrink-0">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />

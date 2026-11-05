@@ -270,7 +270,7 @@ export function ItemsTable({
 
       {/* Column Manager Drawer (Inline) */}
       {showColumnManager && (
-        <div className="p-4 rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="p-4 rounded-lg border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <p className="text-xs font-black uppercase tracking-widest text-slate-400">Manage Columns</p>
           <div className="space-y-2">
             {tableColumns.map((col, i) => {
@@ -286,7 +286,7 @@ export function ItemsTable({
                     className="h-8 text-sm font-medium flex-1 min-w-[110px] rounded-lg"
                   />
                   {isAuto ? (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">{col.role === "total" ? "Auto total" : "Auto"}</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-400 px-2">{col.role === "total" ? "Auto total" : "Auto"}</span>
                   ) : (
                     <select
                       value={col.role ?? (col.type === "number" ? "number" : "text")}
@@ -325,7 +325,7 @@ export function ItemsTable({
 
       {/* Empty State */}
       {items.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+        <div className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50">
           <div className="w-24 h-24 mb-6 bg-slate-100 rounded-full flex items-center justify-center">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
               <Sparkles className="w-8 h-8 text-primary/40" />
@@ -367,7 +367,7 @@ export function ItemsTable({
             return (
               <div 
                 key={item.id} 
-                className={`group border rounded-2xl bg-white transition-all overflow-hidden ${
+                className={`group border rounded-lg bg-white transition-all overflow-hidden ${
                   isActive ? "border-primary/40 ring-4 ring-primary/5 shadow-md" : "border-slate-200 hover:border-slate-300 shadow-sm"
                 }`}
               >
@@ -387,7 +387,7 @@ export function ItemsTable({
                       {title || <span className="text-slate-400 italic font-medium">Unnamed Item</span>}
                     </h5>
                     {/* Mobile subtext */}
-                    <p className="text-[11px] text-slate-500 font-medium sm:hidden truncate mt-0.5">
+                    <p className="text-xs text-slate-500 font-medium sm:hidden truncate mt-0.5">
                       {item.partNumber && `${item.partNumber} • `} {qtyVal || 0} {item.unit || "pcs"}
                     </p>
                     {/* Desktop description snippet */}
@@ -399,11 +399,11 @@ export function ItemsTable({
 
                   <div className="hidden sm:flex items-center gap-6 px-4 text-right">
                     <div className="text-left w-20">
-                      <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Qty / Unit</p>
+                      <p className="text-xs uppercase tracking-widest font-bold text-slate-400 mb-0.5">Qty / Unit</p>
                       <p className="text-xs font-black text-slate-700">{qtyVal || 0} <span className="text-slate-500 uppercase">{item.unit || "pcs"}</span></p>
                     </div>
                     <div className="text-right w-24">
-                      <p className="text-[9px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">Total</p>
+                      <p className="text-xs uppercase tracking-widest font-bold text-slate-400 mb-0.5">Total</p>
                       <p className="text-sm font-black text-slate-800">{currencySymbol}{rowTotal.toFixed(2)}</p>
                     </div>
                   </div>
@@ -426,7 +426,7 @@ export function ItemsTable({
                           const raw = item[col.key];
                           return (
                             <div key={col.id} className={`space-y-1.5 min-w-0 ${wide ? "sm:col-span-2 lg:col-span-3" : ""}`}>
-                              <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+                              <label className="text-xs font-black uppercase tracking-widest text-slate-500">
                                 {col.label}{isPrice ? ` (${currencySymbol})` : ""}
                               </label>
                               {wide ? (
@@ -460,7 +460,7 @@ export function ItemsTable({
 
                       {visibleColumns.some(c => c.role === "total") && (
                         <div className="lg:col-span-3 pt-3 flex items-center justify-between border-t border-slate-200/60">
-                          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Row Total</p>
+                          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Row Total</p>
                           <p className="text-xl font-black text-primary">{currencySymbol}{rowTotal.toFixed(2)}</p>
                         </div>
                       )}
@@ -516,14 +516,14 @@ export function ItemsTable({
         <div className="flex gap-3 pt-2">
           <Button 
             onClick={handleAddItem} 
-            className="flex-1 gap-2 rounded-2xl border-dashed border-2 bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/50 hover:bg-primary/5 hover:text-primary shadow-none h-14 font-black text-sm transition-all"
+            className="flex-1 gap-2 rounded-lg border-dashed border-2 bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/50 hover:bg-primary/5 hover:text-primary shadow-none h-14 font-black text-sm transition-all"
           >
             <Plus className="w-5 h-5" /> Add Another Part
           </Button>
           <Button 
             variant="outline" 
             onClick={() => setShowAIModal(true)} 
-            className="gap-2 rounded-2xl border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-sm h-14 px-5 font-bold transition-all shrink-0"
+            className="gap-2 rounded-lg border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-sm h-14 px-5 font-bold transition-all shrink-0"
           >
             <Sparkles className="w-4 h-4 text-amber-500" /> 
             <span className="hidden min-[390px]:inline">AI Import</span>
@@ -538,7 +538,7 @@ export function ItemsTable({
             {/* Modal Header */}
             <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-100">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                   <Sparkles className="w-6 h-6 animate-pulse" />
                 </div>
                 <div>
@@ -561,13 +561,13 @@ export function ItemsTable({
             <ScrollArea className="flex-1 max-h-[60vh] p-6 md:p-8">
               <div className="space-y-6">
                 {aiError && (
-                  <div className="p-4 bg-red-50 text-red-600 border border-red-100 rounded-2xl text-sm font-bold flex items-center gap-2">
+                  <div className="p-4 bg-red-50 text-red-600 border border-red-100 rounded-lg text-sm font-bold flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     {aiError}
                   </div>
                 )}
 
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl">
+                <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
                   <button onClick={() => setImportMode("replace")} className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${importMode === "replace" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Replace All</button>
                   <button onClick={() => setImportMode("append")} className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all ${importMode === "append" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>Append</button>
                 </div>
@@ -597,7 +597,7 @@ export function ItemsTable({
                       placeholder="e.g. 5x cylinder liner seals, oem wartsila parts, model 6L20..."
                       value={aiText}
                       onChange={(e) => setAiText(e.target.value)}
-                      className="w-full h-24 p-4 text-sm font-medium border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none bg-slate-50/50"
+                      className="w-full h-24 p-4 text-sm font-medium border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none bg-slate-50/50"
                     />
                   </div>
                 ) : (

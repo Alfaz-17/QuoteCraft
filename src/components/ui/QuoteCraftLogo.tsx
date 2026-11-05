@@ -93,7 +93,7 @@ export function QuoteCraftAppIcon({
   return (
     <div
       style={{ width: size, height: size }}
-      className={`rounded-2xl flex items-center justify-center p-2.5 transition-all shadow-md ${
+      className={`rounded-lg flex items-center justify-center p-2.5 transition-all shadow-md ${
         isTeal
           ? "bg-[#0F766E] border border-[#0B4B46] shadow-[#0F766E]/20"
           : "bg-white border border-slate-200/90 shadow-slate-200"
