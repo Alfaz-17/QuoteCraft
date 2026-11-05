@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Currency, LineItem, TableColumn, QuotationState } from "@/types/quotation.types";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
+import { DualOrbitalSpinner } from "@/components/ui/Loaders";
 import { useToast } from "@/components/ui/Toast";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 
@@ -352,8 +353,8 @@ export default function DashboardPage() {
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-[#0F766E]" />
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+              <DualOrbitalSpinner size="md" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : quotations.length === 0 ? (

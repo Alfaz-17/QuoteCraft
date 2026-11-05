@@ -11,12 +11,13 @@ import { Button } from "@/components/ui/button";
 import { 
   Building2, RotateCcw, FilePlus, Check, Loader2 
 } from "lucide-react";
-import { LineItem, TableColumn, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import { LineItem, TableColumn, CURRENCY_SYMBOLS, QuotationState, Currency } from "@/types/quotation.types";
 import { calculateGrandTotal } from "@/utils/calculations";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@clerk/nextjs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
+import { HeroSailingLoader, DualOrbitalSpinner } from "@/components/ui/Loaders";
 
 export default function Home() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
@@ -25,11 +26,7 @@ export default function Home() {
   if (!authLoaded) {
     return (
       <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-4">
-        <QuoteCraftLogo size={44} showTagline={false} />
-        <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 font-semibold">
-          <Loader2 className="w-4 h-4 animate-spin text-brand-600" />
-          <span>Loading QuoteCraft...</span>
-        </div>
+        <HeroSailingLoader statusMessage="Loading QuoteCraft workspace..." />
       </div>
     );
   }
@@ -167,6 +164,42 @@ function QuotationBuilder() {
     toastSuccess("Started a new quote! Company profile was preserved.");
   }, [dispatch, state.items, pushUndo, toastSuccess]);
 
+  const handleUpdateDocInfo = useCallback((u: Partial<QuotationState["documentInfo"]>) => {
+    dispatch({ type: "SET_DOCUMENT_INFO", payload: u });
+  }, [dispatch]);
+
+  const handleUpdateClient = useCallback((u: Partial<QuotationState["client"]>) => {
+    dispatch({ type: "SET_CLIENT", payload: u });
+  }, [dispatch]);
+
+  const handleUpdateCompany = useCallback((c: Partial<QuotationState["company"]>) => {
+    dispatch({ type: "SET_COMPANY", payload: c });
+  }, [dispatch]);
+
+  const handleUpdateBranding = useCallback((b: Partial<QuotationState["branding"]>) => {
+    dispatch({ type: "SET_BRANDING", payload: b });
+  }, [dispatch]);
+
+  const handleUpdateTerms = useCallback((t: string) => {
+    dispatch({ type: "SET_TERMS", payload: t });
+  }, [dispatch]);
+
+  const handleSetCurrency = useCallback((c: Currency) => {
+    dispatch({ type: "SET_CURRENCY", payload: c });
+  }, [dispatch]);
+
+  const handleSetDiscount = useCallback((amount: number, type: "percent" | "flat") => {
+    dispatch({ type: "SET_DISCOUNT", payload: { amount, type } });
+  }, [dispatch]);
+
+  const handleSetTaxPercent = useCallback((tax: number) => {
+    dispatch({ type: "SET_TAX_PERCENT", payload: tax });
+  }, [dispatch]);
+
+  const handleSetShipping = useCallback((ship: number) => {
+    dispatch({ type: "SET_SHIPPING", payload: ship });
+  }, [dispatch]);
+
   // Grand total calculation for the top bar
   const grandTotal = calculateGrandTotal(
     subtotal,
@@ -215,7 +248,7 @@ function QuotationBuilder() {
               </>
             ) : (
               <>
-                <Loader2 className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                <DualOrbitalSpinner size="sm" />
                 <span className="text-amber-800">Saving...</span>
               </>
             )}
@@ -279,8 +312,8 @@ function QuotationBuilder() {
         {currentStep === 1 && (
           <Step1Upload
             state={state}
-            onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
-            onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
+            onUpdateDocInfo={handleUpdateDocInfo}
+            onUpdateClient={handleUpdateClient}
             onImportComplete={handleImportComplete}
             onSkipUpload={handleSkipUpload}
           />
@@ -311,12 +344,12 @@ function QuotationBuilder() {
             state={state}
             onUpdateItem={handleUpdateItem}
             onBatchUpdatePrices={handleBatchUpdatePrices}
-            onSetCurrency={(c) => dispatch({ type: "SET_CURRENCY", payload: c })}
-            onSetDiscount={(amount, type) => dispatch({ type: "SET_DISCOUNT", payload: { amount, type } })}
-            onSetTaxPercent={(tax) => dispatch({ type: "SET_TAX_PERCENT", payload: tax })}
-            onSetShipping={(ship) => dispatch({ type: "SET_SHIPPING", payload: ship })}
-            onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
-            onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
+            onSetCurrency={handleSetCurrency}
+            onSetDiscount={handleSetDiscount}
+            onSetTaxPercent={handleSetTaxPercent}
+            onSetShipping={handleSetShipping}
+            onUpdateClient={handleUpdateClient}
+            onUpdateDocInfo={handleUpdateDocInfo}
             onUpdateState={(u) => {
               if (u.pdfOrientation) dispatch({ type: "SET_PDF_ORIENTATION", payload: u.pdfOrientation });
               if (u.pdfLayoutMode) dispatch({ type: "SET_PDF_LAYOUT_MODE", payload: u.pdfLayoutMode });
@@ -333,9 +366,9 @@ function QuotationBuilder() {
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
         state={state}
-        onUpdateCompany={(c) => dispatch({ type: "SET_COMPANY", payload: c })}
-        onUpdateBranding={(b) => dispatch({ type: "SET_BRANDING", payload: b })}
-        onUpdateTerms={(t) => dispatch({ type: "SET_TERMS", payload: t })}
+        onUpdateCompany={handleUpdateCompany}
+        onUpdateBranding={handleUpdateBranding}
+        onUpdateTerms={handleUpdateTerms}
       />
     </main>
   );

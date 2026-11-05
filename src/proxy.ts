@@ -21,8 +21,17 @@ const middleware = clerkMiddleware(async (auth, request) => {
     return;
   }
 
-  if (!isPublicRoute(request)) {
-    await auth.protect();
+  try {
+    if (!isPublicRoute(request)) {
+      await auth.protect();
+    }
+  } catch (err) {
+    console.error("Auth middleware protection notice:", err);
+    // If it's a public route, safely allow access rather than failing with 500
+    if (isPublicRoute(request)) {
+      return;
+    }
+    throw err;
   }
 });
 

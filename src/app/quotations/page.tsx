@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Currency, LineItem, TableColumn, QuotationState } from "@/types/quotation.types";
+import { DualOrbitalSpinner } from "@/components/ui/Loaders";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { useToast } from "@/components/ui/Toast";
 
@@ -299,8 +300,8 @@ export default function QuotationsPage() {
         {/* ── MOBILE QUOTATION CARDS (Screen 8 in Mobile Mockup: block md:hidden) ── */}
         <div className="block md:hidden space-y-2.5">
           {loading ? (
-            <div className="p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-[#0F766E]" />
+            <div className="p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+              <DualOrbitalSpinner size="md" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : displayedQuotations.length === 0 ? (
@@ -377,8 +378,8 @@ export default function QuotationsPage() {
         {/* ── DESKTOP TABLE VIEW (hidden md:block) ── */}
         <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-              <Loader2 className="w-6 h-6 animate-spin text-[#0F766E]" />
+            <div className="p-12 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+              <DualOrbitalSpinner size="lg" />
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : displayedQuotations.length === 0 ? (

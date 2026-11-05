@@ -42,6 +42,7 @@ import {
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { MarineTemplate } from "@/components/preview/MarineTemplate";
 import { useToast } from "@/components/ui/Toast";
+import { DualOrbitalSpinner } from "@/components/ui/Loaders";
 
 interface Step3AddPricesAndSendProps {
   state: QuotationState;
@@ -576,7 +577,7 @@ export function Step3AddPricesAndSend({
               >
                 {isDownloading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Generating Branded PDF...
+                    <DualOrbitalSpinner size="sm" className="mr-2" /> Generating Branded PDF...
                   </>
                 ) : (
                   <>
@@ -666,7 +667,7 @@ export function Step3AddPricesAndSend({
             >
               {isDownloading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Exporting...
+                  <DualOrbitalSpinner size="sm" className="mr-2" /> Exporting...
                 </>
               ) : (
                 <>
@@ -755,3 +756,4 @@ export function Step3AddPricesAndSend({
     </div>
   );
 }
+

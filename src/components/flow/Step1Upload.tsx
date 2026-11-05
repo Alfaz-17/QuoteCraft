@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { mapImport } from "@/utils/importMapping";
 import { useToast } from "@/components/ui/Toast";
+import { OrigamiDrawLoader, DualOrbitalSpinner } from "@/components/ui/Loaders";
 
 // Demo RFQ items (M/V Oceanic Star Engine Spares)
 const DEMO_ITEMS: LineItem[] = [
@@ -433,7 +434,7 @@ export function Step1Upload({
                   >
                     {isProcessing ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Reading...
+                        <DualOrbitalSpinner size="sm" className="mr-2" /> Reading...
                       </>
                     ) : (
                       <>
@@ -499,7 +500,7 @@ export function Step1Upload({
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Reading text...
+                    <DualOrbitalSpinner size="sm" className="mr-2" /> Reading text...
                   </>
                 ) : (
                   <>
@@ -654,12 +655,10 @@ export function Step1Upload({
       {isProcessing && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
-            <div className="w-14 h-14 rounded-full bg-teal-50 text-brand-600 mx-auto flex items-center justify-center">
-              <Loader2 className="w-7 h-7 animate-spin" />
-            </div>
+            <OrigamiDrawLoader showText={false} />
             <div className="space-y-1">
               <h4 className="font-extrabold text-base text-slate-900">Reading Customer RFQ</h4>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium">{processStep}</p>
+              <p className="text-xs sm:text-sm text-brand-700 font-semibold">{processStep}</p>
               <p className="text-xs text-slate-400">{elapsedSeconds}s elapsed</p>
             </div>
           </div>
