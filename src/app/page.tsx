@@ -22,11 +22,6 @@ import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 
 export default function Home() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const { state, dispatch, isSaved, subtotal, isHydrated } = useQuotationState();
-  const { success: toastSuccess, info: toastInfo } = useToast();
-
-  const [currentStep, setCurrentStep] = useState<FlowStep>(1);
-  const [showCompanyModal, setShowCompanyModal] = useState(false);
 
   // While auth is initializing, render a clean branded loading screen
   if (!authLoaded) {
@@ -45,6 +40,16 @@ export default function Home() {
   if (!isSignedIn) {
     return <LandingPage />;
   }
+
+  return <QuotationBuilder />;
+}
+
+function QuotationBuilder() {
+  const { state, dispatch, isSaved, subtotal, isHydrated } = useQuotationState();
+  const { success: toastSuccess, info: toastInfo } = useToast();
+
+  const [currentStep, setCurrentStep] = useState<FlowStep>(1);
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
 
   // Undo history stack (Principle 7: Forgive mistakes, Undo available)
   const undoStack = useRef<LineItem[][]>([]);
