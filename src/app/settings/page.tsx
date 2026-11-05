@@ -128,7 +128,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    await signOut({ redirectUrl: "/login" });
+    await signOut({ redirectUrl: "/sign-in" });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -145,7 +145,7 @@ export function Sidebar() {
 
             <button
               type="button"
-              onClick={() => signOut({ redirectUrl: "/login" })}
+              onClick={() => signOut({ redirectUrl: "/sign-in" })}
               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40 transition-colors shrink-0"
               title="Sign Out"
             >

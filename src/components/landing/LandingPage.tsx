@@ -79,7 +79,7 @@ export function LandingPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowStyleguide(true)}
-              className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] bg-[#E0F2F1] hover:bg-[#B2DFDB] px-3 py-1.5 rounded-full transition-all"
+              className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] bg-[#E0F2F1] hover:bg-[#B2DFDB] px-3 py-1.5 rounded-md transition-all"
               title="Inspect Brand Design Principles & Palette"
             >
               <Palette className="w-3.5 h-3.5" />
