@@ -52,7 +52,9 @@ export default async function middleware(request: NextRequest, event: any) {
     return NextResponse.next();
   }
 
-  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const publishableKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    "pk_live_Y2xlcmsucXVvdGUtY3JhZnQtcmVkLnZlcmNlbC5hcHAk";
   const secretKey = process.env.CLERK_SECRET_KEY;
 
   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500

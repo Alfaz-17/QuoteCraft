@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
     (process.env.NODE_ENV !== "production"
       ? "pk_test_dmlhYmxlLXRlcnJpZXItNjMuY2xlcmsuYWNjb3VudHMuZGV2JA"
-      : "");
+      : "pk_live_Y2xlcmsucXVvdGUtY3JhZnQtcmVkLnZlcmNlbC5hcHAk");
 
   // If publishable key is missing in production, display an informative banner instead of crashing with 500
   if (!publishableKey) {
