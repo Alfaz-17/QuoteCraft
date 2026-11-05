@@ -278,3 +278,10 @@
 .animate-toast-out {
   animation: toast-out 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Professional Marine UI - Hide dev watermark */
+.clerk-dev-badge,
+[data-clerk-dev-badge],
+.cl-dev-badge {
+  display: none !important;
+}

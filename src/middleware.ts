@@ -41,9 +41,10 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
 export default async function middleware(request: NextRequest, event: any) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip static assets
+  // Skip static assets and Clerk proxy endpoints
   if (
     pathname.startsWith("/_next") ||
+    pathname.startsWith("/__clerk") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/icon.png") ||
     pathname.startsWith("/manifest") ||

@@ -38,6 +38,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={publishableKey}
+      proxyUrl={publishableKey.startsWith("pk_live_") ? "/__clerk" : undefined}
       appearance={{
         variables: {
           colorPrimary: "#0F766E",
