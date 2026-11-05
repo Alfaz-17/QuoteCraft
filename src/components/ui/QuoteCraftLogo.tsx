@@ -51,7 +51,7 @@ export function QuoteCraftLogo({
             <span className="text-[#F59E0B] font-black">Craft</span>
           </div>
           {showTagline && (
-            <span className="text-[10px] tracking-wider font-semibold uppercase mt-0.5 text-slate-400">
+            <span className="text-xs tracking-wider font-semibold uppercase mt-0.5 text-slate-400">
               Quote • Manage • Grow
             </span>
           )}
