@@ -320,11 +320,11 @@ export default function SettingsPage() {
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-xs text-slate-900">{tmpl.name}</span>
-                          <span className="text-[10px] font-semibold text-[#0F766E] bg-[#E0F2F1] px-1.5 py-0.2 rounded">
+                          <span className="text-xs font-semibold text-[#0F766E] bg-[#E0F2F1] px-2 py-0.5 rounded">
                             {tmpl.source}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 font-medium">{tmpl.description}</p>
+                        <p className="text-xs text-slate-500 font-medium">{tmpl.description}</p>
                       </div>
                       {selectedLayout === tmpl.id && (
                         <CheckCircle2 className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                         <div className="w-1/2 h-full" style={{ backgroundColor: palette.primaryColor }} />
                         <div className="w-1/2 h-full" style={{ backgroundColor: palette.secondaryColor }} />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-700">{palette.name}</span>
+                      <span className="text-xs font-bold text-slate-700">{palette.name}</span>
                     </button>
                   ))}
                 </div>
@@ -548,7 +548,7 @@ export default function SettingsPage() {
                     onChange={handleLogoUpload}
                     className="hidden"
                   />
-                  <p className="text-[11px] text-slate-400 font-medium">
+                  <p className="text-xs text-slate-500 font-medium">
                     PNG, JPG, or SVG. Maximum 2MB.
                   </p>
                 </div>
@@ -653,16 +653,16 @@ export default function SettingsPage() {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="font-extrabold text-sm text-slate-900">{tmpl.name}</span>
-                            <span className="text-[10px] font-bold text-[#0F766E] bg-[#E0F2F1] px-2 py-0.5 rounded-full">
+                            <span className="text-xs font-bold text-[#0F766E] bg-[#E0F2F1] px-2.5 py-0.5 rounded-full">
                               {tmpl.source}
                             </span>
                           </div>
-                          <p className="text-[11px] font-semibold text-slate-500">{tmpl.tagline}</p>
-                          <p className="text-[11px] text-slate-600 leading-relaxed pt-1">{tmpl.description}</p>
+                          <p className="text-xs font-semibold text-slate-500">{tmpl.tagline}</p>
+                          <p className="text-xs text-slate-600 leading-relaxed pt-1">{tmpl.description}</p>
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-slate-100/80">
-                          <span className={`text-[11px] font-bold ${isSelected ? "text-[#0F766E]" : "text-slate-400"}`}>
+                          <span className={`text-xs font-bold ${isSelected ? "text-[#0F766E]" : "text-slate-500"}`}>
                             {isSelected ? "Active Default Template" : "Click to Select"}
                           </span>
                           {isSelected && <CheckCircle2 className="w-4 h-4 text-[#0F766E]" />}
@@ -708,7 +708,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="overflow-hidden">
                           <p className="text-xs font-bold text-slate-900 truncate">{palette.name}</p>
-                          <p className="text-[10px] text-slate-400 font-mono truncate">{palette.primaryColor}</p>
+                          <p className="text-xs text-slate-500 font-mono truncate">{palette.primaryColor}</p>
                         </div>
                       </button>
                     );
@@ -726,7 +726,7 @@ export default function SettingsPage() {
                   />
                   <div className="flex-1 space-y-0.5">
                     <p className="text-xs font-bold text-slate-800">Custom Brand Color</p>
-                    <p className="text-[11px] text-slate-500">Choose your exact company hex color code</p>
+                    <p className="text-xs text-slate-500">Choose your exact company hex color code</p>
                   </div>
                   <Input
                     value={selectedColor}
@@ -761,13 +761,13 @@ export default function SettingsPage() {
                           <span className="font-extrabold text-xs text-slate-900" style={{ fontFamily: font.fontFamily }}>
                             {font.name}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 uppercase">
+                          <span className="text-xs font-mono text-slate-500 uppercase">
                             {font.category}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{font.description}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{font.description}</p>
                         <p 
-                          className="text-[11px] text-slate-700 mt-2 p-1.5 rounded-lg bg-slate-100/70 truncate"
+                          className="text-xs text-slate-700 mt-2 p-1.5 rounded-lg bg-slate-100/70 truncate"
                           style={{ fontFamily: font.fontFamily }}
                         >
                           CYLINDER LINER • CL-102 • $1,250.00

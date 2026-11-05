@@ -137,7 +137,7 @@ export function Sidebar() {
                 <p className="text-xs font-bold text-white truncate leading-tight">
                   {displayName}
                 </p>
-                <p className="text-[10px] text-teal-300 font-medium truncate">
+                <p className="text-xs text-teal-300 font-medium truncate">
                   {userRole}
                 </p>
               </div>
@@ -176,7 +176,7 @@ export function Sidebar() {
               )}>
                 <item.icon className="w-4 h-4" />
               </div>
-              <span className="text-[10px] tracking-tight">{item.mobileLabel}</span>
+              <span className="text-xs font-semibold">{item.mobileLabel}</span>
             </Link>
           );
         })}

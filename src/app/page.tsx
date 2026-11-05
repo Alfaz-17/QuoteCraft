@@ -5,13 +5,11 @@ import { useQuotationState } from "@/hooks/useQuotationState";
 import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
 import { Step1Upload } from "@/components/flow/Step1Upload";
 import { Step2CheckItems } from "@/components/flow/Step2CheckItems";
-import { Step3AddPrices } from "@/components/flow/Step3AddPrices";
-import { StepCustomizeColumns } from "@/components/flow/StepCustomizeColumns";
-import { Step4SendQuote } from "@/components/flow/Step4SendQuote";
+import { Step3AddPricesAndSend } from "@/components/flow/Step3AddPricesAndSend";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
 import { 
-  Building2, RotateCcw, FilePlus, Check, Loader2, Anchor 
+  Building2, RotateCcw, FilePlus, Check, Loader2 
 } from "lucide-react";
 import { LineItem, TableColumn, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { calculateGrandTotal } from "@/utils/calculations";
@@ -23,13 +21,13 @@ import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 export default function Home() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
 
-  // While auth is initializing, render a clean branded loading screen
+  // While auth is initializing, render clean branded loading screen
   if (!authLoaded) {
     return (
       <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-4">
         <QuoteCraftLogo size={44} showTagline={false} />
         <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 font-semibold">
-          <Loader2 className="w-4 h-4 animate-spin text-[#0F766E]" />
+          <Loader2 className="w-4 h-4 animate-spin text-brand-600" />
           <span>Loading QuoteCraft...</span>
         </div>
       </div>
@@ -51,7 +49,7 @@ function QuotationBuilder() {
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
-  // Undo history stack (Principle 7: Forgive mistakes, Undo available)
+  // Undo history stack
   const undoStack = useRef<LineItem[][]>([]);
 
   useEffect(() => {
@@ -166,10 +164,10 @@ function QuotationBuilder() {
     pushUndo(state.items);
     dispatch({ type: "NEW_QUOTATION" });
     setCurrentStep(1);
-    toastSuccess("Started a new quote! Company details were kept.");
+    toastSuccess("Started a new quote! Company profile was preserved.");
   }, [dispatch, state.items, pushUndo, toastSuccess]);
 
-  // Grand total calculation for the top bar (Principle 5)
+  // Grand total calculation for the top bar
   const grandTotal = calculateGrandTotal(
     subtotal,
     state.discount,
@@ -180,75 +178,75 @@ function QuotationBuilder() {
   const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "₹";
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-900 selection:bg-primary/10 selection:text-primary">
+    <main className="min-h-screen bg-[#FAF9F5] flex flex-col text-slate-900 selection:bg-teal-500/10 selection:text-teal-900">
       {/* ===== NATIVE APP TOOLBAR ===== */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/70 px-3 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-xs">
+      <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-2xs">
         {/* Brand & Document Info */}
         <div className="flex items-center gap-2.5">
-          <QuoteCraftLogo size={30} showText={false} />
+          <QuoteCraftLogo size={32} showText={false} />
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none">
-                Quote<span className="text-[#0F766E]">Craft</span>
+                Quote<span className="text-brand-600">Craft</span>
               </h1>
               {isHydrated && state.documentInfo.number && (
                 <span
                   suppressHydrationWarning
-                  className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200/60"
+                  className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200"
                 >
                   {state.documentInfo.number}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium hidden sm:block mt-0.5">
-              Marine & Industrial Quotations
+            <p className="text-xs text-slate-500 font-medium hidden sm:block mt-0.5">
+              Marine & Industrial Quotation Platform
             </p>
           </div>
         </div>
 
         {/* Toolbar Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Principle 7: Autosave status chip */}
-          <div className="hidden min-[480px]:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100/90 text-[11px] font-semibold text-slate-600 border border-slate-200/50">
+          {/* Autosave status chip */}
+          <div className="hidden min-[480px]:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200">
             {isSaved ? (
               <>
-                <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                <span className="text-emerald-700 font-bold">Saved</span>
+                <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
+                <span className="text-emerald-800 font-bold">Saved</span>
               </>
             ) : (
               <>
-                <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
-                <span className="text-amber-700">Saving...</span>
+                <Loader2 className="w-3.5 h-3.5 text-amber-500 animate-spin" />
+                <span className="text-amber-800">Saving...</span>
               </>
             )}
           </div>
 
-          {/* Principle 7: Undo button */}
+          {/* Undo button */}
           <button
             type="button"
             onClick={handleUndo}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors active:scale-95"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 min-h-[38px]"
             title="Undo (Ctrl+Z)"
           >
             <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
             <span className="hidden sm:inline">Undo</span>
           </button>
 
-          {/* Principle 4: Company Profile setup (Set up once, never again) */}
+          {/* Company Profile button */}
           <button
             type="button"
             onClick={() => setShowCompanyModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200/80 text-slate-700 transition-colors border border-slate-200/60 active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors border border-slate-200 active:scale-95 min-h-[38px]"
             title="Company logo, bank details, and terms"
           >
-            <Building2 className="w-3.5 h-3.5 text-primary" />
+            <Building2 className="w-3.5 h-3.5 text-brand-600" />
             <span className="hidden sm:inline">Company Profile</span>
           </button>
 
-          {/* Principle 5: Live Grand Total pill in header */}
+          {/* Live Grand Total pill in header */}
           {isHydrated && state.items.length > 0 && grandTotal > 0 && (
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200/70 text-xs font-mono font-bold text-emerald-800 shadow-2xs">
-              <span className="text-[10px] font-sans text-emerald-600">Total:</span>
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800 shadow-2xs">
+              <span className="text-xs font-sans text-emerald-700 font-semibold">Total:</span>
               <span>{currencySymbol}{grandTotal.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
             </div>
           )}
@@ -258,16 +256,16 @@ function QuotationBuilder() {
             size="sm"
             variant="outline"
             onClick={handleNewQuote}
-            className="h-8 px-2.5 rounded-xl font-bold text-xs gap-1 border-slate-200 text-slate-700 active:scale-95"
+            className="h-9 px-3 rounded-lg font-bold text-xs gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-50 active:scale-95"
             title="Start fresh quotation"
           >
-            <FilePlus className="w-3.5 h-3.5" />
+            <FilePlus className="w-3.5 h-3.5 text-slate-500" />
             <span className="hidden sm:inline">New Quote</span>
           </Button>
         </div>
       </header>
 
-      {/* ===== PRINCIPLE 1: 4-STEP NATIVE NAVIGATION BAR ===== */}
+      {/* ===== 3-STEP NATIVE NAVIGATION BAR ===== */}
       <StepNavigation
         currentStep={currentStep}
         onStepChange={(s) => setCurrentStep(s)}
@@ -275,9 +273,9 @@ function QuotationBuilder() {
         hasItems={state.items.length > 0}
       />
 
-      {/* ===== MAIN FLOW SCREENS ===== */}
-      <div className="flex-1 pb-28">
-        {/* STEP 1: Upload buyer's RFQ */}
+      {/* ===== MAIN 3-STEP FLOW ===== */}
+      <div className="flex-1 pb-16">
+        {/* STEP 1: Customer's request (RFQ) */}
         {currentStep === 1 && (
           <Step1Upload
             state={state}
@@ -307,42 +305,16 @@ function QuotationBuilder() {
           />
         )}
 
-        {/* STEP 3: Add prices (Spreadsheet feel) */}
+        {/* STEP 3: Add prices & send */}
         {currentStep === 3 && (
-          <Step3AddPrices
-            items={state.items}
-            tableColumns={state.tableColumns}
-            currency={state.currency}
-            discount={state.discount}
-            discountType={state.discountType}
-            taxPercent={state.taxPercent}
-            shippingCharge={state.shippingCharge}
+          <Step3AddPricesAndSend
+            state={state}
             onUpdateItem={handleUpdateItem}
             onBatchUpdatePrices={handleBatchUpdatePrices}
             onSetCurrency={(c) => dispatch({ type: "SET_CURRENCY", payload: c })}
             onSetDiscount={(amount, type) => dispatch({ type: "SET_DISCOUNT", payload: { amount, type } })}
             onSetTaxPercent={(tax) => dispatch({ type: "SET_TAX_PERCENT", payload: tax })}
             onSetShipping={(ship) => dispatch({ type: "SET_SHIPPING", payload: ship })}
-            onNext={() => setCurrentStep(4)}
-            onBack={() => setCurrentStep(2)}
-          />
-        )}
-
-        {/* STEP 4: Choose what appears in quotation (Custom columns & layout) */}
-        {currentStep === 4 && (
-          <StepCustomizeColumns
-            state={state}
-            onUpdateColumn={(id, updates) => dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } })}
-            onSetColumns={(cols) => dispatch({ type: "SET_COLUMNS", payload: cols })}
-            onNext={() => setCurrentStep(5)}
-            onBack={() => setCurrentStep(3)}
-          />
-        )}
-
-        {/* STEP 5: Preview & Finalize (WhatsApp + PDF) */}
-        {currentStep === 5 && (
-          <Step4SendQuote
-            state={state}
             onUpdateClient={(u) => dispatch({ type: "SET_CLIENT", payload: u })}
             onUpdateDocInfo={(u) => dispatch({ type: "SET_DOCUMENT_INFO", payload: u })}
             onUpdateState={(u) => {
@@ -350,13 +322,13 @@ function QuotationBuilder() {
               if (u.pdfLayoutMode) dispatch({ type: "SET_PDF_LAYOUT_MODE", payload: u.pdfLayoutMode });
               if (u.pdfShowSignatureBlock !== undefined) dispatch({ type: "SET_PDF_SHOW_SIGNATURE", payload: u.pdfShowSignatureBlock });
             }}
-            onBack={() => setCurrentStep(4)}
+            onBack={() => setCurrentStep(2)}
             onNewQuote={handleNewQuote}
           />
         )}
       </div>
 
-      {/* ===== COMPANY PROFILE MODAL (SET UP ONCE, NEVER AGAIN) ===== */}
+      {/* ===== COMPANY PROFILE MODAL ===== */}
       <CompanyProfileModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}

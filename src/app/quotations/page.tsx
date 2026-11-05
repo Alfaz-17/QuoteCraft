@@ -335,12 +335,12 @@ export default function QuotationsPage() {
                       </h4>
                     </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusClass}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${statusClass}`}>
                       {statusLabel}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px] text-slate-400 font-medium">
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs text-slate-500 font-medium">
                     <span>{quote.date}</span>
                     <div className="flex items-center gap-2">
                       <button
@@ -393,7 +393,7 @@ export default function QuotationsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
                     <th className="py-3.5 px-4 sm:px-6">Quotation No.</th>
                     <th className="py-3.5 px-4 sm:px-6">Customer</th>
                     <th className="py-3.5 px-4 sm:px-6">Date</th>
@@ -419,7 +419,7 @@ export default function QuotationsPage() {
                             {quote.client?.companyName || quote.client?.name || "Standard Client"}
                           </p>
                           {quote.vessel && (
-                            <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                               <Ship className="w-3 h-3 text-[#0F766E]" /> {quote.vessel}
                             </p>
                           )}
@@ -428,7 +428,7 @@ export default function QuotationsPage() {
                           {quote.date}
                         </td>
                         <td className="py-3.5 px-4 sm:px-6">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusClass}`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusClass}`}>
                             {statusLabel}
                           </span>
                         </td>

@@ -178,6 +178,12 @@ export function LandingPage() {
                 </button>
               </div>
 
+              {/* Privacy Guarantee Reassurance */}
+              <p className="text-xs text-[#64748B] flex items-center gap-1.5 pt-1">
+                <ShieldCheck className="w-4 h-4 text-[#0F766E] shrink-0" />
+                No credit card required &bull; Customer RFQ files &amp; pricing stay private to your account
+              </p>
+
               {/* Trust Badges */}
               <div className="pt-6 border-t border-[#ECE7DE] flex flex-wrap items-center gap-6 text-xs font-bold text-[#475569]">
                 <div className="flex items-center gap-2">
@@ -223,7 +229,7 @@ export function LandingPage() {
                         <span className="text-xs font-extrabold tracking-tight">QuoteCraft</span>
                       </div>
 
-                      <nav className="space-y-1 text-[11px] font-semibold text-slate-300">
+                      <nav className="space-y-1 text-xs font-semibold text-slate-300">
                         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#0F766E] text-white font-bold">
                           <LayoutDashboard className="w-3.5 h-3.5 text-[#F59E0B]" />
                           Dashboard
@@ -248,12 +254,12 @@ export function LandingPage() {
                     </div>
 
                     <div className="pt-4 mt-4 border-t border-[#0D3845] flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#0F766E] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[#0F766E] text-white text-xs font-bold flex items-center justify-center shrink-0">
                         CD
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-white truncate">Captain Dale</p>
-                        <p className="text-[9px] text-teal-300 truncate">Marine Supplies</p>
+                        <p className="text-xs font-bold text-white truncate">Captain Dale</p>
+                        <p className="text-xs text-teal-300 truncate">Marine Supplies</p>
                       </div>
                     </div>
                   </div>
@@ -265,7 +271,7 @@ export function LandingPage() {
                         <h4 className="text-xs sm:text-sm font-black text-[#0F172A] tracking-tight">
                           Welcome back, John! 👋
                         </h4>
-                        <p className="text-[10px] text-slate-400 font-medium">
+                        <p className="text-xs text-slate-400 font-medium">
                           Here&apos;s what&apos;s happening with your quotations.
                         </p>
                       </div>
@@ -274,7 +280,7 @@ export function LandingPage() {
                         <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
                           <Bell className="w-3.5 h-3.5" />
                         </div>
-                        <div className="w-7 h-7 rounded-full bg-[#0F766E] text-white text-[10px] font-bold flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-full bg-[#0F766E] text-white text-xs font-bold flex items-center justify-center">
                           JD
                         </div>
                       </div>
@@ -283,19 +289,19 @@ export function LandingPage() {
                     {/* 4 Stat Cards */}
                     <div className="grid grid-cols-4 gap-2">
                       <div className="bg-[#FAF9F5] p-2 sm:p-2.5 rounded-xl border border-slate-100 text-left">
-                        <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">Total Quotations</p>
+                        <p className="text-xs text-slate-400 font-medium">Total Quotations</p>
                         <p className="text-xs sm:text-sm font-black text-[#0F172A] mt-0.5">12</p>
                       </div>
                       <div className="bg-[#FAF9F5] p-2 sm:p-2.5 rounded-xl border border-slate-100 text-left">
-                        <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">This Month</p>
+                        <p className="text-xs text-slate-400 font-medium">This Month</p>
                         <p className="text-xs sm:text-sm font-black text-[#0F766E] mt-0.5">8</p>
                       </div>
                       <div className="bg-[#FAF9F5] p-2 sm:p-2.5 rounded-xl border border-slate-100 text-left">
-                        <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">RFQs Processed</p>
+                        <p className="text-xs text-slate-400 font-medium">RFQs Processed</p>
                         <p className="text-xs sm:text-sm font-black text-[#0F172A] mt-0.5">125</p>
                       </div>
                       <div className="bg-[#E0F2F1]/50 p-2 sm:p-2.5 rounded-xl border border-[#0F766E]/20 text-left">
-                        <p className="text-[9px] sm:text-[10px] text-[#0F766E] font-medium">Growth</p>
+                        <p className="text-xs text-[#0F766E] font-medium">Growth</p>
                         <p className="text-xs sm:text-sm font-black text-[#16A34A] mt-0.5 flex items-center gap-0.5">
                           <TrendingUp className="w-3 h-3 stroke-[2.5]" /> 20%
                         </p>
@@ -310,54 +316,54 @@ export function LandingPage() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-[#0F172A]">Upload Customer Request</p>
-                          <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto mt-0.5">
+                          <p className="text-xs text-slate-500 max-w-[200px] mx-auto mt-0.5">
                             Drag & drop your file or click to browse. Supports PDF, Excel (.xlsx, .xls)
                           </p>
                         </div>
-                        <span className="text-[11px] font-bold px-3 py-1 rounded-lg bg-[#0F766E] text-white shadow-2xs">
+                        <span className="text-xs font-bold px-3 py-1 rounded-lg bg-[#0F766E] text-white shadow-2xs">
                           Choose File
                         </span>
                       </div>
 
                       <div className="sm:col-span-5 space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] font-bold text-slate-800">Recent Quotations</p>
+                          <p className="text-xs font-bold text-slate-800">Recent Quotations</p>
                         </div>
 
                         <div className="space-y-1.5">
-                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-[11px]">
+                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-xs">
                             <div>
                               <p className="font-mono font-bold text-slate-900 leading-none">QT-1075</p>
-                              <p className="text-[9px] text-slate-400 mt-0.5">03 Nov 2026</p>
+                              <p className="text-xs text-slate-400 mt-0.5">03 Nov 2026</p>
                             </div>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               Sent &gt;
                             </span>
                           </div>
 
-                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-[11px]">
+                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-xs">
                             <div>
                               <p className="font-mono font-bold text-slate-900 leading-none">QT-1074</p>
-                              <p className="text-[9px] text-slate-400 mt-0.5">01 Nov 2026</p>
+                              <p className="text-xs text-slate-400 mt-0.5">01 Nov 2026</p>
                             </div>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
                               Draft &gt;
                             </span>
                           </div>
 
-                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-[11px]">
+                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex items-center justify-between text-xs">
                             <div>
                               <p className="font-mono font-bold text-slate-900 leading-none">QT-1073</p>
-                              <p className="text-[9px] text-slate-400 mt-0.5">28 Oct 2026</p>
+                              <p className="text-xs text-slate-400 mt-0.5">28 Oct 2026</p>
                             </div>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                               Sent &gt;
                             </span>
                           </div>
                         </div>
 
                         <div className="text-right pt-0.5">
-                          <span className="text-[10px] font-bold text-[#0F766E] hover:underline cursor-pointer">
+                          <span className="text-xs font-bold text-[#0F766E] hover:underline cursor-pointer">
                             View All &gt;
                           </span>
                         </div>
@@ -390,8 +396,8 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* 4 Process Cards matching mockup */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* 3 Process Cards matching 3-step marine workflow */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <div 
               onClick={() => setActiveWorkflowTab(1)}
@@ -405,10 +411,10 @@ export function LandingPage() {
                 <UploadCloud className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-black text-base text-[#0F172A]">Upload RFQ</h3>
-                <p className="text-xs font-bold text-[#64748B]">(PDF / Excel)</p>
-                <p className="text-[11px] text-slate-500 pt-1">
-                  Drag and drop customer requisitions with 0 manual typing.
+                <h3 className="font-black text-base text-[#0F172A]">1. Customer&apos;s Request</h3>
+                <p className="text-xs font-bold text-[#64748B]">Upload File or Paste Text</p>
+                <p className="text-xs text-slate-500 pt-1">
+                  Drag and drop customer requisitions or paste raw email RFQ text with zero manual typing.
                 </p>
               </div>
             </div>
@@ -425,10 +431,10 @@ export function LandingPage() {
                 <FileCheck2 className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-black text-base text-[#0F172A]">Review Items</h3>
-                <p className="text-xs font-bold text-[#64748B]">with AI Support</p>
-                <p className="text-[11px] text-slate-500 pt-1">
-                  Instant item extraction, IMPA codes, and missing quantity alerts.
+                <h3 className="font-black text-base text-[#0F172A]">2. Check Items</h3>
+                <p className="text-xs font-bold text-[#64748B]">AI Review &amp; Inline Edit</p>
+                <p className="text-xs text-slate-500 pt-1">
+                  Instant item extraction, clear trust banners, IMPA code checks, and Excel-style inline editing.
                 </p>
               </div>
             </div>
@@ -445,35 +451,10 @@ export function LandingPage() {
                 <Calculator className="w-7 h-7 stroke-[2]" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-black text-base text-[#0F172A]">Add Pricing &</h3>
-                <p className="text-xs font-bold text-[#64748B]">Calculate Totals</p>
-                <p className="text-[11px] text-slate-500 pt-1">
-                  Commercial discounts, tax/VAT rates, and multi-currency conversions.
-                </p>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setActiveWorkflowTab(4)}
-              className={`rounded-3xl border p-6 flex flex-col items-center text-center space-y-3.5 transition-all cursor-pointer group ${
-                activeWorkflowTab === 4 
-                  ? "bg-[#FAF9F5] border-[#0F766E] shadow-md ring-2 ring-[#0F766E]/20" 
-                  : "bg-[#FAF9F5] border-slate-200/80 hover:border-slate-300"
-              }`}
-            >
-              <div className="w-14 h-14 rounded-2xl bg-white text-[#0F766E] border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
-                <div className="relative">
-                  <FileText className="w-7 h-7 stroke-[2]" />
-                  <span className="absolute -bottom-1 -right-1 text-[8px] font-black font-mono bg-[#0F766E] text-white px-1 rounded">
-                    pdf
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-0.5">
-                <h3 className="font-black text-base text-[#0F172A]">Generate</h3>
-                <p className="text-xs font-bold text-[#64748B]">Professional PDF</p>
-                <p className="text-[11px] text-slate-500 pt-1">
-                  Export vector A4 PDFs & 1-click share directly to buyer WhatsApp.
+                <h3 className="font-black text-base text-[#0F172A]">3. Add Prices &amp; Send</h3>
+                <p className="text-xs font-bold text-[#64748B]">Spreadsheet, PDF &amp; WhatsApp</p>
+                <p className="text-xs text-slate-500 pt-1">
+                  Excel column paste, sticky grand totals, live vector PDF preview, and 1-click WhatsApp dispatch.
                 </p>
               </div>
             </div>
@@ -486,7 +467,7 @@ export function LandingPage() {
               
               <div className="lg:col-span-5 space-y-4">
                 <span className="text-xs font-mono font-bold text-[#F59E0B] tracking-wider uppercase">
-                  Step 0{activeWorkflowTab} of 04
+                  Step 0{activeWorkflowTab} of 03
                 </span>
 
                 {activeWorkflowTab === 1 && (
@@ -495,17 +476,17 @@ export function LandingPage() {
                       Drop In Inquiries From Any Format
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      Whether your customer sends a scanned PDF equipment requisition from the Chief Engineer or an Excel RFQ table, QuoteCraft parses parts, serials, and quantities automatically.
+                      Whether your customer sends an Excel sheet, scanned PDF requisition from the Chief Engineer, or pastes unstructured email text, QuoteCraft parses line items and vessel details automatically.
                     </p>
                     <ul className="space-y-2 text-xs font-semibold text-slate-700 pt-1">
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Multi-format Excel (.xlsx, .xls, .csv) & PDF ingestion
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Multi-format Excel (.xlsx, .xls, .csv), PDF &amp; Raw Text tabs
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Automatic vessel name & buyer ref extraction
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Automatic vessel name &amp; buyer ref extraction
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Ready demo maritime engine templates for instant testing
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> 1-Click sample marine request for instant zero-friction testing
                       </li>
                     </ul>
                   </>
@@ -514,17 +495,17 @@ export function LandingPage() {
                 {activeWorkflowTab === 2 && (
                   <>
                     <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">
-                      AI Review & Discrepancy Detection
+                      Trust Banner &amp; Discrepancy Detection
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      Missing quantity alerts, unit standardization (PCS, SETS, MTRS), and IMPA marine part number recognition ensure your quotes are 100% accurate before sending.
+                      Instant trust summary (&ldquo;We found 24 items, 1 needs check&rdquo;) with direct jump-to-check button, missing quantity flags, and Excel-style inline cell editing.
                     </p>
                     <ul className="space-y-2 text-xs font-semibold text-slate-700 pt-1">
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Instant highlight of items needing review
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Instant trust banner showing items parsed vs. needing check
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> One-click item duplicate, reorder, or deletion
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Inline cell editing with Tab/Enter keyboard navigation
                       </li>
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Full Ctrl+Z undo history for mistake-free editing
@@ -536,42 +517,20 @@ export function LandingPage() {
                 {activeWorkflowTab === 3 && (
                   <>
                     <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">
-                      Fast Line-Item Pricing & Commercial Margins
+                      Spreadsheet Pricing, Live PDF &amp; WhatsApp
                     </h3>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      Key in unit rates with rapid keyboard navigation. Add commercial supplier discounts, VAT percentages, shipping freight, and select from 7 global maritime currencies.
+                      Paste price columns directly from Excel sheets or supplier lists. Watch live calculations update in the sticky bottom total bar, preview vector A4 PDFs in real time, and dispatch directly to buyer WhatsApp.
                     </p>
                     <ul className="space-y-2 text-xs font-semibold text-slate-700 pt-1">
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Multi-currency support (USD, EUR, GBP, AED, INR, SGD, JPY)
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Excel column clipboard paste for rapid multi-line pricing
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Instant real-time subtotal, discount, and tax calculations
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Live interactive PDF preview with 4 marine corporate layouts
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Automatic local draft saving so you never lose work
-                      </li>
-                    </ul>
-                  </>
-                )}
-
-                {activeWorkflowTab === 4 && (
-                  <>
-                    <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">
-                      Branded PDF Export & WhatsApp Dispatch
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Generate crisp A4 PDFs with your chosen corporate template, custom brand colors, and payment credentials. Send directly to buyer WhatsApp in one click.
-                    </p>
-                    <ul className="space-y-2 text-xs font-semibold text-slate-700 pt-1">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> 4 Template layouts: Marine, Minimal (Anvil), Classic & Technical
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Pre-formatted WhatsApp quotation message generation
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Authorized company signature blocks & bank payment details
+                        <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> 1-Click WhatsApp commercial dispatch &amp; 3-day follow-up reminder
                       </li>
                     </ul>
                   </>
@@ -594,9 +553,9 @@ export function LandingPage() {
                     <span className="w-3 h-3 rounded-full bg-rose-400" />
                     <span className="w-3 h-3 rounded-full bg-amber-400" />
                     <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                    <span className="text-[11px] font-mono text-slate-400 ml-2">QuoteCraft Workflow Engine</span>
+                    <span className="text-xs font-mono text-slate-400 ml-2">QuoteCraft Workflow Engine</span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold bg-[#E0F2F1] text-[#0F766E] px-2 py-0.5 rounded-md">
+                  <span className="text-xs font-mono font-bold bg-[#E0F2F1] text-[#0F766E] px-2 py-0.5 rounded-md">
                     Live Demo View
                   </span>
                 </div>
@@ -621,21 +580,21 @@ export function LandingPage() {
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
                       <div>
                         <p className="font-bold text-slate-900">Main Engine Cylinder Liner (CL-102)</p>
-                        <p className="text-[11px] text-slate-500 font-mono">Bore 500mm, High-tensile cast iron</p>
+                        <p className="text-xs text-slate-500 font-mono">Bore 500mm, High-tensile cast iron</p>
                       </div>
                       <span className="font-bold text-slate-800">4 PCS</span>
                     </div>
                     <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200 flex items-center justify-between text-xs">
                       <div>
                         <p className="font-bold text-slate-900">Fuel Injector Nozzle Assembly</p>
-                        <p className="text-[11px] text-amber-700 font-semibold">⚠️ Needs review: Confirm nozzle opening pressure (380 bar)</p>
+                        <p className="text-xs text-amber-700 font-semibold">⚠️ Needs review: Confirm nozzle opening pressure (380 bar)</p>
                       </div>
-                      <span className="font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px]">Verified</span>
+                      <span className="font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs">Verified</span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs">
                       <div>
                         <p className="font-bold text-slate-900">Exhaust Valve Spindle (EV-204)</p>
-                        <p className="text-[11px] text-slate-500 font-mono">Nimonic material, Hard chrome stem</p>
+                        <p className="text-xs text-slate-500 font-mono">Nimonic material, Hard chrome stem</p>
                       </div>
                       <span className="font-bold text-slate-800">8 PCS</span>
                     </div>
@@ -646,48 +605,38 @@ export function LandingPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <span className="text-[10px] text-slate-400">Subtotal</span>
-                        <p className="font-mono font-bold text-slate-900 mt-0.5">$8,450.00</p>
+                        <span className="text-xs text-slate-400">Subtotal</span>
+                        <p className="font-mono tabular-nums font-bold text-slate-900 mt-0.5">$8,450.00</p>
                       </div>
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <span className="text-[10px] text-slate-400">Discount (5%)</span>
-                        <p className="font-mono font-bold text-rose-600 mt-0.5">-$422.50</p>
+                        <span className="text-xs text-slate-400">Discount (5%)</span>
+                        <p className="font-mono tabular-nums font-bold text-rose-600 mt-0.5">-$422.50</p>
                       </div>
                       <div className="bg-[#E0F2F1]/50 p-2.5 rounded-xl border border-[#0F766E]/20">
-                        <span className="text-[10px] text-[#0F766E] font-bold">Grand Total</span>
-                        <p className="font-mono font-black text-[#0F766E] mt-0.5">$8,027.50</p>
+                        <span className="text-xs text-[#0F766E] font-bold">Grand Total</span>
+                        <p className="font-mono tabular-nums font-black text-[#0F766E] mt-0.5">$8,027.50</p>
                       </div>
                     </div>
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-slate-500">Commercial Currency:</span>
-                      <span className="font-mono font-bold text-slate-900">USD ($) — Bank Wire T/T 30 Days</span>
-                    </div>
-                  </div>
-                )}
-
-                {activeWorkflowTab === 4 && (
-                  <div className="space-y-3">
                     <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold">
+                        <div className="w-10 h-10 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-xs">
                           PDF
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-900">QT-1075_AURA_MARINE.pdf</p>
-                          <p className="text-[10px] text-slate-400">A4 Vector Document • 2 Pages • Marine Layout</p>
+                          <p className="text-xs text-slate-400">A4 Vector Document &bull; Marine Layout</p>
                         </div>
                       </div>
                       <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#0F766E] text-white">
-                        Download
+                        Live Preview
                       </span>
                     </div>
-
                     <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-emerald-600" />
-                        <span className="font-semibold">WhatsApp Quote message generated & ready to send</span>
+                        <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="font-semibold">WhatsApp Quote message generated &amp; ready to dispatch</span>
                       </div>
-                      <span className="font-mono font-bold text-emerald-700">One Click</span>
+                      <span className="font-mono font-bold text-emerald-700 shrink-0">1 Click</span>
                     </div>
                   </div>
                 )}
@@ -815,9 +764,9 @@ export function LandingPage() {
               <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center font-bold">
                 <Ship className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-extrabold text-[#0F172A]">Vessel & Technical Registry</h3>
+              <h3 className="text-base font-extrabold text-[#0F172A]">Vessel &amp; Machinery Details</h3>
               <p className="text-xs text-[#64748B] leading-relaxed">
-                Track vessel IMO, maker/model, technical drawings, and engine specifications automatically bound to every quotation header.
+                Track vessel name, IMO/port, equipment make/model, and technical specifications automatically bound to every quotation header.
               </p>
             </div>
 
@@ -901,7 +850,7 @@ export function LandingPage() {
                 }`}
               >
                 Annual Billing
-                <span className="text-[10px] bg-[#F59E0B] text-slate-900 px-1.5 py-0.2 rounded-full font-extrabold">
+                <span className="text-xs bg-[#F59E0B] text-slate-900 px-2 py-0.5 rounded-full font-extrabold">
                   Save 20%
                 </span>
               </button>
@@ -951,7 +900,7 @@ export function LandingPage() {
 
             {/* Plan 2: Pro Supplier (Featured / Most Popular) */}
             <div className="bg-white rounded-3xl border-2 border-[#0F766E] p-8 flex flex-col justify-between space-y-6 shadow-xl relative scale-[1.02]">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#F59E0B] text-slate-900 text-[10px] font-black uppercase tracking-wider shadow-sm">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#F59E0B] text-slate-900 text-xs font-black uppercase tracking-wider shadow-sm">
                 Most Popular
               </div>
 
@@ -1070,7 +1019,7 @@ export function LandingPage() {
               </p>
               <div className="pt-2 border-t border-slate-200/60">
                 <p className="text-xs font-bold text-slate-900">Marcus Tan</p>
-                <p className="text-[10px] text-slate-500">Managing Director &bull; Singapore Marine Chandlers</p>
+                <p className="text-xs text-slate-500">Managing Director &bull; Singapore Marine Chandlers</p>
               </div>
             </div>
 
@@ -1085,7 +1034,7 @@ export function LandingPage() {
               </p>
               <div className="pt-2 border-t border-slate-200/60">
                 <p className="text-xs font-bold text-slate-900">Tariq Al-Mansoor</p>
-                <p className="text-[10px] text-slate-500">Senior Broker &bull; Dubai Port Marine Equipment</p>
+                <p className="text-xs text-slate-500">Senior Broker &bull; Dubai Port Marine Equipment</p>
               </div>
             </div>
 
@@ -1100,7 +1049,7 @@ export function LandingPage() {
               </p>
               <div className="pt-2 border-t border-slate-200/60">
                 <p className="text-xs font-bold text-slate-900">Jan De Vries</p>
-                <p className="text-[10px] text-slate-500">Procurement Lead &bull; Rotterdam Marine Spares B.V.</p>
+                <p className="text-xs text-slate-500">Procurement Lead &bull; Rotterdam Marine Spares B.V.</p>
               </div>
             </div>
 
@@ -1138,7 +1087,7 @@ export function LandingPage() {
               },
               {
                 q: "How does 1-click WhatsApp quote sharing work?",
-                a: "In Step 4, clicking 'Share on WhatsApp' formats a concise commercial message with quote reference, vessel name, line count, and grand total, opening directly into WhatsApp Web or mobile ready to send to your buyer."
+                a: "In Step 3, clicking 'Share on WhatsApp' formats a concise commercial message with quote reference, vessel name, line count, and grand total, opening directly into WhatsApp Web or mobile ready to send to your buyer."
               },
               {
                 q: "Is our commercial quotation data kept private and confidential?",
@@ -1311,51 +1260,51 @@ export function LandingPage() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#0F766E] shadow-sm flex items-end p-2 text-white text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#0F766E] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #0F766E
                   </div>
                   <p className="text-xs font-bold text-slate-900">Deep Teal</p>
-                  <p className="text-[10px] text-slate-400">Primary Brand</p>
+                  <p className="text-xs text-slate-400">Primary Brand</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#F59E0B] shadow-sm flex items-end p-2 text-white text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#F59E0B] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #F59E0B
                   </div>
                   <p className="text-xs font-bold text-slate-900">Gold</p>
-                  <p className="text-[10px] text-slate-400">Accent & Action</p>
+                  <p className="text-xs text-slate-400">Accent & Action</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#FFFBEB] border border-amber-200 shadow-sm flex items-end p-2 text-amber-900 text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#FFFBEB] border border-amber-200 shadow-sm flex items-end p-2 text-amber-900 text-xs font-mono font-bold">
                     #FFFBEB
                   </div>
                   <p className="text-xs font-bold text-slate-900">Cream</p>
-                  <p className="text-[10px] text-slate-400">Warm Surface</p>
+                  <p className="text-xs text-slate-400">Warm Surface</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#475569] shadow-sm flex items-end p-2 text-white text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#475569] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #475569
                   </div>
                   <p className="text-xs font-bold text-slate-900">Slate</p>
-                  <p className="text-[10px] text-slate-400">Body Typography</p>
+                  <p className="text-xs text-slate-400">Body Typography</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#E0F2F1] border border-teal-200 shadow-sm flex items-end p-2 text-[#0F766E] text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#E0F2F1] border border-teal-200 shadow-sm flex items-end p-2 text-[#0F766E] text-xs font-mono font-bold">
                     #E0F2F1
                   </div>
                   <p className="text-xs font-bold text-slate-900">Light Teal</p>
-                  <p className="text-[10px] text-slate-400">Container Glow</p>
+                  <p className="text-xs text-slate-400">Container Glow</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="h-14 rounded-2xl bg-[#16A34A] shadow-sm flex items-end p-2 text-white text-[10px] font-mono font-bold">
+                  <div className="h-14 rounded-2xl bg-[#16A34A] shadow-sm flex items-end p-2 text-white text-xs font-mono font-bold">
                     #16A34A
                   </div>
                   <p className="text-xs font-bold text-slate-900">Success</p>
-                  <p className="text-[10px] text-slate-400">Approved Status</p>
+                  <p className="text-xs text-slate-400">Approved Status</p>
                 </div>
               </div>
             </div>

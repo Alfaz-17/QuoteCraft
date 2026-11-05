@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 
-const geistSans = { variable: "font-sans" };
-const geistMono = { variable: "font-mono" };
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "QuoteCraft | Professional Marine Quotation Generator",
@@ -33,14 +43,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
       <body
-        className="font-sans antialiased text-slate-800"
+        className="font-sans antialiased text-[#0F172A] bg-[#FAF9F5]"
       >
         <Providers>
-          <div className="flex min-h-screen bg-slate-50/30">
+          <div className="flex min-h-screen bg-[#FAF9F5]">
             <Sidebar />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
               {children}
             </div>
           </div>

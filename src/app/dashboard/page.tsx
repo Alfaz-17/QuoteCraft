@@ -219,7 +219,7 @@ export default function DashboardPage() {
               <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none">
                 Quote<span className="text-[#0F766E]">Craft</span>
               </h1>
-              <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5 hidden sm:block">
+              <p className="text-xs text-slate-500 font-semibold mt-0.5 hidden sm:block">
                 Marine Dashboard
               </p>
             </div>
@@ -285,7 +285,7 @@ export default function DashboardPage() {
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
                 {totalRfqCount}
               </h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">
+              <p className="text-xs font-semibold text-slate-500 mt-1">
                 Total RFQs
               </p>
             </div>
@@ -300,7 +300,7 @@ export default function DashboardPage() {
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
                 {quoteCount || 8}
               </h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">
+              <p className="text-xs font-semibold text-slate-500 mt-1">
                 Quotations
               </p>
             </div>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
                 {draftCount || 3}
               </h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">
+              <p className="text-xs font-semibold text-slate-500 mt-1">
                 Drafts
               </p>
             </div>
@@ -330,7 +330,7 @@ export default function DashboardPage() {
               <h4 className="text-xl sm:text-2xl font-black font-mono text-emerald-600 leading-none">
                 95%
               </h4>
-              <p className="text-[11px] font-semibold text-slate-500 mt-1">
+              <p className="text-xs font-semibold text-slate-500 mt-1">
                 Success Rate
               </p>
             </div>
@@ -365,10 +365,10 @@ export default function DashboardPage() {
                   <span className="text-slate-300">•</span>
                   <span className="text-xs text-slate-600 font-bold">AURA MARINE SOLUTIONS</span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-medium">2 Nov 2026</p>
+                <p className="text-xs text-slate-500 font-medium">2 Nov 2026</p>
               </div>
 
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
                 Sent
               </span>
             </div>
@@ -396,14 +396,14 @@ export default function DashboardPage() {
                           {quote.client?.companyName || quote.client?.name || "Standard Client"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
                         <span>{quote.date}</span>
                         {quote.vessel && <span>• Vessel: {quote.vessel}</span>}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusClass}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusClass}`}>
                         {statusLabel}
                       </span>
 

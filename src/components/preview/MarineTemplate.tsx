@@ -70,12 +70,12 @@ export function MarineTemplate({ data }: TemplateProps) {
     return (
       <div className="space-y-0.5 mt-0.5">
         {details.length > 0 && (
-          <p className="text-[10px] text-slate-500 font-medium tracking-normal normal-case">
+          <p className="text-xs text-slate-500 font-medium tracking-normal normal-case">
             {details.join("  •  ")}
           </p>
         )}
         {item.description && item.description.trim() && (
-          <p className="text-[10px] text-slate-600 font-normal italic tracking-normal normal-case">
+          <p className="text-xs text-slate-600 font-normal italic tracking-normal normal-case">
             Spec: {item.description.trim()}
           </p>
         )}
@@ -139,28 +139,28 @@ export function MarineTemplate({ data }: TemplateProps) {
             {/* Left: Project / Client Details */}
             <div className="space-y-1">
               <div>
-                <span className="font-bold text-slate-500 w-24 inline-block uppercase text-[10px]">CLIENT:</span>
+                <span className="font-bold text-slate-500 w-24 inline-block uppercase text-xs">CLIENT:</span>
                 <span className="font-bold text-slate-900">{client.companyName || client.name || "Valued Customer"}</span>
               </div>
               {documentInfo.vessel && (
                 <div>
-                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-[10px]">VESSEL:</span>
+                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-xs">VESSEL:</span>
                   <span className="font-bold text-slate-900 uppercase">{documentInfo.vessel}</span>
                 </div>
               )}
               {client.address && (
                 <div>
-                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-[10px]">ADDRESS:</span>
+                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-xs">ADDRESS:</span>
                   <span className="text-slate-700">{client.address}</span>
                 </div>
               )}
               <div>
-                <span className="font-bold text-slate-500 w-24 inline-block uppercase text-[10px]">DATE:</span>
+                <span className="font-bold text-slate-500 w-24 inline-block uppercase text-xs">DATE:</span>
                 <span className="text-slate-700">{documentInfo.date || new Date().toISOString().split("T")[0]}</span>
               </div>
               {documentInfo.validUntil && (
                 <div>
-                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-[10px]">VALID UNTIL:</span>
+                  <span className="font-bold text-slate-500 w-24 inline-block uppercase text-xs">VALID UNTIL:</span>
                   <span className="text-slate-700">{documentInfo.validUntil}</span>
                 </div>
               )}
@@ -208,13 +208,13 @@ export function MarineTemplate({ data }: TemplateProps) {
 
           <div className="grid grid-cols-2 gap-8 text-xs pt-2">
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Billed To</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Billed To</p>
               <p className="font-bold text-slate-900 text-sm">{client.companyName || client.name || "Valued Customer"}</p>
-              {client.address && <p className="text-slate-500 text-[11px] mt-0.5">{client.address}</p>}
-              {client.email && <p className="text-slate-500 text-[11px]">{client.email}</p>}
+              {client.address && <p className="text-slate-500 text-xs mt-0.5">{client.address}</p>}
+              {client.email && <p className="text-slate-500 text-xs">{client.email}</p>}
             </div>
             <div className="text-right space-y-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quotation Details</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Quotation Details</p>
               <p className="text-slate-600"><span className="text-slate-400">Date:</span> {documentInfo.date}</p>
               {documentInfo.validUntil && (
                 <p className="text-slate-600"><span className="text-slate-400">Valid Until:</span> {documentInfo.validUntil}</p>
@@ -248,11 +248,11 @@ export function MarineTemplate({ data }: TemplateProps) {
                   {company.name || "OUR COMPANY"}
                 </h1>
                 {company.address && (
-                  <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5 max-w-sm">
+                  <p className="text-xs text-slate-500 font-medium leading-tight mt-0.5 max-w-sm">
                     {company.address}
                   </p>
                 )}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] text-slate-400 font-medium mt-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-400 font-medium mt-1">
                   {company.phone && <span>Tel: {company.phone}</span>}
                   {company.email && <span>Email: {company.email}</span>}
                   {company.website && <span>{company.website.toLowerCase()}</span>}
@@ -267,7 +267,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               <p className="text-xs font-mono font-bold text-slate-800">
                 NO: {documentInfo.number || "QT-DRAFT"}
               </p>
-              <div className="mt-1 text-[11px] text-slate-600 space-y-0.5">
+              <div className="mt-1 text-xs text-slate-600 space-y-0.5">
                 <p><span className="font-semibold text-slate-400">DATE:</span> {documentInfo.date}</p>
                 {documentInfo.validUntil && (
                   <p><span className="font-semibold text-slate-400">VALID UNTIL:</span> {documentInfo.validUntil}</p>
@@ -281,19 +281,19 @@ export function MarineTemplate({ data }: TemplateProps) {
             <div className="my-3.5 p-2.5 px-3.5 rounded-lg bg-slate-50 border border-slate-200/80 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
               {documentInfo.vessel && (
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>VESSEL:</span>
+                  <span className="font-bold text-xs tracking-wide uppercase" style={{ color: primaryColor }}>VESSEL:</span>
                   <span className="font-black text-slate-900 uppercase">{documentInfo.vessel}</span>
                 </div>
               )}
               {documentInfo.reference && (
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>REF / REQ:</span>
+                  <span className="font-bold text-xs tracking-wide uppercase" style={{ color: primaryColor }}>REF / REQ:</span>
                   <span className="font-medium text-slate-800">{documentInfo.reference}</span>
                 </div>
               )}
               {(documentInfo.make || documentInfo.model) && (
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[10px] tracking-wide uppercase" style={{ color: primaryColor }}>EQUIPMENT:</span>
+                  <span className="font-bold text-xs tracking-wide uppercase" style={{ color: primaryColor }}>EQUIPMENT:</span>
                   <span className="font-medium text-slate-800">
                     {[documentInfo.make, documentInfo.model].filter(Boolean).join(" / ")}
                   </span>
@@ -305,13 +305,13 @@ export function MarineTemplate({ data }: TemplateProps) {
           {/* Buyer Details */}
           {data.showCustomerDetails !== false && (client.name || client.companyName) && (
             <div className="mt-2 mb-3 text-xs">
-              <p className="font-bold uppercase text-[9.5px] tracking-wider mb-0.5" style={{ color: primaryColor }}>
+              <p className="font-bold uppercase text-xs tracking-wider mb-0.5" style={{ color: primaryColor }}>
                 QUOTATION FOR (BUYER):
               </p>
               <p className="font-black text-sm uppercase text-slate-900 leading-tight">
                 {client.companyName || client.name}
               </p>
-              <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-slate-600 mt-0.5">
+              <div className="flex flex-wrap items-center gap-x-3 text-xs text-slate-600 mt-0.5">
                 {client.attn && <span>Attn: <strong className="text-slate-800">{client.attn}</strong></span>}
                 {client.address && <span>{client.address}</span>}
                 {client.phone && <span>Tel: {client.phone}</span>}
@@ -323,7 +323,7 @@ export function MarineTemplate({ data }: TemplateProps) {
       )}
 
       {/* Intro Note */}
-      <p className="text-[11px] text-slate-500 my-2 font-medium">
+      <p className="text-xs text-slate-500 my-2 font-medium">
         {intro}
       </p>
 
@@ -339,7 +339,7 @@ export function MarineTemplate({ data }: TemplateProps) {
           <thead>
             {layout === "classic" ? (
               // Example 1 Header Style: Subtle bottom border with gray headers
-              <tr className="border-b border-slate-300 text-slate-600 text-[10.5px] uppercase font-bold tracking-wider">
+              <tr className="border-b border-slate-300 text-slate-600 text-xs uppercase font-bold tracking-wider">
                 <th className="py-2.5 px-3 text-center w-10">#</th>
                 <th className="py-2.5 px-3">Description</th>
                 {hasPartNumber && <th className="py-2.5 px-3 text-center w-32">Part Number</th>}
@@ -349,7 +349,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               </tr>
             ) : layout === "minimal" ? (
               // Anvil Minimal Header Style: Clean underline
-              <tr className="border-b-2 border-slate-200 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+              <tr className="border-b-2 border-slate-200 text-slate-400 text-xs uppercase font-bold tracking-wider">
                 <th className="py-2 px-1 text-center w-8">#</th>
                 <th className="py-2 px-2">Item Description</th>
                 {hasPartNumber && <th className="py-2 px-2 text-center w-28">Part No</th>}
@@ -359,7 +359,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               </tr>
             ) : (
               // Marine & Technical Header Style: Full solid primary color bar
-              <tr style={{ backgroundColor: primaryColor }} className="text-white text-[10px] uppercase font-bold tracking-wider">
+              <tr style={{ backgroundColor: primaryColor }} className="text-white text-xs uppercase font-bold tracking-wider">
                 <th className="py-2 px-2 text-center w-10">#</th>
                 <th className="py-2 px-3">Item Description & Specifications</th>
                 {hasPartNumber && <th className="py-2 px-3 text-center w-32">Part Number</th>}
@@ -385,7 +385,7 @@ export function MarineTemplate({ data }: TemplateProps) {
 
               return (
                 <tr key={item.id} className={rowBg}>
-                  <td className="py-2.5 px-2 text-center font-mono text-slate-400 font-semibold align-top text-[11px]">
+                  <td className="py-2.5 px-2 text-center font-mono tabular-nums text-slate-400 font-semibold align-top text-xs">
                     {index + 1}
                   </td>
                   <td className="py-2.5 px-3 align-top">
@@ -395,7 +395,7 @@ export function MarineTemplate({ data }: TemplateProps) {
                     {isCleanMode && renderItemSubDetails(item)}
                   </td>
                   {hasPartNumber && (
-                    <td className="py-2.5 px-3 text-center font-mono text-slate-600 align-top text-[11px]">
+                    <td className="py-2.5 px-3 text-center font-mono text-slate-600 align-top text-xs">
                       {item.partNumber ? (
                         <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/70 font-semibold">
                           {item.partNumber}
@@ -405,17 +405,17 @@ export function MarineTemplate({ data }: TemplateProps) {
                       )}
                     </td>
                   )}
-                  <td className="py-2.5 px-3 text-center font-semibold text-slate-800 align-top text-[11px]">
-                    {qtyVal} <span className="text-[10px] text-slate-500 uppercase">{unitStr}</span>
+                  <td className="py-2.5 px-3 text-center font-semibold tabular-nums text-slate-800 align-top text-xs">
+                    {qtyVal} <span className="text-xs text-slate-500 uppercase">{unitStr}</span>
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono font-bold align-top text-[11px]">
+                  <td className="py-2.5 px-3 text-right font-mono tabular-nums font-bold align-top text-xs">
                     {isMissingPrice ? (
                       <span className="text-slate-400 italic font-normal">TBA</span>
                     ) : (
                       formatValue(priceVal)
                     )}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-mono font-black text-slate-900 align-top text-[11px]">
+                  <td className="py-2.5 px-3 text-right font-mono tabular-nums font-black text-slate-900 align-top text-xs">
                     {isMissingPrice ? (
                       <span className="text-slate-300 font-normal">-</span>
                     ) : (
@@ -491,7 +491,7 @@ export function MarineTemplate({ data }: TemplateProps) {
           )}
 
           {hasMissingPrices && (
-            <p className="text-[10px] text-slate-400 italic text-right mt-1">
+            <p className="text-xs text-slate-400 italic text-right mt-1">
               * Items marked TBA are pending final confirmation and excluded from total.
             </p>
           )}
@@ -504,10 +504,10 @@ export function MarineTemplate({ data }: TemplateProps) {
       <div className="mt-auto pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-start gap-6">
         {/* Left: Terms or Notice Box */}
         <div className="flex-1 space-y-1 text-xs">
-          <h4 className="font-bold uppercase text-[10px] tracking-wider" style={{ color: primaryColor }}>
+          <h4 className="font-bold uppercase text-xs tracking-wider" style={{ color: primaryColor }}>
             {layout === "classic" ? "NOTICES & COMMERCIAL TERMS:" : "COMMERCIAL TERMS & CONDITIONS:"}
           </h4>
-          <div className="text-[11px] text-slate-600 space-y-1 font-medium leading-relaxed">
+          <div className="text-xs text-slate-600 space-y-1 font-medium leading-relaxed">
             {terms ? (
               terms.split("\n").filter(Boolean).map((t, idx) => (
                 <p key={idx}>• {t}</p>
@@ -526,10 +526,10 @@ export function MarineTemplate({ data }: TemplateProps) {
         {/* Right: Signature & Stamp Box */}
         {data.pdfShowSignatureBlock !== false && (
           <div className="w-56 shrink-0 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center space-y-6 bg-slate-50/50">
-            <p className="text-[10.5px] font-bold text-slate-800 uppercase tracking-tight">
+            <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">
               For {company.name || "OUR COMPANY"}
             </p>
-            <p className="text-[9.5px] font-semibold text-slate-400 italic">
+            <p className="text-xs font-semibold text-slate-400 italic">
               (Authorized Signature & Stamp)
             </p>
           </div>
@@ -537,7 +537,7 @@ export function MarineTemplate({ data }: TemplateProps) {
       </div>
 
       {/* 7. RUNNING FOOTER */}
-      <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between text-[10px] text-slate-400 font-medium">
+      <div className="pt-4 mt-4 border-t border-slate-100 flex justify-between text-xs text-slate-400 font-medium">
         <span>{(company.name || "QuoteCraft").toUpperCase()} • {documentInfo.number || "QUOTATION"}</span>
         <span>Page 1 of 1</span>
       </div>
