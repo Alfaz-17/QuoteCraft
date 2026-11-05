@@ -28,8 +28,21 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
 
+  // While auth is initializing, render a clean branded loading screen
+  if (!authLoaded) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-4">
+        <QuoteCraftLogo size={44} showTagline={false} />
+        <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 font-semibold">
+          <Loader2 className="w-4 h-4 animate-spin text-[#0F766E]" />
+          <span>Loading QuoteCraft...</span>
+        </div>
+      </div>
+    );
+  }
+
   // If user is not logged in, render the official brand landing page
-  if (authLoaded && !isSignedIn) {
+  if (!isSignedIn) {
     return <LandingPage />;
   }
 
