@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { generateCommercialTerms } from "@/lib/ai-service";
 
 export async function POST(req: NextRequest) {
@@ -8,6 +9,14 @@ export async function POST(req: NextRequest) {
     const userId = await getAuthenticatedUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = checkRateLimit(`ai:terms:${userId}`, 20, 60_000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Too many requests. Please wait ${rateLimit.retryAfterSeconds} seconds.` },
+        { status: 429 }
+      );
     }
 
     const apiKey = (await findUserApiKey(userId)) || process.env.GEMINI_API_KEY || "";

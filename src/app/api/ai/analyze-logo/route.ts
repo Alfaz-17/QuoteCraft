@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { analyzeLogoColors } from "@/lib/ai-service";
 
 export async function POST(req: NextRequest) {
   try {
     const userId = await getAuthenticatedUserId();
-    let userApiKey = "";
-
-    // 1. If user is logged in, try to fetch their custom Gemini API Key from database
-    if (userId) {
-      userApiKey = (await findUserApiKey(userId)) ?? "";
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const rateLimit = checkRateLimit(`ai:logo:${userId}`, 15, 60_000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Too many requests. Please wait ${rateLimit.retryAfterSeconds} seconds.` },
+        { status: 429 }
+      );
+    }
+
+    let userApiKey = "";
+    userApiKey = (await findUserApiKey(userId)) ?? "";
 
     const { image } = await req.json();
     if (!image) {

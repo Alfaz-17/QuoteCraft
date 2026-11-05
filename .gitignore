@@ -33,6 +33,14 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local data & sensitive files
+/data
+*.log
+lint_output.txt
+test-db.js
+build_log.txt
+templates_extracted/
+
 # vercel
 .vercel
 

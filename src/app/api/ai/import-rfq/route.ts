@@ -1,25 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-parser";
+import { z } from "zod";
+
+const aiOutputSchema = z.object({
+  columns: z.array(
+    z.object({
+      key: z.string(),
+      label: z.string(),
+      kind: z.string().optional(),
+    })
+  ),
+  rows: z.array(z.record(z.string(), z.any())),
+});
 
 export async function POST(req: NextRequest) {
   try {
     const userId = await getAuthenticatedUserId();
-    let userApiKey = "";
-
-    if (userId) {
-      userApiKey = (await findUserApiKey(userId)) ?? "";
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please sign in to import and process RFQs." },
+        { status: 401 }
+      );
     }
+
+    // Rate limiting: 15 imports per minute per user
+    const rateLimit = checkRateLimit(`ai:import:${userId}`, 15, 60_000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Too many import requests. Please wait ${rateLimit.retryAfterSeconds} seconds before trying again.` },
+        { status: 429 }
+      );
+    }
+
+    let userApiKey = "";
+    userApiKey = (await findUserApiKey(userId)) ?? "";
 
     // 1. Parse input payload
     const { fileData, fileName, mimeType, rawText } = await req.json();
 
-    // Prevent handling excessively large files
-    if (fileData && fileData.length > 10 * 1024 * 1024) {
+    // Prevent handling excessively large files (approx 10MB raw file in base64 is ~13.5MB)
+    if (fileData && fileData.length > 14 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "The uploaded file exceeds 8MB. Please upload a smaller file, or copy-paste the raw RFQ text directly." },
+        { error: "The uploaded file exceeds 10MB. Please upload a smaller file, or copy-paste the raw RFQ text directly." },
         { status: 400 }
       );
     }
@@ -135,17 +161,16 @@ export async function POST(req: NextRequest) {
 
     try {
       const parsed = JSON.parse(cleanedJson);
-      if (!parsed || !Array.isArray(parsed.columns) || !Array.isArray(parsed.rows)) {
-        throw new Error("AI did not return columns and rows");
-      }
+      const validated = aiOutputSchema.parse(parsed);
+
       return NextResponse.json({
-        columns: parsed.columns,
-        rows: parsed.rows,
+        columns: validated.columns,
+        rows: validated.rows,
         method: "ai_fallback",
         durationMs: Date.now() - startTime,
       });
     } catch {
-      console.error("AI returned malformed JSON:", responseText);
+      console.error("AI returned malformed JSON or invalid schema:", responseText);
       return NextResponse.json(
         { error: "AI failed to extract line items in a structured format. Please try copy-pasting the raw text." },
         { status: 500 }
