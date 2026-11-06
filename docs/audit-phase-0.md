@@ -158,3 +158,4 @@ flowchart TD
 To ensure zero regression for existing desktop users and allow instant rollback:
 - **Flag Variable:** `NEXT_PUBLIC_NEW_MOBILE_UI=true`
 - **Fallback Behavior:** If `process.env.NEXT_PUBLIC_NEW_MOBILE_UI !== "true"`, the application renders the existing classic desktop/hybrid layout with 100% feature parity.
+

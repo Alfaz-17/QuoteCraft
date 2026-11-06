@@ -319,47 +319,48 @@ export function Step1Upload({
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-6 sm:py-10 px-4 sm:px-6 space-y-6 animate-in fade-in duration-300">
-      {/* Title & One Primary Focus */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          Customer&apos;s Request (RFQ)
-        </h2>
-        <p className="text-sm text-slate-600 max-w-lg mx-auto">
-          Upload your buyer&apos;s spreadsheet, PDF, or paste their WhatsApp/email requisition to extract items automatically.
-        </p>
-      </div>
-
-      {/* Input Mode Selector: Upload File vs Paste Text */}
-      <div className="flex justify-center">
-        <div className="inline-flex p-1 bg-slate-200/80 rounded-xl border border-slate-300/70">
-          <button
-            type="button"
-            onClick={() => setInputMode("file")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all min-h-[38px] ${
-              inputMode === "file"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <UploadCloud className="w-4 h-4 text-brand-600" />
-            <span>Upload File</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setInputMode("paste")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all min-h-[38px] ${
-              inputMode === "paste"
-                ? "bg-white text-slate-900 shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <ClipboardList className="w-4 h-4 text-brand-600" />
-            <span>Paste Text</span>
-          </button>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 sm:py-8 space-y-6 max-w-3xl mx-auto w-full pb-16">
+        {/* Title & One Primary Focus (Type scale: 22px title, 13px subtext) */}
+        <div className="text-center space-y-1.5">
+          <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-snug">
+            Customer&apos;s Request (RFQ)
+          </h2>
+          <p className="text-[13px] text-[#475569] max-w-lg mx-auto">
+            Upload your buyer&apos;s spreadsheet, PDF, or paste their WhatsApp/email requisition to extract items automatically.
+          </p>
         </div>
-      </div>
+
+        {/* Input Mode Selector: Upload File vs Paste Text */}
+        <div className="flex justify-center">
+          <div className="inline-flex p-1 bg-slate-200/80 rounded-xl border border-slate-300/70">
+            <button
+              type="button"
+              onClick={() => setInputMode("file")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold transition-all min-h-[44px] ${
+                inputMode === "file"
+                  ? "bg-white text-[#0F172A] shadow-xs"
+                  : "text-[#475569] hover:text-[#0F172A]"
+              }`}
+            >
+              <UploadCloud className="w-4 h-4 text-[#0F766E]" />
+              <span>Upload File</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setInputMode("paste")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold transition-all min-h-[44px] ${
+                inputMode === "paste"
+                  ? "bg-white text-[#0F172A] shadow-xs"
+                  : "text-[#475569] hover:text-[#0F172A]"
+              }`}
+            >
+              <ClipboardList className="w-4 h-4 text-[#0F766E]" />
+              <span>Paste Text</span>
+            </button>
+          </div>
+        </div>
 
       {/* Main Ingestion Card */}
       <div className="bg-white rounded-lg border border-slate-200/90 p-5 sm:p-8 shadow-xs space-y-5">
@@ -672,6 +673,7 @@ export function Step1Upload({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
