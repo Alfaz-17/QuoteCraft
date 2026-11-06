@@ -156,31 +156,34 @@ export function Sidebar() {
       </aside>
 
       {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
-      <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 shadow-lg flex items-center justify-around safe-bottom">
-        {menuItems.filter(item => !item.isExternal && item.name !== "New Quotation").map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-150 min-w-[56px]",
-                isActive
-                  ? "text-[#0F766E] font-bold"
-                  : "text-slate-400 hover:text-slate-700"
-              )}
-            >
-              <div className={cn(
-                "w-7 h-7 rounded-xl flex items-center justify-center transition-colors mb-0.5",
-                isActive ? "bg-[#E0F2F1] text-[#0F766E]" : ""
-              )}>
-                <item.icon className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-semibold">{item.mobileLabel}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Hidden when user is on the quotation builder ("/") so it does not block action buttons like "Download PDF" & "WhatsApp" */}
+      {pathname !== "/" && (
+        <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 shadow-lg flex items-center justify-around safe-bottom">
+          {menuItems.filter(item => !item.isExternal && item.name !== "New Quotation").map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-150 min-w-[56px]",
+                  isActive
+                    ? "text-[#0F766E] font-bold"
+                    : "text-slate-400 hover:text-slate-700"
+                )}
+              >
+                <div className={cn(
+                  "w-7 h-7 rounded-xl flex items-center justify-center transition-colors mb-0.5",
+                  isActive ? "bg-[#E0F2F1] text-[#0F766E]" : ""
+                )}>
+                  <item.icon className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold">{item.mobileLabel}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </>
   );
 }

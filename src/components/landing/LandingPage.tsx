@@ -38,13 +38,15 @@ import {
   Ship,
   Award,
   Shield,
-  FileDown
+  FileDown,
+  Menu
 } from "lucide-react";
 import { QuoteCraftLogo, QuoteCraftAppIcon } from "@/components/ui/QuoteCraftLogo";
 import { ContainerShipIllustration } from "@/components/ui/ContainerShipIllustration";
 
 export function LandingPage() {
   const { isSignedIn } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showStyleguide, setShowStyleguide] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [activeWorkflowTab, setActiveWorkflowTab] = useState<number>(1);
@@ -76,7 +78,7 @@ export function LandingPage() {
           </nav>
 
           {/* Right Auth CTAs */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setShowStyleguide(true)}
               className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] bg-[#E0F2F1] hover:bg-[#B2DFDB] px-3 py-1.5 rounded-md transition-all"
@@ -87,38 +89,133 @@ export function LandingPage() {
             </button>
 
             {isSignedIn ? (
-              <>
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/dashboard"
-                  className="text-sm font-bold text-[#475569] hover:text-[#0F766E] px-3.5 py-2 rounded-xl transition-colors"
+                  className="text-sm font-bold text-[#475569] hover:text-[#0F766E] px-3 py-2 rounded-lg transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Create Quote <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/sign-in"
-                  className="text-sm font-bold text-[#475569] hover:text-[#0F766E] px-3.5 py-2 rounded-xl transition-colors"
+                  className="text-sm font-bold text-[#475569] hover:text-[#0F766E] px-3 py-2 rounded-lg transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#0F766E]/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Get Started <ArrowRight className="w-4 h-4 ml-0.5" />
                 </Link>
-              </>
+              </div>
             )}
+
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-slate-900" />
+              ) : (
+                <Menu className="w-6 h-6 text-slate-900" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* ── MOBILE SLIDE-DOWN DRAWER ── */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white border-b border-[#ECE7DE] px-5 pt-3 pb-6 shadow-xl space-y-4 animate-in slide-in-from-top-2 duration-200">
+            <nav className="flex flex-col space-y-2 text-sm font-bold text-[#475569]">
+              <a
+                href="#how-it-works"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
+              >
+                How it Works
+              </a>
+              <a
+                href="#features"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
+              >
+                Features
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
+              >
+                Pricing
+              </a>
+              <a
+                href="#testimonials"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
+              >
+                Customers
+              </a>
+              <a
+                href="#faq"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
+              >
+                FAQ
+              </a>
+            </nav>
+
+            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
+              {isSignedIn ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-bold text-white bg-[#0F766E] hover:bg-[#0D6B63] transition-colors shadow-sm"
+                  >
+                    Create Quotation
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-bold text-white bg-[#0F766E] hover:bg-[#0D6B63] transition-colors shadow-sm"
+                  >
+                    Get Started Free
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ── HERO SECTION ── */}
@@ -221,8 +318,8 @@ export function LandingPage() {
                     boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.8)",
                   }}
                 >
-                  {/* Left Dark Teal Mini Sidebar */}
-                  <div className="w-full md:w-44 bg-[#041E26] text-white p-4 flex flex-col justify-between shrink-0 border-r border-[#0A333C]">
+                  {/* Left Dark Teal Mini Sidebar (Desktop Only) */}
+                  <div className="hidden md:flex flex-col w-44 bg-[#041E26] text-white p-4 justify-between shrink-0 border-r border-[#0A333C]">
                     <div className="space-y-5">
                       <div className="flex items-center gap-2">
                         <QuoteCraftLogo size={24} variant="dark" showText={false} />
@@ -286,8 +383,8 @@ export function LandingPage() {
                       </div>
                     </div>
 
-                    {/* 4 Stat Cards */}
-                    <div className="grid grid-cols-4 gap-2">
+                    {/* 4 Stat Cards in 2x2 on Mobile, 4 Cols on Desktop */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div className="bg-[#FAF9F5] p-2 sm:p-2.5 rounded-xl border border-slate-100 text-left">
                         <p className="text-xs text-slate-400 font-medium">Total Quotations</p>
                         <p className="text-xs sm:text-sm font-black text-[#0F172A] mt-0.5">12</p>
@@ -603,7 +700,7 @@ export function LandingPage() {
 
                 {activeWorkflowTab === 3 && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
                       <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         <span className="text-xs text-slate-400">Subtotal</span>
                         <p className="font-mono tabular-nums font-bold text-slate-900 mt-0.5">$8,450.00</p>
@@ -899,7 +996,7 @@ export function LandingPage() {
             </div>
 
             {/* Plan 2: Pro Supplier (Featured / Most Popular) */}
-            <div className="bg-white rounded-lg border-2 border-[#0F766E] p-8 flex flex-col justify-between space-y-6 shadow-xl relative scale-[1.02]">
+            <div className="bg-white rounded-lg border-2 border-[#0F766E] p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl relative lg:scale-[1.02]">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#F59E0B] text-slate-900 text-xs font-black uppercase tracking-wider shadow-sm">
                 Most Popular
               </div>

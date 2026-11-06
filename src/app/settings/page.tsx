@@ -51,11 +51,11 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"company" | "templates" | "business">("company");
   const [mobileSection, setMobileSection] = useState<"menu" | "company" | "templates" | "business">("menu");
 
-  // Company fields
-  const [companyName, setCompanyName] = useState(state.company.name || "AURA MARINE SOLUTIONS");
-  const [companyEmail, setCompanyEmail] = useState(state.company.email || "info@auramarine.com");
-  const [companyPhone, setCompanyPhone] = useState(state.company.phone || "+971 50 123 4567");
-  const [companyAddress, setCompanyAddress] = useState(state.company.address || "123 Maritime Street, Dubai, UAE");
+  // Company fields (initialized strictly from user's saved company profile, no fake data)
+  const [companyName, setCompanyName] = useState(state.company.name || "");
+  const [companyEmail, setCompanyEmail] = useState(state.company.email || "");
+  const [companyPhone, setCompanyPhone] = useState(state.company.phone || "");
+  const [companyAddress, setCompanyAddress] = useState(state.company.address || "");
   const [companyTaxNo, setCompanyTaxNo] = useState(state.company.taxId || "");
 
   // Branding & Template fields

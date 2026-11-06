@@ -392,8 +392,86 @@ export function Step3AddPricesAndSend({
             </div>
           </div>
 
-          {/* Desktop Table View */}
-          <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+          {/* Mobile Pricing Cards (Shown on mobile < md) */}
+          <div className="block md:hidden space-y-3">
+            {items.map((item, idx) => {
+              const qtyVal = toNumber(item[qtyKey]) || 1;
+              const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
+              const lineTotal = calculateRowTotal(item, tableColumns);
+              const isZero = !priceVal || priceVal <= 0;
+
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white rounded-lg border p-3.5 shadow-2xs space-y-3 transition-all ${
+                    isZero ? "border-amber-300 bg-amber-50/10" : "border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                      <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                          {item.itemName || "Unnamed Item"}
+                        </h4>
+                        {item.partNumber && (
+                          <p className="text-xs font-mono text-slate-500 mt-0.5">
+                            Part: {item.partNumber}
+                          </p>
+                        )}
+                        <p className="text-xs text-slate-600 font-semibold mt-1">
+                          Quantity: <span className="font-bold text-slate-900">{qtyVal} {item.unit || "PCS"}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-xs text-slate-400 font-medium block">Total</span>
+                      <span className="text-sm font-mono font-bold text-slate-900">
+                        {currencySymbol}{lineTotal > 0 ? lineTotal.toFixed(2) : "0.00"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Mobile Unit Price Input Field */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+                    <label className="text-xs font-bold text-slate-700 shrink-0">
+                      Unit Price ({currencySymbol})
+                    </label>
+                    <div className="relative flex-1 max-w-[170px]">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold select-none">
+                        {currencySymbol}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={priceVal > 0 ? priceVal : ""}
+                        placeholder="0.00"
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          onUpdateItem(item.id, {
+                            unitPrice: val,
+                            [priceKey]: val,
+                          });
+                        }}
+                        className={`w-full pl-6 pr-3 py-2 text-right font-mono text-sm font-bold rounded-lg border transition-all ${
+                          isZero
+                            ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-brand-600 focus:bg-white"
+                            : "border-slate-300 text-slate-900 focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View (hidden on mobile, visible on md+) */}
+          <div className="hidden md:block bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -557,7 +635,7 @@ export function Step3AddPricesAndSend({
                 <h4 className="text-sm font-bold text-slate-900">Live Quotation Preview</h4>
               </div>
               <span className="text-xs text-slate-500">
-                {state.documentInfo.number || "QT-1075"}
+                {state.documentInfo.number || "Draft"}
               </span>
             </div>
 
@@ -614,8 +692,8 @@ export function Step3AddPricesAndSend({
       <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-8 py-3 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Left: Financial Totals Breakdown */}
-          <div className="flex items-center gap-4 text-xs sm:text-sm">
-            <div>
+          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="hidden sm:block">
               <span className="text-slate-500">Subtotal:</span>{" "}
               <strong className="font-mono text-slate-800 font-bold">{currencySymbol}{subtotal.toFixed(2)}</strong>
             </div>
@@ -631,9 +709,9 @@ export function Step3AddPricesAndSend({
                 <strong className="font-mono text-slate-800 font-bold">+{currencySymbol}{taxAmt.toFixed(2)}</strong>
               </div>
             )}
-            <div className="border-l border-slate-200 pl-4">
+            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto sm:border-l sm:border-slate-200 sm:pl-4">
               <span className="text-slate-500 font-bold">Grand Total:</span>{" "}
-              <span className="font-mono text-base sm:text-lg font-extrabold text-brand-600">
+              <span className="font-mono text-base sm:text-lg font-extrabold text-brand-600 ml-2">
                 {formattedTotal}
               </span>
             </div>
@@ -688,7 +766,7 @@ export function Step3AddPricesAndSend({
             </div>
             <div className="space-y-1">
               <h3 className="text-lg font-bold text-slate-900">
-                Quotation {state.documentInfo.number || "QT-1075"} Ready!
+                Quotation {state.documentInfo.number ? state.documentInfo.number : ""} Ready!
               </h3>
               <p className="text-xs sm:text-sm text-slate-600">
                 Your quotation has been generated and saved securely.

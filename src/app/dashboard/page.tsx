@@ -210,11 +210,11 @@ export default function DashboardPage() {
     }
   };
 
-  // Metrics derived from data
+  // Metrics derived strictly from real user quotations (no demo/fake data)
   const totalCount = quotations.length;
-  const quoteCount = quotations.filter((q) => q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
-  const draftCount = quotations.filter((q) => q.type === "rfq" || !q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
-  const totalRfqCount = Math.max(totalCount, 12);
+  const quoteCount = quotations.filter((q) => q.items && q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
+  const draftCount = quotations.filter((q) => q.type === "rfq" || !q.items || !q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
+  const conversionRate = totalCount > 0 ? `${Math.round((quoteCount / totalCount) * 100)}%` : "0%";
 
   const firstName = user?.firstName || user?.fullName?.split(" ")[0] || "Marine Supplier";
   const userInitial = firstName.charAt(0).toUpperCase();
@@ -285,7 +285,7 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        {/* 4 Stat Cards in 2x2 Grid (Screen 2 in Mobile Mockup) */}
+        {/* 4 Stat Cards in 2x2 Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* 1. Total RFQs */}
           <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
@@ -294,10 +294,10 @@ export default function DashboardPage() {
             </div>
             <div>
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {totalRfqCount}
+                {totalCount}
               </h4>
               <p className="text-xs font-semibold text-slate-500 mt-1">
-                Total RFQs
+                Total Quotes
               </p>
             </div>
           </div>
@@ -309,10 +309,10 @@ export default function DashboardPage() {
             </div>
             <div>
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {quoteCount || 8}
+                {quoteCount}
               </h4>
               <p className="text-xs font-semibold text-slate-500 mt-1">
-                Quotations
+                Priced Quotes
               </p>
             </div>
           </div>
@@ -324,7 +324,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {draftCount || 3}
+                {draftCount}
               </h4>
               <p className="text-xs font-semibold text-slate-500 mt-1">
                 Drafts
@@ -332,23 +332,23 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 4. Success Rate */}
+          {/* 4. Conversion / Success Rate */}
           <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
             <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-xl sm:text-2xl font-black font-mono text-emerald-600 leading-none">
-                95%
+                {conversionRate}
               </h4>
               <p className="text-xs font-semibold text-slate-500 mt-1">
-                Success Rate
+                Priced Rate
               </p>
             </div>
           </div>
         </div>
 
-        {/* Recent Quotations Section (Screen 2 in Mobile Mockup) */}
+        {/* Recent Quotations Section */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-black text-slate-900 tracking-tight">
@@ -368,20 +368,21 @@ export default function DashboardPage() {
               <p className="text-xs font-medium">Loading quotations...</p>
             </div>
           ) : quotations.length === 0 ? (
-            /* Fallback Card matching mockup sample */
-            <div className="bg-white rounded-lg border border-slate-200/90 p-4 sm:p-5 shadow-xs flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-xs text-slate-900">QT-1075</span>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-xs text-slate-600 font-bold">AURA MARINE SOLUTIONS</span>
-                </div>
-                <p className="text-xs text-slate-500 font-medium">2 Nov 2026</p>
+            <div className="bg-white rounded-lg border border-slate-200/90 p-8 shadow-xs text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
+                <FileText className="w-6 h-6 stroke-[2]" />
               </div>
-
-              <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-50 border border-emerald-200 text-emerald-700">
-                Sent
-              </span>
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-slate-800">No quotations created yet</h4>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  Upload an RFQ file or start a fresh quotation to see your recent quotes and real-time conversion metrics here.
+                </p>
+              </div>
+              <Button asChild className="h-9 px-4 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white">
+                <Link href="/">
+                  <UploadCloud className="w-3.5 h-3.5 mr-1.5" /> Create Your First Quotation
+                </Link>
+              </Button>
             </div>
           ) : (
             <div className="space-y-2.5">

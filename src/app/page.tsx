@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { useQuotationState } from "@/hooks/useQuotationState";
 import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
 import { Step1Upload } from "@/components/flow/Step1Upload";
@@ -9,7 +10,7 @@ import { Step3AddPricesAndSend } from "@/components/flow/Step3AddPricesAndSend";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
 import { 
-  Building2, RotateCcw, FilePlus, Check, Loader2 
+  Building2, RotateCcw, FilePlus, Check, Loader2, LayoutDashboard 
 } from "lucide-react";
 import { LineItem, TableColumn, CURRENCY_SYMBOLS, QuotationState, Currency } from "@/types/quotation.types";
 import { calculateGrandTotal } from "@/utils/calculations";
@@ -216,29 +217,40 @@ function QuotationBuilder() {
       <header className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 py-2.5 flex items-center justify-between sticky top-0 z-40 shadow-2xs">
         {/* Brand & Document Info */}
         <div className="flex items-center gap-2.5">
-          <QuoteCraftLogo size={32} showText={false} />
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none">
-                Quote<span className="text-brand-600">Craft</span>
-              </h1>
-              {isHydrated && state.documentInfo.number && (
-                <span
-                  suppressHydrationWarning
-                  className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200"
-                >
-                  {state.documentInfo.number}
-                </span>
-              )}
+          <Link href="/dashboard" className="flex items-center gap-2 group" title="Return to Dashboard">
+            <QuoteCraftLogo size={32} showText={false} />
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none group-hover:text-brand-600 transition-colors">
+                  Quote<span className="text-brand-600">Craft</span>
+                </h1>
+                {isHydrated && state.documentInfo.number && (
+                  <span
+                    suppressHydrationWarning
+                    className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200"
+                  >
+                    {state.documentInfo.number}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 font-medium hidden sm:block mt-0.5">
+                Marine & Industrial Quotation Platform
+              </p>
             </div>
-            <p className="text-xs text-slate-500 font-medium hidden sm:block mt-0.5">
-              Marine & Industrial Quotation Platform
-            </p>
-          </div>
+          </Link>
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Dashboard link for mobile */}
+          <Link
+            href="/dashboard"
+            className="flex sm:hidden items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors"
+            title="Dashboard"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 text-brand-600" />
+            <span>Dashboard</span>
+          </Link>
           {/* Autosave status chip */}
           <div className="hidden min-[480px]:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200">
             {isSaved ? (
