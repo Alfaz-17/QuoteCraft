@@ -41,10 +41,9 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
 export default async function middleware(request: NextRequest, event: any) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip static assets and Clerk proxy endpoints
+  // Skip static assets
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/__clerk") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/icon.png") ||
     pathname.startsWith("/manifest") ||
@@ -55,7 +54,7 @@ export default async function middleware(request: NextRequest, event: any) {
 
   const publishableKey =
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    "pk_live_Y2xlcmsucXVvdGUtY3JhZnQtcmVkLnZlcmNlbC5hcHAk";
+    "pk_test_dmlhYmxlLXRlcnJpZXItNjMuY2xlcmsuYWNjb3VudHMuZGV2JA";
   const secretKey = process.env.CLERK_SECRET_KEY;
 
   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500
