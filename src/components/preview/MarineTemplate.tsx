@@ -19,7 +19,7 @@ export function MarineTemplate({ data }: TemplateProps) {
   const { branding, documentInfo, company, client, items, terms, introText } = data;
   const isLandscape = data.pdfOrientation === "landscape";
   const isCleanMode = data.pdfLayoutMode !== "detailed";
-  const primaryColor = branding.primaryColor || "#1e3a8a";
+  const primaryColor = branding.primaryColor || "#0F766E";
   const layout = branding.layout || "marine";
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
 

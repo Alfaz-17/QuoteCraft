@@ -522,16 +522,16 @@ export function Step2CheckItems({
       {/* ── DESKTOP UNIFIED SPREADSHEET TABLE (md+) ── */}
       <div className="hidden md:block bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
-                <th className="py-3 px-3.5 w-10 text-center">#</th>
-                <th className="py-3 px-3.5 min-w-[220px]">Item Description</th>
-                <th className="py-3 px-3 min-w-[120px]">Part / Drawing No.</th>
-                <th className="py-3 px-3 w-20 text-right">Qty</th>
-                <th className="py-3 px-3 w-16 text-center">Unit</th>
-                <th className="py-3 px-3.5 w-32 text-right">Unit Price ({currencySymbol})</th>
-                <th className="py-3 px-3.5 w-28 text-right">Total ({currencySymbol})</th>
+          <table className="w-full text-left text-sm border-collapse">
+            <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-slate-200 shadow-2xs">
+              <tr className="text-slate-600 font-bold text-xs uppercase tracking-wider">
+                <th className="py-3 px-3.5 w-12 text-center">#</th>
+                <th className="py-3 px-3.5 min-w-[240px]">Item Description</th>
+                <th className="py-3 px-3 min-w-[130px]">Part / Drawing No.</th>
+                <th className="py-3 px-3 w-24 text-right">Quantity</th>
+                <th className="py-3 px-3 w-20 text-center">Unit</th>
+                <th className="py-3 px-3.5 w-36 text-right">Unit Rate ({currencySymbol})</th>
+                <th className="py-3 px-3.5 w-32 text-right">Total ({currencySymbol})</th>
                 <th className="py-3 px-3 w-12 text-center">Del</th>
               </tr>
             </thead>
@@ -547,41 +547,48 @@ export function Step2CheckItems({
                 return (
                   <tr
                     key={item.id}
-                    className={`hover:bg-slate-50/80 transition-colors ${
-                      needsReview ? "bg-amber-50/40" : ""
+                    className={`border-b border-slate-100 transition-colors ${
+                      needsReview
+                        ? "bg-amber-50/40 hover:bg-amber-50/60"
+                        : "odd:bg-white even:bg-slate-50/30 hover:bg-teal-50/20"
                     }`}
                   >
-                    <td className="py-3 px-3.5 text-center font-mono text-xs font-bold text-slate-400">
+                    <td className="py-2.5 px-3.5 text-center font-mono text-xs font-bold text-slate-400">
                       {idx + 1}
                     </td>
 
-                    <td className="py-3 px-3.5">
+                    <td className="py-2.5 px-3.5">
                       <input
                         type="text"
                         value={item.itemName || ""}
                         onChange={(e) => onUpdateItem(item.id, { itemName: e.target.value })}
-                        placeholder="Item name"
-                        className="w-full font-bold text-sm text-slate-900 bg-transparent border-0 focus:ring-1 focus:ring-teal-600 rounded p-1"
+                        placeholder="Item description"
+                        className="w-full font-bold text-sm text-slate-900 bg-transparent border border-transparent hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 transition-all"
                       />
+                      {item.description && (
+                        <p className="text-xs text-slate-500 font-normal px-2 truncate max-w-md">
+                          {item.description}
+                        </p>
+                      )}
                       {needsReview && (
-                        <p className="text-xs text-amber-700 font-semibold pl-1 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-amber-700 font-semibold px-2 flex items-center gap-1 mt-0.5">
                           <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
                           <span>{reason}</span>
                         </p>
                       )}
                     </td>
 
-                    <td className="py-3 px-3">
+                    <td className="py-2.5 px-3">
                       <input
                         type="text"
                         value={item.partNumber || ""}
                         onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
                         placeholder="Part No."
-                        className="w-full font-mono text-xs font-semibold text-slate-700 bg-transparent border-0 focus:ring-1 focus:ring-teal-600 rounded p-1"
+                        className="w-full font-mono text-xs font-bold text-slate-700 bg-slate-100/70 border border-slate-200/90 hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 transition-all"
                       />
                     </td>
 
-                    <td className="py-3 px-3 text-right">
+                    <td className="py-2.5 px-3 text-right">
                       <input
                         type="number"
                         min="0"
@@ -593,20 +600,20 @@ export function Step2CheckItems({
                             isMissingQty: false,
                           })
                         }
-                        className="w-16 text-right font-mono text-sm font-semibold text-slate-900 bg-transparent border border-transparent hover:border-slate-300 focus:border-teal-600 rounded px-1.5 py-1 tabular-nums"
+                        className="w-20 text-right font-mono text-sm font-bold text-slate-900 bg-white border border-slate-300 hover:border-slate-400 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 tabular-nums transition-all"
                       />
                     </td>
 
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       <input
                         type="text"
                         value={item.unit || "PCS"}
                         onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="w-14 text-center text-xs font-bold uppercase text-slate-600 bg-transparent border border-transparent hover:border-slate-300 focus:border-teal-600 rounded py-1"
+                        className="w-16 text-center text-xs font-bold uppercase text-slate-700 bg-slate-100/60 border border-slate-200 hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md py-1 transition-all"
                       />
                     </td>
 
-                    <td className="py-3 px-3.5 text-right">
+                    <td className="py-2.5 px-3.5 text-right">
                       <div className="relative inline-flex items-center justify-end w-full">
                         <span className="absolute left-2.5 text-xs text-slate-400 font-bold select-none">
                           {currencySymbol}
@@ -629,20 +636,20 @@ export function Step2CheckItems({
                           }}
                           onKeyDown={(e) => handleKeyDown(e, idx)}
                           onPaste={(e) => handlePaste(e, idx)}
-                          className={`w-28 pl-6 pr-2.5 py-1.5 text-right font-mono text-sm font-bold rounded-lg border transition-all tabular-nums ${
+                          className={`w-32 pl-6 pr-2.5 py-1.5 text-right font-mono text-sm font-bold rounded-md border transition-all tabular-nums ${
                             isZero
-                              ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-teal-600 focus:bg-white"
-                              : "border-slate-300 text-slate-900 focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+                              ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-[#0F766E]/20"
+                              : "border-slate-300 bg-white text-slate-900 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20"
                           }`}
                         />
                       </div>
                     </td>
 
-                    <td className="py-3 px-3.5 text-right font-mono text-sm font-bold text-slate-900 tabular-nums">
-                      {lineTotal > 0 ? lineTotal.toFixed(2) : "-"}
+                    <td className="py-2.5 px-3.5 text-right font-mono text-sm font-black text-slate-900 tabular-nums">
+                      {lineTotal > 0 ? lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-"}
                     </td>
 
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       <button
                         type="button"
                         onClick={() => onDeleteItem(item.id)}

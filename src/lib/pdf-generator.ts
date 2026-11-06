@@ -34,7 +34,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   const rightX = pageWidth - margin;
   const printableWidth = pageWidth - (margin * 2);
 
-  const primaryColor = data.branding.primaryColor || "#1e3a8a"; // Marine navy by default
+  const primaryColor = data.branding.primaryColor || "#0F766E"; // Marine deep teal by default
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
   const layout = data.branding.layout || "marine";
 
