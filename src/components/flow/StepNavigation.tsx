@@ -21,23 +21,23 @@ export function StepNavigation({
   const steps = [
     {
       num: 1 as FlowStep,
-      label: "1. Customer's Request",
+      label: "1. Upload Request (RFQ)",
       mobileLabel: "1. Request",
       icon: UploadCloud,
       available: true,
     },
     {
       num: 2 as FlowStep,
-      label: "2. Check Items",
-      mobileLabel: "2. Check",
+      label: "2. Items & Pricing",
+      mobileLabel: "2. Items & Prices",
       icon: CheckSquare,
       badge: hasItems ? `${itemCount}` : undefined,
       available: hasItems || currentStep >= 2,
     },
     {
       num: 3 as FlowStep,
-      label: "3. Add Prices & Send",
-      mobileLabel: "3. Price & Send",
+      label: "3. Preview & Send",
+      mobileLabel: "3. Preview & Send",
       icon: DollarSign,
       available: hasItems || currentStep >= 3,
     },

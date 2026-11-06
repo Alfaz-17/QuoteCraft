@@ -76,8 +76,8 @@ export function Step3AddPricesAndSend({
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Desktop/Mobile View state: "pricing" or "preview"
-  const [activeMobileView, setActiveMobileView] = useState<"pricing" | "preview">("pricing");
+  // Desktop/Mobile View state: defaults to "preview" for instant document review
+  const [activeMobileView, setActiveMobileView] = useState<"pricing" | "preview">("preview");
   const [showLivePreviewOnDesktop, setShowLivePreviewOnDesktop] = useState(true);
   const [showDocMetadata, setShowDocMetadata] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -241,16 +241,17 @@ export function Step3AddPricesAndSend({
           <button
             type="button"
             onClick={onBack}
-            className="text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 py-1.5 px-2.5 rounded-lg hover:bg-slate-100 transition-colors min-h-[38px]"
+            className="text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg hover:bg-slate-100 transition-colors min-h-[38px]"
+            title="Return to edit items and unit prices"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to items
+            <ArrowLeft className="w-4 h-4" /> Edit Items &amp; Prices
           </button>
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Add Prices & Send
+              Preview &amp; Send Quotation
             </h2>
             <p className="text-xs text-slate-500 hidden sm:block">
-              Type or paste unit rates from Excel, review the branded PDF, and send
+              Review your branded vector A4 PDF, verify customer details, and dispatch via WhatsApp or Download
             </p>
           </div>
         </div>

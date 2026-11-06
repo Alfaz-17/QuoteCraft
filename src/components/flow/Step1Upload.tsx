@@ -468,14 +468,22 @@ export function Step1Upload({
                   </span>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-10 px-6 rounded-lg font-bold text-xs sm:text-sm bg-brand-600 hover:bg-brand-700 text-white min-h-[44px] shadow-sm"
+                  >
+                    <UploadCloud className="w-4 h-4 mr-2" />
+                    Browse file to upload
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="h-10 px-6 rounded-lg font-bold text-xs sm:text-sm border-brand-600 text-brand-600 hover:bg-teal-50 min-h-[44px]"
+                    onClick={onSkipUpload}
+                    className="h-10 px-5 rounded-lg font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 min-h-[44px]"
                   >
-                    Browse from computer
+                    Start blank quote
                   </Button>
                 </div>
               </div>
@@ -572,7 +580,7 @@ export function Step1Upload({
                 <Input
                   value={state.documentInfo.number || ""}
                   onChange={(e) => onUpdateDocInfo({ number: e.target.value })}
-                  placeholder="QT-1075"
+                  placeholder="e.g. QT-1001"
                   className="h-10 text-sm font-mono font-bold rounded-lg border-slate-300"
                 />
               </div>

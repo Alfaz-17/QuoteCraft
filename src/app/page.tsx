@@ -158,6 +158,27 @@ function QuotationBuilder() {
     setCurrentStep(2);
   }, [state.items.length, handleAddItem]);
 
+  const handleClearExtraction = useCallback(() => {
+    pushUndo(state.items);
+    dispatch({
+      type: "SET_ITEMS",
+      payload: [
+        {
+          id: Date.now().toString(),
+          itemName: "",
+          description: "",
+          partNumber: "",
+          quantity: 1,
+          unit: "pcs",
+          condition: "",
+          unitPrice: 0,
+        },
+      ],
+    });
+    setCurrentStep(1);
+    toastSuccess("Cleared extracted items. You can now upload a new RFQ file or start fresh.");
+  }, [dispatch, state.items, pushUndo, toastSuccess]);
+
   const handleNewQuote = useCallback(() => {
     pushUndo(state.items);
     dispatch({ type: "NEW_QUOTATION" });
@@ -331,20 +352,29 @@ function QuotationBuilder() {
           />
         )}
 
-        {/* STEP 2: Check items */}
+        {/* STEP 2: Items & Pricing */}
         {currentStep === 2 && (
           <Step2CheckItems
+            state={state}
             items={state.items}
             tableColumns={state.tableColumns}
             onUpdateItem={handleUpdateItem}
+            onBatchUpdatePrices={handleBatchUpdatePrices}
             onDeleteItem={handleDeleteItem}
             onAddItem={handleAddItem}
             onDuplicateItem={handleDuplicateItem}
             onReorderItem={handleReorderItem}
+            onSetCurrency={handleSetCurrency}
+            onSetDiscount={handleSetDiscount}
+            onSetTaxPercent={handleSetTaxPercent}
+            onSetShipping={handleSetShipping}
+            onUpdateClient={handleUpdateClient}
+            onUpdateDocInfo={handleUpdateDocInfo}
             onUpdateColumn={(id, updates) => dispatch({ type: "UPDATE_COLUMN", payload: { id, updates } })}
             onDeleteColumn={(id) => dispatch({ type: "DELETE_COLUMN", payload: id })}
             onAddColumn={(col) => dispatch({ type: "ADD_COLUMN", payload: col })}
             onSetColumns={(cols) => dispatch({ type: "SET_COLUMNS", payload: cols })}
+            onClearExtraction={handleClearExtraction}
             onNext={() => setCurrentStep(3)}
             onBack={() => setCurrentStep(1)}
           />
