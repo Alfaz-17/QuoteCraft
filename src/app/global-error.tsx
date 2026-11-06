@@ -40,12 +40,12 @@ export default function GlobalError({
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reload Application
             </button>
-            <a
+            <Link
               href="/"
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
             >
               Go to Home
-            </a>
+            </Link>
           </div>
         </div>
       </body>

@@ -64,15 +64,9 @@ export default function SettingsPage() {
   const [selectedSecondary, setSelectedSecondary] = useState(state.branding.secondaryColor || "#F59E0B");
   const [selectedFont, setSelectedFont] = useState(state.branding.font || "Manrope");
 
-  if (!isLoaded || !isSignedIn) {
-    return (
-      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
-        <HeroSailingLoader statusMessage="Verifying authorization..." />
-      </div>
-    );
-  }
-
+  // Sync with hydrated quotation context
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (state.company.name) setCompanyName(state.company.name);
     if (state.company.email) setCompanyEmail(state.company.email);
     if (state.company.phone) setCompanyPhone(state.company.phone);
@@ -81,11 +75,20 @@ export default function SettingsPage() {
   }, [state.company]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (state.branding.layout) setSelectedLayout(state.branding.layout);
     if (state.branding.primaryColor) setSelectedColor(state.branding.primaryColor);
     if (state.branding.secondaryColor) setSelectedSecondary(state.branding.secondaryColor);
     if (state.branding.font) setSelectedFont(state.branding.font);
   }, [state.branding]);
+
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+        <HeroSailingLoader statusMessage="Verifying authorization..." />
+      </div>
+    );
+  }
 
   const handleSaveCompany = () => {
     const updatedCompany = {

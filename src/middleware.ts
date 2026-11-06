@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, NextFetchEvent } from "next/server";
 
 // Public routes accessible without authentication
 const isPublicRoute = createRouteMatcher([
@@ -38,7 +38,7 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
  * 3. If keys are missing, gracefully redirects unauthorized visits to /sign-in without throwing 500 MIDDLEWARE_INVOCATION_FAILED.
  * 4. Catches any transient edge runtime errors and redirects safely.
  */
-export default async function middleware(request: NextRequest, event: any) {
+export default async function middleware(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
 
   // Skip static assets
