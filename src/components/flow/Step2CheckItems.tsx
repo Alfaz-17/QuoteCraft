@@ -23,7 +23,6 @@ import {
   RotateCcw,
   Building,
   HelpCircle,
-  FileSpreadsheet,
   Eye,
   EyeOff
 } from "lucide-react";

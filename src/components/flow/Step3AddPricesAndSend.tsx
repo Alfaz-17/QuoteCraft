@@ -21,12 +21,8 @@ import {
   FileSpreadsheet, 
   Eye, 
   Trash2, 
-  RotateCcw,
   Building,
-  Ship,
-  Sparkles,
   ChevronDown,
-  ChevronUp,
   HelpCircle,
   BellRing,
   Loader2
@@ -41,7 +37,6 @@ import {
   toNumber 
 } from "@/utils/calculations";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
-import { MarineTemplate } from "@/components/preview/MarineTemplate";
 import { PreviewContainer } from "@/components/preview/PreviewContainer";
 import { useToast } from "@/components/ui/Toast";
 import { DualOrbitalSpinner } from "@/components/ui/Loaders";

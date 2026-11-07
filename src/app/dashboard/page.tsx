@@ -17,8 +17,6 @@ import {
   Plus, 
   Bell,
   Trash2,
-  Calendar,
-  Building2,
   Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
