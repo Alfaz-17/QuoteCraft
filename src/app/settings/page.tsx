@@ -28,9 +28,11 @@ import {
   CheckCircle2,
   FileText,
   Sliders,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
 import { 
   QUOTATION_TEMPLATES, 
   PRESET_COLOR_PALETTES, 
@@ -70,6 +72,36 @@ export default function SettingsPage() {
   const [selectedColor, setSelectedColor] = useState(state.branding.primaryColor || "#0F766E");
   const [selectedSecondary, setSelectedSecondary] = useState(state.branding.secondaryColor || "#F59E0B");
   const [selectedFont, setSelectedFont] = useState(state.branding.font || "Manrope");
+  const [aiDetectedPalette, setAiDetectedPalette] = useState<ExtractedPalette | null>(null);
+  const [isAnalyzingLogo, setIsAnalyzingLogo] = useState(false);
+
+  useEffect(() => {
+    if (state.branding.logo && !aiDetectedPalette) {
+      extractColorsFromImage(state.branding.logo).then((palette) => {
+        setAiDetectedPalette(palette);
+      }).catch(() => {});
+    }
+  }, [state.branding.logo, aiDetectedPalette]);
+
+  const triggerLogoAnalysis = async (customSource?: string) => {
+    const source = customSource || state.branding.logo;
+    if (!source) {
+      toastSuccess("Please upload a company logo first to auto-detect brand colors.");
+      return;
+    }
+    setIsAnalyzingLogo(true);
+    try {
+      const palette = await extractColorsFromImage(source);
+      setAiDetectedPalette(palette);
+      setSelectedColor(palette.primaryColor);
+      setSelectedSecondary(palette.secondaryColor);
+      toastSuccess(`✨ AI extracted brand colors: ${palette.primaryColor} (Primary) & ${palette.secondaryColor} (Accent)!`);
+    } catch (err) {
+      console.warn("Color analysis error:", err);
+    } finally {
+      setIsAnalyzingLogo(false);
+    }
+  };
 
   // Sync with hydrated quotation context
   useEffect(() => {
@@ -347,7 +379,46 @@ export default function SettingsPage() {
 
               {/* Color Palette Selector */}
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-slate-700">Brand Color Palette</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-bold text-slate-700">Brand Color Palette</Label>
+                  {state.branding.logo && (
+                    <button
+                      type="button"
+                      onClick={() => triggerLogoAnalysis()}
+                      disabled={isAnalyzingLogo}
+                      className="text-xs font-bold text-[#0F766E] flex items-center gap-1 hover:underline"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" />
+                      {isAnalyzingLogo ? "Analyzing..." : "AI Auto-Match"}
+                    </button>
+                  )}
+                </div>
+                {aiDetectedPalette && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedColor(aiDetectedPalette.primaryColor);
+                      setSelectedSecondary(aiDetectedPalette.secondaryColor);
+                    }}
+                    className={`w-full p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-all ${
+                      selectedColor.toLowerCase() === aiDetectedPalette.primaryColor.toLowerCase()
+                        ? "border-[#0F766E] bg-gradient-to-r from-[#E0F2F1]/60 to-amber-50/60 ring-1 ring-[#0F766E]"
+                        : "border-teal-200 bg-teal-50/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      <div className="text-left">
+                        <p className="text-xs font-extrabold text-slate-900">✨ AI Logo Match</p>
+                        <p className="text-[11px] text-teal-700 font-mono">{aiDetectedPalette.primaryColor} • {aiDetectedPalette.secondaryColor}</p>
+                      </div>
+                    </div>
+                    <div className="w-10 h-6 rounded-md flex overflow-hidden shadow-2xs border border-slate-200 shrink-0">
+                      <div className="w-1/2 h-full" style={{ backgroundColor: aiDetectedPalette.primaryColor }} />
+                      <div className="w-1/2 h-full" style={{ backgroundColor: aiDetectedPalette.secondaryColor }} />
+                    </div>
+                  </button>
+                )}
                 <div className="grid grid-cols-3 gap-2">
                   {PRESET_COLOR_PALETTES.map((palette) => (
                     <button
@@ -459,6 +530,37 @@ export default function SettingsPage() {
                 >
                   Back
                 </button>
+              </div>
+
+              {/* Mobile Logo Upload Row */}
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-11 rounded-lg bg-white border border-slate-200 flex items-center justify-center p-1 overflow-hidden shrink-0">
+                    {state.branding.logo ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={state.branding.logo} alt="Logo" className="max-h-full max-w-full object-contain" />
+                    ) : (
+                      <Ship className="w-5 h-5 text-slate-300" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">Company Logo</p>
+                    <p className="text-[10px] text-slate-500">Auto-extracted for palette</p>
+                  </div>
+                </div>
+                <label
+                  htmlFor="mobile-logo-upload"
+                  className="cursor-pointer px-3 py-1.5 bg-[#0F766E] text-white text-xs font-bold rounded-lg shadow-2xs shrink-0"
+                >
+                  {state.branding.logo ? "Change" : "Upload"}
+                </label>
+                <input
+                  id="mobile-logo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
               </div>
 
               <div className="space-y-1">
