@@ -24,76 +24,6 @@ import { mapImport } from "@/utils/importMapping";
 import { useToast } from "@/components/ui/Toast";
 import { OrigamiDrawLoader, DualOrbitalSpinner } from "@/components/ui/Loaders";
 
-// Demo RFQ items (M/V Oceanic Star Engine Spares)
-const DEMO_ITEMS: LineItem[] = [
-  {
-    id: "item_demo_1",
-    sno: 1,
-    itemName: "Cylinder liner",
-    partNumber: "CL-102",
-    description: "Main Engine cylinder liner, standard bore size",
-    technicalSpecification: "Bore 500mm, Stroke 2000mm, High-tensile cast iron",
-    quantity: 4,
-    unit: "PCS",
-    unitPrice: 100,
-    total: 400,
-    condition: "New",
-  },
-  {
-    id: "item_demo_2",
-    sno: 2,
-    itemName: "Exhaust valve spindle",
-    partNumber: "EV-204",
-    description: "Nimonic material exhaust valve spindle",
-    technicalSpecification: "Standard length, hard chrome plated stem",
-    quantity: 8,
-    unit: "PCS",
-    unitPrice: 10,
-    total: 80,
-    condition: "OEM",
-  },
-  {
-    id: "item_demo_3",
-    sno: 3,
-    itemName: "Fuel injector complete",
-    partNumber: "FI-301",
-    description: "Complete slide fuel valve with nozzle",
-    technicalSpecification: "Pressure calibrated to 380 bar, tested",
-    quantity: 2,
-    unit: "PCS",
-    unitPrice: 40,
-    total: 80,
-    condition: "Reconditioned",
-    needsReview: true,
-  },
-  {
-    id: "item_demo_4",
-    sno: 4,
-    itemName: "Piston ring set",
-    partNumber: "PRS-410",
-    description: "Top and intermediate ring set per cylinder",
-    technicalSpecification: "Chrome ceramic coated, CPR ring profile",
-    quantity: 6,
-    unit: "SETS",
-    unitPrice: 20,
-    total: 120,
-    condition: "New",
-  },
-  {
-    id: "item_demo_5",
-    sno: 5,
-    itemName: "Fuel pump plunger",
-    partNumber: "FPP-515",
-    description: "Plunger and barrel assembly",
-    technicalSpecification: "Matched pair, micro-finished clearance",
-    quantity: 3,
-    unit: "PCS",
-    unitPrice: 50,
-    total: 150,
-    condition: "New",
-  },
-];
-
 interface Step1UploadProps {
   state: QuotationState;
   onUpdateDocInfo: (docInfo: Partial<QuotationState["documentInfo"]>) => void;
@@ -285,25 +215,6 @@ export function Step1Upload({
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const handleLoadDemoRFQ = () => {
-    onUpdateClient({
-      name: "Oceanic Shipping Co.",
-      companyName: "Oceanic Shipping Co.",
-      address: "123 Marine Street, Dubai, UAE",
-      phone: "+971 50 123 4567",
-      attn: "Technical Superintendent",
-    });
-    onUpdateDocInfo({
-      number: "QT-1075",
-      vessel: "M/V Oceanic Star",
-      scope: "Main Engine Spares",
-      make: "MAN B&W",
-      model: "6S50MC-C",
-    });
-    onImportComplete(DEMO_ITEMS, state.tableColumns);
-    toastSuccess("Sample RFQ loaded: 5 items for M/V Oceanic Star!");
   };
 
   const selectClient = (client: QuotationState["client"]) => {
@@ -520,32 +431,6 @@ export function Step1Upload({
             </div>
           </div>
         )}
-
-        {/* 1-Click Try Sample Bar */}
-        <div className="rounded-xl bg-amber-50/70 border border-amber-200/80 p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-900 flex items-center justify-center shrink-0 font-bold">
-              <Sparkles className="w-4 h-4 text-slate-950" />
-            </div>
-            <div>
-              <p className="text-xs sm:text-sm font-bold text-slate-900">
-                Want to see how it works first?
-              </p>
-              <p className="text-xs text-slate-600">
-                Load our sample marine engine requisition (M/V Oceanic Star).
-              </p>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleLoadDemoRFQ}
-            className="h-9 px-3.5 rounded-lg text-xs font-bold bg-white text-slate-900 border border-slate-300 hover:bg-slate-50 shrink-0 shadow-2xs"
-          >
-            Try sample request
-          </Button>
-        </div>
 
         {/* Privacy Assurance */}
         <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 pt-1">
