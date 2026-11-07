@@ -183,7 +183,7 @@ export default function SettingsPage() {
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const base64 = event.target?.result as string;
       const updatedBranding = { ...state.branding, logo: base64 };
       dispatch({
@@ -196,6 +196,7 @@ export default function SettingsPage() {
         console.error(e);
       }
       toastSuccess("Company logo updated!");
+      await triggerLogoAnalysis(base64);
     };
     reader.readAsDataURL(file);
   };
@@ -692,6 +693,16 @@ export default function SettingsPage() {
                       <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
                       {state.branding.logo ? "Change Logo" : "Upload Custom Logo"}
                     </label>
+                    <button
+                      type="button"
+                      onClick={() => triggerLogoAnalysis()}
+                      disabled={isAnalyzingLogo || !state.branding.logo}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-50 to-teal-50 border border-teal-200 hover:border-teal-300 text-[#0F766E] text-xs font-bold rounded-xl transition-all shadow-2xs disabled:opacity-50"
+                      title="AI detects dominant and secondary brand colors from your logo"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      {isAnalyzingLogo ? "Analyzing Colors..." : "✨ AI Auto-Detect Palette"}
+                    </button>
                     {state.branding.logo && (
                       <button
                         type="button"
@@ -844,12 +855,54 @@ export default function SettingsPage() {
                     <Palette className="w-4 h-4 text-[#0F766E]" />
                     2. Color Palette
                   </Label>
-                  <span className="text-xs font-mono font-bold text-slate-500">
-                    Active: {selectedColor}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {state.branding.logo && (
+                      <button
+                        type="button"
+                        onClick={() => triggerLogoAnalysis()}
+                        disabled={isAnalyzingLogo}
+                        className="text-xs font-bold text-[#0F766E] flex items-center gap-1.5 hover:underline bg-[#E0F2F1]/60 px-2.5 py-1 rounded-lg border border-teal-200 transition-colors"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                        {isAnalyzingLogo ? "Analyzing Logo..." : "✨ AI Match From Logo"}
+                      </button>
+                    )}
+                    <span className="text-xs font-mono font-bold text-slate-500">
+                      Active: {selectedColor}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {/* AI Logo Palette Card */}
+                  {aiDetectedPalette && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedColor(aiDetectedPalette.primaryColor);
+                        setSelectedSecondary(aiDetectedPalette.secondaryColor);
+                      }}
+                      className={`p-3 rounded-md border-2 flex items-center gap-3 text-left transition-all ${
+                        selectedColor.toLowerCase() === aiDetectedPalette.primaryColor.toLowerCase()
+                          ? "border-[#0F766E] bg-gradient-to-r from-[#E0F2F1]/60 to-amber-50/60 ring-1 ring-[#0F766E]/40"
+                          : "border-teal-200 bg-teal-50/20 hover:border-teal-300"
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-xl flex overflow-hidden shadow-2xs shrink-0 border border-slate-200/50">
+                        <div className="w-1/2 h-full" style={{ backgroundColor: aiDetectedPalette.primaryColor }} />
+                        <div className="w-1/2 h-full" style={{ backgroundColor: aiDetectedPalette.secondaryColor }} />
+                      </div>
+                      <div className="overflow-hidden flex-1">
+                        <div className="flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
+                          <p className="text-xs font-black text-slate-900 truncate">AI Logo Match</p>
+                        </div>
+                        <p className="text-[11px] text-[#0F766E] font-mono font-bold truncate">
+                          {aiDetectedPalette.primaryColor}
+                        </p>
+                      </div>
+                    </button>
+                  )}
                   {PRESET_COLOR_PALETTES.map((palette) => {
                     const isActive = selectedColor.toLowerCase() === palette.primaryColor.toLowerCase();
                     return (
@@ -878,6 +931,28 @@ export default function SettingsPage() {
                     );
                   })}
                 </div>
+
+                {/* Detected Logo Swatches */}
+                {aiDetectedPalette?.detectedColors && aiDetectedPalette.detectedColors.length > 0 && (
+                  <div className="p-3 bg-teal-50/40 border border-teal-200/70 rounded-xl flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-bold text-teal-900 flex items-center gap-1.5 mr-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                      Detected Logo Colors:
+                    </span>
+                    {aiDetectedPalette.detectedColors.map((hex, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedColor(hex)}
+                        title={`Click to set primary color to ${hex}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-mono font-bold hover:border-[#0F766E] transition-all shadow-2xs"
+                      >
+                        <span className="w-3 h-3 rounded-full shadow-2xs" style={{ backgroundColor: hex }} />
+                        {hex}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {/* Custom Color Input */}
                 <div className="flex items-center gap-3 p-3.5 rounded-md bg-slate-50 border border-slate-200">

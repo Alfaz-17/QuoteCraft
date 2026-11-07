@@ -5,6 +5,7 @@ import { QuotationState } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
 import { 
   X, Building2, UploadCloud, Check, Landmark, ShieldCheck, 
   FileText, Sparkles 
@@ -36,6 +37,15 @@ export function CompanyProfileModal({
   const [terms, setTerms] = useState(state.terms || "");
   const [activeTab, setActiveTab] = useState<"business" | "bank" | "terms">("business");
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [detectedPalette, setDetectedPalette] = useState<ExtractedPalette | null>(null);
+
+  React.useEffect(() => {
+    if (logo && !detectedPalette) {
+      extractColorsFromImage(logo).then((palette) => {
+        setDetectedPalette(palette);
+      }).catch(() => {});
+    }
+  }, [logo, detectedPalette]);
 
   if (!isOpen) return null;
 
@@ -49,15 +59,22 @@ export function CompanyProfileModal({
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const result = reader.result as string;
       setLogo(result);
+      try {
+        const palette = await extractColorsFromImage(result);
+        setDetectedPalette(palette);
+      } catch (err) {
+        console.warn("AI Logo color analysis fallback:", err);
+      }
     };
     reader.readAsDataURL(file);
   };
 
   const handleRemoveLogo = () => {
     setLogo(null);
+    setDetectedPalette(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -188,6 +205,33 @@ export function CompanyProfileModal({
                     <p>Placed in the header of every quotation PDF.</p>
                   </div>
                 </div>
+                {/* AI Detected Brand Colors */}
+                {detectedPalette && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-teal-50 to-amber-50/50 border border-teal-200 text-xs shadow-2xs mt-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0" />
+                      <div>
+                        <span className="font-extrabold text-slate-900">AI Logo Color Palette:</span>
+                        <span className="text-slate-600 ml-2 font-mono text-[11px] font-bold">
+                          {detectedPalette.primaryColor} (Primary) &amp; {detectedPalette.secondaryColor} (Accent)
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdateBranding({
+                          primaryColor: detectedPalette.primaryColor,
+                          secondaryColor: detectedPalette.secondaryColor,
+                        });
+                        toastSuccess(`Applied logo colors (${detectedPalette.primaryColor}) to quotation template!`);
+                      }}
+                      className="px-3 py-1.5 bg-[#0F766E] hover:bg-[#0D6B63] text-white font-bold text-xs rounded-lg transition-colors shadow-2xs shrink-0"
+                    >
+                      Apply to Template
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Business info fields */}
