@@ -130,3 +130,4 @@ function getDefaultPalette(): ExtractedPalette {
     detectedColors: ["#0F766E", "#F59E0B"],
   };
 }
+
