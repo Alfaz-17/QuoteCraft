@@ -163,7 +163,7 @@ export function Sidebar() {
           className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-3 py-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around"
         >
           {menuItems
-            .filter((item) => ["/dashboard", "/quotations", "/templates", "/settings"].includes(item.href))
+            .filter((item) => ["/dashboard", "/", "/quotations", "/settings"].includes(item.href))
             .map((item) => {
               const isActive = pathname === item.href;
               return (

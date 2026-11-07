@@ -10,7 +10,7 @@ import { Step3AddPricesAndSend } from "@/components/flow/Step3AddPricesAndSend";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
 import { 
-  Building2, RotateCcw, FilePlus, Check, Loader2, LayoutDashboard 
+  Building2, RotateCcw, FilePlus, Check, Loader2, LayoutDashboard, ArrowLeft
 } from "lucide-react";
 import { LineItem, TableColumn, CURRENCY_SYMBOLS, QuotationState, Currency } from "@/types/quotation.types";
 import { calculateGrandTotal } from "@/utils/calculations";
@@ -235,54 +235,51 @@ function QuotationBuilder() {
   return (
     <div className="h-[100dvh] flex flex-col bg-[#FAF9F5] overflow-hidden text-[#0F172A] selection:bg-teal-500/10 selection:text-teal-900">
       {/* ===== NATIVE APP TOOLBAR (z-30) ===== */}
-      <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] flex items-center justify-between z-30 shadow-2xs app-chrome select-none">
-        {/* Brand & Document Info */}
-        <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center gap-2 group min-h-[44px]" title="Return to Dashboard">
-            <QuoteCraftLogo size={32} showText={false} />
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-[#0F172A] leading-none group-hover:text-[#0F766E] transition-colors">
+      <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 sm:px-6 py-2 pt-[max(0.6rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] flex items-center justify-between z-30 shadow-2xs app-chrome select-none">
+        {/* Brand & Document Info (Back arrow + Logo + Quote number) */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+          <Link
+            href="/dashboard"
+            className="p-1 -ml-1 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors shrink-0 flex items-center justify-center min-h-[40px] min-w-[40px]"
+            title="Back to Dashboard"
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600" />
+          </Link>
+
+          <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" title="QuoteCraft Dashboard">
+            <QuoteCraftLogo size={28} showText={false} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-[#0F172A] leading-none group-hover:text-[#0F766E] transition-colors truncate">
                   Quote<span className="text-[#0F766E]">Craft</span>
                 </h1>
                 {isHydrated && state.documentInfo.number && (
                   <span
                     suppressHydrationWarning
-                    className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200"
+                    className="text-[11px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 shrink-0 truncate max-w-[85px] sm:max-w-none"
                   >
                     {state.documentInfo.number}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#475569] font-medium hidden sm:block mt-0.5">
-                Marine &amp; Industrial Quotation Platform
-              </p>
             </div>
           </Link>
         </div>
 
-        {/* Toolbar Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          {/* Dashboard link for mobile */}
-          <Link
-            href="/dashboard"
-            className="flex sm:hidden items-center gap-1 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors min-h-[44px]"
-            title="Dashboard"
-          >
-            <LayoutDashboard className="w-4 h-4 text-[#0F766E]" />
-            <span>Dashboard</span>
-          </Link>
-          {/* Autosave status chip */}
-          <div className="hidden min-[480px]:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-xs font-semibold text-slate-700 border border-slate-200 min-h-[44px]">
+        {/* Toolbar Controls (Streamlined, strictly single line on mobile) */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 flex-nowrap">
+          {/* Autosave status indicator */}
+          <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 border border-slate-200 shrink-0">
             {isSaved ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
-                <span className="text-emerald-800 font-bold">Saved</span>
+                <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                <span className="text-emerald-800 font-bold hidden sm:inline">Saved</span>
               </>
             ) : (
               <>
                 <DualOrbitalSpinner size="sm" />
-                <span className="text-amber-800">Saving...</span>
+                <span className="text-amber-800 hidden sm:inline">Saving...</span>
               </>
             )}
           </div>
@@ -291,8 +288,9 @@ function QuotationBuilder() {
           <button
             type="button"
             onClick={handleUndo}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 min-h-[44px]"
+            className="w-9 h-9 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 border border-slate-200 flex items-center justify-center gap-1.5 transition-colors active:scale-95 shrink-0"
             title="Undo (Ctrl+Z)"
+            aria-label="Undo"
           >
             <RotateCcw className="w-4 h-4 text-slate-500" />
             <span className="hidden sm:inline">Undo</span>
@@ -302,32 +300,33 @@ function QuotationBuilder() {
           <button
             type="button"
             onClick={() => setShowCompanyModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors border border-slate-200 active:scale-95 min-h-[44px]"
-            title="Company logo, bank details, and terms"
+            className="w-9 h-9 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 flex items-center justify-center gap-1.5 transition-colors active:scale-95 shrink-0"
+            title="Company Profile"
+            aria-label="Company Profile"
           >
             <Building2 className="w-4 h-4 text-[#0F766E]" />
             <span className="hidden sm:inline">Company Profile</span>
           </button>
 
-          {/* Live Grand Total pill in header */}
+          {/* Live Grand Total pill (desktop only) */}
           {isHydrated && state.items.length > 0 && grandTotal > 0 && (
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800 shadow-2xs min-h-[44px]">
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800 shadow-2xs shrink-0">
               <span className="text-xs font-sans text-emerald-700 font-semibold">Total:</span>
               <span>{currencySymbol}{grandTotal.toLocaleString(state.currency === "INR" ? "en-IN" : "en-US", { maximumFractionDigits: 0 })}</span>
             </div>
           )}
 
           {/* New Quote button */}
-          <Button
-            size="sm"
-            variant="outline"
+          <button
+            type="button"
             onClick={handleNewQuote}
-            className="min-h-[44px] px-3.5 rounded-lg font-bold text-xs gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-50 active:scale-95"
+            className="w-9 h-9 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg font-bold text-xs border border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 active:scale-95 shrink-0"
             title="Start fresh quotation"
+            aria-label="New Quote"
           >
             <FilePlus className="w-4 h-4 text-slate-500" />
             <span className="hidden sm:inline">New Quote</span>
-          </Button>
+          </button>
         </div>
       </header>
 

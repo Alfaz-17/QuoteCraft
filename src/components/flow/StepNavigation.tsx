@@ -44,7 +44,7 @@ export function StepNavigation({
   ];
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-12 z-30 px-3 sm:px-6 py-2 transition-all">
+    <div className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200/80 relative shrink-0 z-20 px-3 sm:px-6 py-1.5">
       <div className="max-w-4xl mx-auto">
         {/* Segmented Pill Bar */}
         <nav className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/70 shadow-inner">
