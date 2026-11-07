@@ -213,65 +213,67 @@ export function Step2CheckItems({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-5 sm:py-8 px-3 sm:px-6 space-y-5 animate-in fade-in duration-300 pb-36">
-      {/* ── TOP HEADER & PRIMARY ACTION TOOLBAR ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 py-1.5 px-2.5 rounded-lg hover:bg-slate-100 transition-colors min-h-[38px]"
-            title="Return to Request"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Upload RFQ</span>
-            <span className="sm:hidden">Back</span>
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                Items &amp; Pricing
-              </h2>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200">
-                {items.length} items
-              </span>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {/* ── SCROLLING MIDDLE CONTENT ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-4 max-w-7xl mx-auto w-full pb-8">
+        {/* ── TOP HEADER & PRIMARY ACTION TOOLBAR ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-[13px] font-bold text-[#475569] hover:text-[#0F172A] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
+              title="Return to Request"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Upload RFQ</span>
+              <span className="sm:hidden">Back</span>
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
+                  Items &amp; Pricing
+                </h2>
+                <span className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200">
+                  {items.length} items
+                </span>
+              </div>
+              <p className="text-[13px] text-[#475569] hidden sm:block mt-0.5">
+                Edit item specifications, enter unit prices (supports Excel paste), and review totals
+              </p>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block mt-0.5">
-              Edit item specifications, enter unit prices (supports Excel paste), and review totals
-            </p>
           </div>
-        </div>
 
-        {/* Actions: Clear Extraction + Add Row + Next */}
-        <div className="flex items-center gap-2">
-          {/* Discard / Re-upload button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowClearModal(true)}
-            className="h-10 px-3 rounded-lg text-xs font-semibold border-rose-200 text-rose-700 hover:bg-rose-50"
-            title="Clear items and re-upload a different RFQ"
-          >
-            <RotateCcw className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
-            <span className="hidden sm:inline">Clear &amp; Re-upload</span>
-            <span className="sm:hidden">Reset</span>
-          </Button>
-
-          {/* Table Layout */}
-          {onSetColumns && (
+          {/* Actions: Clear Extraction + Add Row + Next */}
+          <div className="flex items-center gap-2">
+            {/* Discard / Re-upload button */}
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowColumnsModal(true)}
-              className="h-10 px-3 rounded-lg text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50 hidden sm:flex items-center"
-              title="Configure visible table columns"
+              onClick={() => setShowClearModal(true)}
+              className="min-h-[44px] px-3.5 rounded-lg text-[13px] font-semibold border-rose-200 text-rose-700 hover:bg-rose-50"
+              title="Clear items and re-upload a different RFQ"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-              <span>Columns</span>
+              <RotateCcw className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
+              <span className="hidden sm:inline">Clear &amp; Re-upload</span>
+              <span className="sm:hidden">Reset</span>
             </Button>
-          )}
+
+            {/* Table Layout */}
+            {onSetColumns && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowColumnsModal(true)}
+                className="min-h-[44px] px-3.5 rounded-lg text-[13px] font-semibold border-slate-300 text-slate-700 hover:bg-slate-50 hidden sm:flex items-center"
+                title="Configure visible table columns"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                <span>Columns</span>
+              </Button>
+            )}
 
           {/* Add Row */}
           <Button
@@ -800,15 +802,16 @@ export function Step2CheckItems({
                 value={shippingCharge || ""}
                 placeholder="0.00"
                 onChange={(e) => onSetShipping(parseFloat(e.target.value) || 0)}
-                className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
+                className="h-10 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
               />
             </div>
           )}
         </div>
       </div>
+      {/* ── END SCROLLING MIDDLE CONTENT ── */}
 
-      {/* ── STICKY BOTTOM TOTAL & NEXT ACTION BAR ── */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-8 py-3 shadow-lg">
+      {/* ── STICKY IN-FLOW BOTTOM TOTAL & NEXT ACTION BAR (z-30) ── */}
+      <footer className="shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md z-30 px-4 sm:px-8 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Left: Financial Totals Breakdown */}
           <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-xs sm:text-sm">
@@ -842,7 +845,7 @@ export function Step2CheckItems({
               type="button"
               variant="outline"
               onClick={onAddItem}
-              className="h-10 px-3.5 rounded-lg font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-50"
+              className="min-h-[44px] px-4 rounded-lg font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-50"
             >
               <Plus className="w-4 h-4 mr-1 text-[#0F766E]" />
               <span>Add Row</span>
@@ -850,7 +853,7 @@ export function Step2CheckItems({
 
             <Button
               onClick={onNext}
-              className="h-10 px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[40px] flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
+              className="min-h-[48px] px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
             >
               <span>Preview &amp; Send Quote</span>
               <ArrowRight className="w-4 h-4" />
@@ -973,6 +976,7 @@ export function Step2CheckItems({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

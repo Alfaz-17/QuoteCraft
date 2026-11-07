@@ -41,6 +41,7 @@ import {
 } from "@/utils/calculations";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { MarineTemplate } from "@/components/preview/MarineTemplate";
+import { PreviewContainer } from "@/components/preview/PreviewContainer";
 import { useToast } from "@/components/ui/Toast";
 import { DualOrbitalSpinner } from "@/components/ui/Loaders";
 
@@ -234,27 +235,29 @@ export function Step3AddPricesAndSend({
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-5 sm:py-8 px-3 sm:px-6 space-y-5 animate-in fade-in duration-300 pb-36">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg hover:bg-slate-100 transition-colors min-h-[38px]"
-            title="Return to edit items and unit prices"
-          >
-            <ArrowLeft className="w-4 h-4" /> Edit Items &amp; Prices
-          </button>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Preview &amp; Send Quotation
-            </h2>
-            <p className="text-xs text-slate-500 hidden sm:block">
-              Review your branded vector A4 PDF, verify customer details, and dispatch via WhatsApp or Download
-            </p>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {/* ── SCROLLING MIDDLE CONTENT ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-5 max-w-7xl mx-auto w-full pb-8">
+        {/* Top Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-[13px] font-bold text-[#475569] hover:text-[#0F172A] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
+              title="Return to edit items and unit prices"
+            >
+              <ArrowLeft className="w-4 h-4" /> Edit Items &amp; Prices
+            </button>
+            <div>
+              <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
+                Preview &amp; Send Quotation
+              </h2>
+              <p className="text-[13px] text-[#475569] hidden sm:block mt-0.5">
+                Review your branded vector A4 PDF, verify customer details, and dispatch via WhatsApp or Download
+              </p>
+            </div>
           </div>
-        </div>
 
         {/* View toggles & Quick Actions */}
         <div className="flex items-center gap-2">
@@ -447,6 +450,7 @@ export function Step3AddPricesAndSend({
                       </span>
                       <input
                         type="number"
+                        inputMode="decimal"
                         min="0"
                         step="any"
                         value={priceVal > 0 ? priceVal : ""}
@@ -458,10 +462,10 @@ export function Step3AddPricesAndSend({
                             [priceKey]: val,
                           });
                         }}
-                        className={`w-full pl-6 pr-3 py-2 text-right font-mono text-sm font-bold rounded-lg border transition-all ${
+                        className={`w-full pl-6 pr-3 py-2 text-right font-mono text-[16px] font-bold rounded-lg border transition-all min-h-[44px] ${
                           isZero
-                            ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-brand-600 focus:bg-white"
-                            : "border-slate-300 text-slate-900 focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
+                            ? "border-amber-300 bg-amber-50/20 text-[#0F172A] focus:border-[#0F766E] focus:bg-white"
+                            : "border-slate-300 text-[#0F172A] focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                         }`}
                       />
                     </div>
@@ -641,10 +645,8 @@ export function Step3AddPricesAndSend({
             </div>
 
             {/* Document preview container */}
-            <div className="bg-slate-100 rounded-xl p-2 max-h-[560px] overflow-y-auto shadow-inner border border-slate-200/80">
-              <div className="scale-[0.85] origin-top bg-white shadow-md rounded">
-                <MarineTemplate data={state} />
-              </div>
+            <div className="bg-slate-100 rounded-xl p-1 sm:p-2 overflow-hidden shadow-inner border border-slate-200/80">
+              <PreviewContainer data={state} onUpdateState={onUpdateState} />
             </div>
 
             {/* Action Buttons in card */}
@@ -652,7 +654,7 @@ export function Step3AddPricesAndSend({
               <Button
                 disabled={isDownloading}
                 onClick={handleDownloadPDF}
-                className="w-full h-11 rounded-lg font-bold text-sm bg-brand-600 hover:bg-brand-700 text-white min-h-[44px] shadow-sm flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] rounded-lg font-bold text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-sm flex items-center justify-center gap-2"
               >
                 {isDownloading ? (
                   <>
@@ -669,7 +671,7 @@ export function Step3AddPricesAndSend({
                 <Button
                   variant="outline"
                   onClick={handleShareWhatsApp}
-                  className="h-10 rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                  className="min-h-[44px] rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
                 >
                   <MessageCircle className="w-4 h-4 text-emerald-600" />
                   <span>Send WhatsApp</span>
@@ -678,7 +680,7 @@ export function Step3AddPricesAndSend({
                 <Button
                   variant="outline"
                   onClick={handleCopySummary}
-                  className="h-10 rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+                  className="min-h-[44px] rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
                 >
                   {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
                   <span>{copiedLink ? "Copied" : "Copy Summary"}</span>
@@ -688,43 +690,44 @@ export function Step3AddPricesAndSend({
           </div>
         </div>
       </div>
+      {/* ── END SCROLLING MIDDLE CONTENT ── */}
 
-      {/* Sticky Bottom Total & Action Bar */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-8 py-3 shadow-lg">
+      {/* ── STICKY IN-FLOW BOTTOM TOTAL & ACTION BAR (z-30) ── */}
+      <footer className="shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md z-30 px-4 sm:px-8 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Left: Financial Totals Breakdown */}
           <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="hidden sm:block">
-              <span className="text-slate-500">Subtotal:</span>{" "}
-              <strong className="font-mono text-slate-800 font-bold">{currencySymbol}{subtotal.toFixed(2)}</strong>
+              <span className="text-[#475569]">Subtotal:</span>{" "}
+              <strong className="font-mono text-[#0F172A] font-bold">{currencySymbol}{subtotal.toFixed(2)}</strong>
             </div>
             {discountAmt > 0 && (
               <div className="hidden sm:block">
-                <span className="text-slate-500">Discount:</span>{" "}
+                <span className="text-[#475569]">Discount:</span>{" "}
                 <strong className="font-mono text-amber-700 font-bold">-{currencySymbol}{discountAmt.toFixed(2)}</strong>
               </div>
             )}
             {taxAmt > 0 && (
               <div className="hidden sm:block">
-                <span className="text-slate-500">Tax:</span>{" "}
-                <strong className="font-mono text-slate-800 font-bold">+{currencySymbol}{taxAmt.toFixed(2)}</strong>
+                <span className="text-[#475569]">Tax:</span>{" "}
+                <strong className="font-mono text-[#0F172A] font-bold">+{currencySymbol}{taxAmt.toFixed(2)}</strong>
               </div>
             )}
             <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto sm:border-l sm:border-slate-200 sm:pl-4">
-              <span className="text-slate-500 font-bold">Grand Total:</span>{" "}
-              <span className="font-mono text-base sm:text-lg font-extrabold text-brand-600 ml-2">
+              <span className="text-[#475569] font-bold">Grand Total:</span>{" "}
+              <span className="font-mono text-base sm:text-lg font-extrabold text-[#0F766E] ml-2">
                 {formattedTotal}
               </span>
             </div>
           </div>
 
-          {/* Right: Primary Download & Share Actions */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowDeleteModal(true)}
-              className="h-10 px-3 rounded-lg text-xs font-semibold text-rose-600 border-slate-200 hover:bg-rose-50"
+              className="min-h-[44px] px-3 rounded-lg text-xs font-semibold text-rose-600 border-slate-200 hover:bg-rose-50"
               title="Delete draft"
             >
               <Trash2 className="w-4 h-4" />
@@ -733,20 +736,20 @@ export function Step3AddPricesAndSend({
             <Button
               variant="outline"
               onClick={handleShareWhatsApp}
-              className="h-10 px-4 rounded-lg font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+              className="min-h-[44px] px-4 rounded-lg font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
             >
               <MessageCircle className="w-4 h-4 text-emerald-600" />
-              <span className="hidden sm:inline">WhatsApp</span>
+              <span>WhatsApp</span>
             </Button>
 
             <Button
               disabled={isDownloading}
               onClick={handleDownloadPDF}
-              className="h-10 px-6 rounded-lg font-bold text-xs sm:text-sm bg-brand-600 hover:bg-brand-700 text-white min-h-[40px] flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
+              className="min-h-[48px] px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
             >
               {isDownloading ? (
                 <>
-                  <DualOrbitalSpinner size="sm" className="mr-2" /> Exporting...
+                  <DualOrbitalSpinner size="sm" className="mr-2" /> Generating...
                 </>
               ) : (
                 <>
@@ -832,6 +835,7 @@ export function Step3AddPricesAndSend({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

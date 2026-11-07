@@ -1,0 +1,2009 @@
+{
+  "360x800": {
+    "Landing": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "SignIn": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 242,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Templates": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 242,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Quotations": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 242,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Dashboard": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 242,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Settings": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 242,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 242,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step2CheckItems": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step1Upload": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 360,
+      "windowWidth": 360,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 262,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    }
+  },
+  "390x844": {
+    "Landing": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "SignIn": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 272,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Templates": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 272,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Quotations": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 272,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Dashboard": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 272,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Settings": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 272,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 272,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step2CheckItems": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step1Upload": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 390,
+      "windowWidth": 390,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 292,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    }
+  },
+  "412x915": {
+    "Landing": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "SignIn": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 294,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Templates": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 294,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Quotations": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 294,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Dashboard": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 294,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Settings": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "Back to Home",
+          "width": 125,
+          "height": 28,
+          "className": "inline-flex items-center gap-1.5 text-xs font-bold"
+        },
+        {
+          "tag": "button",
+          "text": "Continue with Google",
+          "width": 294,
+          "height": 40,
+          "className": "cl-socialButtonsBlockButton cl-button cl-socialBut"
+        },
+        {
+          "tag": "input",
+          "text": "Example format: name@example.com",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__iden"
+        },
+        {
+          "tag": "input",
+          "text": "",
+          "width": 267,
+          "height": 40,
+          "className": "cl-formFieldInput cl-input cl-formFieldInput__pass"
+        },
+        {
+          "tag": "button",
+          "text": "Show password",
+          "width": 32,
+          "height": 40,
+          "className": "cl-formFieldInputShowPasswordButton cl-button 🔒️ "
+        },
+        {
+          "tag": "button",
+          "text": "Continue",
+          "width": 294,
+          "height": 40,
+          "className": "cl-formButtonPrimary cl-button 🔒️ cl-internal-1eu"
+        },
+        {
+          "tag": "a",
+          "text": "Sign up",
+          "width": 47,
+          "height": 18,
+          "className": "cl-footerActionLink 🔒️ cl-internal-2qvqiq"
+        },
+        {
+          "tag": "a",
+          "text": "Clerk logo",
+          "width": 48,
+          "height": 14,
+          "className": "cl-internal-1scxde7"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step2CheckItems": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    },
+    "Step1Upload": {
+      "hasHorizontalScroll": false,
+      "scrollWidth": 412,
+      "windowWidth": 412,
+      "smallFonts": [],
+      "smallTapTargets": [
+        {
+          "tag": "a",
+          "text": "",
+          "width": 172,
+          "height": 36,
+          "className": "group flex items-center"
+        },
+        {
+          "tag": "button",
+          "text": "Toggle navigation menu",
+          "width": 40,
+          "height": 40,
+          "className": "md:hidden p-2 rounded-lg text-slate-700 hover:bg-s"
+        },
+        {
+          "tag": "a",
+          "text": "Try This Workflow Now",
+          "width": 201,
+          "height": 36,
+          "className": "inline-flex items-center gap-2 px-5 py-2.5 rounded"
+        },
+        {
+          "tag": "button",
+          "text": "Monthly Billing",
+          "width": 119,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "button",
+          "text": "Annual Billing\nSave 20%",
+          "width": 195,
+          "height": 40,
+          "className": "px-4 py-1.5 rounded-md text-xs font-bold transitio"
+        },
+        {
+          "tag": "a",
+          "text": "Start Free 14-Day Trial",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "Contact Enterprise Sales",
+          "width": 314,
+          "height": 40,
+          "className": "w-full py-3 rounded-lg text-center font-bold text-"
+        },
+        {
+          "tag": "a",
+          "text": "How it Works",
+          "width": 77,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Features",
+          "width": 51,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Pricing",
+          "width": 41,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "Customers",
+          "width": 63,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "a",
+          "text": "FAQ",
+          "width": 24,
+          "height": 16,
+          "className": "hover:text-[#0F766E]"
+        },
+        {
+          "tag": "button",
+          "text": "Design System",
+          "width": 88,
+          "height": 40,
+          "className": "text-[#0F766E] font-bold hover:underline"
+        },
+        {
+          "tag": "a",
+          "text": "Terms of Service",
+          "width": 98,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        },
+        {
+          "tag": "a",
+          "text": "Privacy Policy",
+          "width": 80,
+          "height": 16,
+          "className": "hover:text-slate-600"
+        }
+      ],
+      "inputsWithoutInputMode": []
+    }
+  }
+}

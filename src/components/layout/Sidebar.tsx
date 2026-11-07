@@ -155,33 +155,40 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* ── MOBILE BOTTOM NAVIGATION BAR ── */}
-      {/* Hidden when user is on the quotation builder ("/") so it does not block action buttons like "Download PDF" & "WhatsApp" */}
+      {/* ── MOBILE BOTTOM NAVIGATION BAR (Strictly 4 Items, z-30, safe-area aware) ── */}
+      {/* Hidden when user is on the quotation builder ("/") so it does not block in-flow action buttons like "Download PDF" & "WhatsApp" */}
       {pathname !== "/" && (
-        <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 shadow-lg flex items-center justify-around safe-bottom">
-          {menuItems.filter(item => !item.isExternal && item.name !== "New Quotation").map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-150 min-w-[56px]",
-                  isActive
-                    ? "text-[#0F766E] font-bold"
-                    : "text-slate-400 hover:text-slate-700"
-                )}
-              >
-                <div className={cn(
-                  "w-7 h-7 rounded-xl flex items-center justify-center transition-colors mb-0.5",
-                  isActive ? "bg-[#E0F2F1] text-[#0F766E]" : ""
-                )}>
-                  <item.icon className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-semibold">{item.mobileLabel}</span>
-              </Link>
-            );
-          })}
+        <nav
+          aria-label="Mobile Navigation"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-3 py-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around"
+        >
+          {menuItems
+            .filter((item) => ["/dashboard", "/quotations", "/templates", "/settings"].includes(item.href))
+            .map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex flex-col items-center justify-center py-1.5 px-3 rounded-lg transition-all duration-150 min-w-[60px] min-h-[48px]",
+                    isActive
+                      ? "text-[#0F766E] font-bold"
+                      : "text-[#475569] hover:text-[#0F172A]"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center transition-colors mb-0.5",
+                      isActive ? "bg-[#E0F2F1] text-[#0F766E]" : ""
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[12px] font-semibold leading-none">{item.mobileLabel}</span>
+                </Link>
+              );
+            })}
         </nav>
       )}
     </>
