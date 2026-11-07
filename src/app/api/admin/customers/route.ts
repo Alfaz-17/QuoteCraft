@@ -167,3 +167,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update customer status" }, { status: 500 });
   }
 }
+

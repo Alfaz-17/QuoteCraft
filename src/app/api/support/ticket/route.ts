@@ -58,3 +58,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to submit support request" }, { status: 500 });
   }
 }
+

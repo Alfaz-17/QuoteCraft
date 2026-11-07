@@ -82,3 +82,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to save platform setting" }, { status: 500 });
   }
 }
+

@@ -160,3 +160,4 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Failed to update support ticket" }, { status: 500 });
   }
 }
+
