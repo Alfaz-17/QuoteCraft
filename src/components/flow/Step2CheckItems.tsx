@@ -22,6 +22,7 @@ import {
   X,
   RotateCcw,
   Building,
+  Ship,
   HelpCircle,
   Eye,
   EyeOff
@@ -236,14 +237,14 @@ export function Step2CheckItems({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-                  Items &amp; Pricing
+                  Review Extracted Items
                 </h2>
                 <span className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200">
                   {items.length} items
                 </span>
               </div>
               <p className="text-[13px] text-[#475569] hidden sm:block mt-0.5">
-                Edit item specifications, enter unit prices (supports Excel paste), and review totals
+                Review extracted products, part numbers, and quantities before entering prices
               </p>
             </div>
           </div>
@@ -291,16 +292,50 @@ export function Step2CheckItems({
             <span>Add Row</span>
           </Button>
 
-          {/* Next Button: Takes directly to Preview & Send */}
+          {/* Next Button: Takes to Pricing */}
           <Button
             onClick={onNext}
             className="h-10 px-5 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[40px] shadow-sm flex items-center gap-1.5"
           >
-            <span>Preview &amp; Send</span>
+            <span>Continue to Pricing</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
+
+      {/* ── SCRAPED RFQ DETAILS SUMMARY (CRYSTAL CLEAR) ── */}
+      {Boolean(state?.documentInfo?.vessel || state?.client?.companyName || state?.documentInfo?.reference) && (
+        <div className="bg-[#E0F2F1]/70 border border-teal-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#0F766E] text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <Ship className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-black text-sm text-[#0F172A]">
+                  {state?.documentInfo?.vessel ? state.documentInfo.vessel : "Extracted RFQ Requisition"}
+                </span>
+                <span className="text-[11px] font-bold text-teal-800 bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-full">
+                  Auto-extracted
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-[#475569] mt-0.5 font-medium flex-wrap">
+                {state?.client?.companyName && (
+                  <span>Buyer: <strong className="text-[#0F172A]">{state.client.companyName}</strong></span>
+                )}
+                {state?.documentInfo?.reference && (
+                  <span>• Ref: <strong className="font-mono text-[#0F172A]">{state.documentInfo.reference}</strong></span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-bold text-[#0F766E] self-start sm:self-auto">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{items.length} line items ready</span>
+          </div>
+        </div>
+      )}
 
       {/* ── CLEAN STATUS INDICATOR (NO WALL-OF-TEXT BANNER) ── */}
       {reviewCount > 0 ? (
@@ -473,19 +508,18 @@ export function Step2CheckItems({
       </div>
 
       {/* ── DESKTOP UNIFIED SPREADSHEET TABLE (md+) ── */}
-      <div className="hidden md:block bg-white rounded-lg border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
             <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-slate-200 shadow-2xs">
               <tr className="text-slate-600 font-bold text-xs uppercase tracking-wider">
                 <th className="py-3 px-3.5 w-12 text-center">#</th>
-                <th className="py-3 px-3.5 min-w-[240px]">Item Description</th>
-                <th className="py-3 px-3 min-w-[130px]">Part / Drawing No.</th>
-                <th className="py-3 px-3 w-24 text-right">Quantity</th>
+                <th className="py-3 px-3.5 min-w-[260px]">Item Description</th>
+                <th className="py-3 px-3 min-w-[150px]">Part / Drawing No.</th>
+                <th className="py-3 px-3 w-28 text-right">Quantity</th>
                 <th className="py-3 px-3 w-20 text-center">Unit</th>
-                <th className="py-3 px-3.5 w-36 text-right">Unit Rate ({currencySymbol})</th>
-                <th className="py-3 px-3.5 w-32 text-right">Total ({currencySymbol})</th>
-                <th className="py-3 px-3 w-12 text-center">Del</th>
+                <th className="py-3 px-3.5 w-28 text-center">Status</th>
+                <th className="py-3 px-3 w-20 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800">

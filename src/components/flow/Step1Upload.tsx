@@ -14,8 +14,6 @@ import {
   Lock,
   ClipboardList,
   CheckCircle2,
-  Building,
-  ChevronDown
 } from "lucide-react";
 import { mapImport } from "@/utils/importMapping";
 import { useToast } from "@/components/ui/Toast";
@@ -46,9 +44,6 @@ export function Step1Upload({
   const [processStep, setProcessStep] = useState("Reading file...");
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [showDocDetails, setShowDocDetails] = useState(false);
-  const [recentClients, setRecentClients] = useState<QuotationState["client"][]>([]);
-  const [showClientDropdown, setShowClientDropdown] = useState(false);
 
   // Auto-generate quotation number if empty
   useEffect(() => {
@@ -58,23 +53,7 @@ export function Step1Upload({
     }
   }, [state.documentInfo.number, onUpdateDocInfo]);
 
-  // Load recent clients for autocomplete
-  useEffect(() => {
-    async function loadRecentClients() {
-      try {
-        const res = await fetch("/api/clients/recent");
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.clients)) {
-            setRecentClients(data.clients);
-          }
-        }
-      } catch (err) {
-        console.warn("Could not fetch recent clients:", err);
-      }
-    }
-    loadRecentClients();
-  }, []);
+
 
   // Elapsed timer during processing
   useEffect(() => {
@@ -157,6 +136,46 @@ export function Step1Upload({
         throw new Error("Unable to identify table items. You can paste the raw text or start with a blank quote.");
       }
 
+      // Automatically apply any extracted RFQ header metadata
+      if (data.rfqDetails) {
+        if (data.rfqDetails.customerName) {
+          onUpdateClient({
+            companyName: data.rfqDetails.customerName,
+            name: data.rfqDetails.customerName,
+          });
+        }
+        if (data.rfqDetails.vesselName) {
+          onUpdateDocInfo({
+            vessel: data.rfqDetails.vesselName,
+          });
+        }
+        if (data.rfqDetails.rfqNumber) {
+          onUpdateDocInfo({
+            reference: data.rfqDetails.rfqNumber,
+          });
+        }
+      }
+
+      // Automatically apply any extracted RFQ header metadata
+      if (data.rfqDetails) {
+        if (data.rfqDetails.customerName) {
+          onUpdateClient({
+            companyName: data.rfqDetails.customerName,
+            name: data.rfqDetails.customerName,
+          });
+        }
+        if (data.rfqDetails.vesselName) {
+          onUpdateDocInfo({
+            vessel: data.rfqDetails.vesselName,
+          });
+        }
+        if (data.rfqDetails.rfqNumber) {
+          onUpdateDocInfo({
+            reference: data.rfqDetails.rfqNumber,
+          });
+        }
+      }
+
       const mapped = mapImport({ columns: data.columns, rows: data.rows });
       if (mapped.items.length === 0) {
         throw new Error("No line items found. You can start with a blank quote or paste text directly.");
@@ -214,17 +233,7 @@ export function Step1Upload({
     }
   };
 
-  const selectClient = (client: QuotationState["client"]) => {
-    onUpdateClient({
-      name: client.name || "",
-      companyName: client.companyName || client.name || "",
-      address: client.address || "",
-      phone: client.phone || "",
-      attn: client.attn || "",
-    });
-    setShowClientDropdown(false);
-    toastSuccess("Customer details auto-filled!");
-  };
+
 
   const isPdf = selectedFile?.name?.toLowerCase().endsWith(".pdf");
   const formattedFileSize = selectedFile
@@ -447,76 +456,7 @@ export function Step1Upload({
           </div>
         </div>
 
-        {/* Optional Customer & Vessel Details */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Building className="w-4 h-4 text-[#0F766E]" />
-              <h4 className="text-xs sm:text-sm font-bold text-[#0F172A]">
-                Customer Details (Optional)
-              </h4>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowDocDetails(!showDocDetails)}
-              className="text-xs font-bold text-[#0F766E] hover:underline flex items-center gap-1 min-h-[36px] px-2"
-            >
-              <span>{showDocDetails ? "Hide" : "Add details now"}</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showDocDetails ? "rotate-180" : ""}`} />
-            </button>
-          </div>
-
-          {showDocDetails && (
-            <div className="space-y-3 pt-2 border-t border-slate-100">
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-600">Customer Name / Company</Label>
-                <div className="relative">
-                  <Input
-                    value={state.client.companyName || state.client.name || ""}
-                    onChange={(e) => {
-                      onUpdateClient({
-                        companyName: e.target.value,
-                        name: e.target.value,
-                      });
-                      if (recentClients.length > 0) setShowClientDropdown(true);
-                    }}
-                    onFocus={() => {
-                      if (recentClients.length > 0) setShowClientDropdown(true);
-                    }}
-                    placeholder="e.g. ABC Marine Ltd."
-                    className="h-10 text-base sm:text-sm rounded-xl"
-                  />
-                  {showClientDropdown && recentClients.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden max-h-48 overflow-y-auto">
-                      {recentClients.map((c, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => selectClient(c)}
-                          className="w-full p-2.5 text-left text-xs hover:bg-slate-50 border-b border-slate-100 last:border-0"
-                        >
-                          <p className="font-bold text-slate-800">{c.companyName || c.name}</p>
-                          {c.address && <p className="text-slate-500 text-[11px] truncate">{c.address}</p>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-600">Vessel Name</Label>
-                <Input
-                  value={state.documentInfo.vessel || ""}
-                  onChange={(e) => onUpdateDocInfo({ vessel: e.target.value })}
-                  placeholder="e.g. M/V Oceanic Star"
-                  className="h-10 text-base sm:text-sm rounded-xl"
-                />
-              </div>
-            </div>
-          )}
         </div>
-      </div>
     </div>
   );
 }

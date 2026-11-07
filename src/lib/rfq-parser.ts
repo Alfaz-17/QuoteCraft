@@ -8,6 +8,12 @@ export interface DeterministicParseResult extends ImportResult {
   durationMs: number;
   uncertainCount: number;
   sheetName?: string;
+  rfqDetails?: {
+    vesselName?: string;
+    customerName?: string;
+    rfqNumber?: string;
+    date?: string;
+  };
 }
 
 /** Header matching patterns */
@@ -106,6 +112,31 @@ export async function parseExcelDeterministically(
       return null;
     }
 
+    // Scan top rows for vessel, buyer, or RFQ reference details
+    const rfqDetails: { vesselName?: string; customerName?: string; rfqNumber?: string; date?: string } = {};
+    for (let r = 1; r < headerRowNumber; r++) {
+      const row = ws.getRow(r);
+      for (let c = 1; c <= Math.min(row.cellCount, 15); c++) {
+        const val = row.getCell(c).text?.trim();
+        if (!val) continue;
+
+        const vesselMatch = val.match(/(?:vessel(?:\s*name)?|ship)\s*[:\-]\s*(.+)/i) || val.match(/^(?:m\/?v|mt|mv)\s+([a-z0-9\s\.\-_]+)/i);
+        if (vesselMatch && !rfqDetails.vesselName) {
+          rfqDetails.vesselName = (vesselMatch[1] || val).trim();
+        }
+
+        const clientMatch = val.match(/(?:buyer|customer|client|company|purchaser)\s*[:\-]\s*(.+)/i);
+        if (clientMatch && !rfqDetails.customerName) {
+          rfqDetails.customerName = clientMatch[1].trim();
+        }
+
+        const rfqMatch = val.match(/(?:rfq|enquiry|inquiry|requisition|req)\s*(?:no|number|#)?\s*[:\-]\s*(.+)/i);
+        if (rfqMatch && !rfqDetails.rfqNumber) {
+          rfqDetails.rfqNumber = rfqMatch[1].trim();
+        }
+      }
+    }
+
     // Build columns for ImportResult
     const columns: ImportedColumn[] = detectedColumns.map((c, i) => ({
       key: `c${i + 1}`,
@@ -170,6 +201,7 @@ export async function parseExcelDeterministically(
       durationMs: Date.now() - startTime,
       uncertainCount,
       sheetName: ws.name,
+      rfqDetails,
     };
   } catch (err) {
     console.error("Deterministic Excel parse error:", err);

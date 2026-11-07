@@ -7,6 +7,14 @@ import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-pa
 import { z } from "zod";
 
 const aiOutputSchema = z.object({
+  rfqDetails: z
+    .object({
+      vesselName: z.string().optional().default(""),
+      customerName: z.string().optional().default(""),
+      rfqNumber: z.string().optional().default(""),
+      date: z.string().optional().default(""),
+    })
+    .optional(),
   columns: z.array(
     z.object({
       key: z.string(),
@@ -69,6 +77,7 @@ export async function POST(req: NextRequest) {
             durationMs: deterministicResult.durationMs,
             uncertainCount: deterministicResult.uncertainCount,
             sheetName: deterministicResult.sheetName,
+            rfqDetails: deterministicResult.rfqDetails,
           });
         }
       } catch (detErr) {
@@ -97,24 +106,30 @@ export async function POST(req: NextRequest) {
     const systemPrompt = `
       You are an expert B2B marine and industrial procurement assistant.
       The input is a buyer's RFQ (PDF, image, spreadsheet text or pasted text).
-      Reproduce the buyer's OWN table structure so a supplier can price it.
-
-      1. Detect the item table and list its columns in the SAME order and with the SAME header
-         wording as the document (e.g. "Maker", "Drawing No.", "Remarks", "Delivery Port").
-         Give each column a short key: "c1", "c2", ...
-      2. Classify each column with a "kind":
-         serial (Sr/S.No/#), name (short item title), description (specs, size, long text),
-         partNumber (part no / drawing no / article no / IMPA / ISSA code), qty (quantity requested),
-         unit (UOM), price (rate / unit price - only if the buyer provided a column for it),
-         total (line amount), number (any other numeric column), text (any other column).
-         Use each kind at most once, except "text" and "number".
-      3. Return every item row as an object keyed by those column keys. Keep values exactly as written.
-         Use "" when a cell is empty. Do NOT invent prices, part numbers or quantities.
-      4. Ignore header blocks, vessel details, notes and footers - only the item table.
-         If section/sub-heading rows appear inside the table, skip them.
+      
+      Extract:
+      1. RFQ Header Information (if present):
+         - vesselName: ship or vessel name (e.g. "M/V Oceanic Star")
+         - customerName: buying company or customer (e.g. "ABC Marine Ltd.")
+         - rfqNumber: buyer's enquiry or RFQ number (e.g. "RFQ-2026-081")
+         - date: inquiry date
+      2. Reproduce the buyer's OWN item table structure so a supplier can price it:
+         - Detect the item table and list its columns in the SAME order and with the SAME header wording.
+         - Give each column a short key: "c1", "c2", ...
+         - Classify each column with a "kind":
+           serial (Sr/S.No/#), name (short item title), description (specs, size, long text),
+           partNumber (part no / drawing no / article no / IMPA / ISSA code), qty (quantity requested),
+           unit (UOM), price (rate / unit price - only if the buyer provided a column for it),
+           total (line amount), number (any other numeric column), text (any other column).
+         - Return every item row as an object keyed by those column keys. Keep values exactly as written.
+           Use "" when a cell is empty. Do NOT invent prices, part numbers or quantities.
 
       Return ONLY JSON in this shape:
-      {"columns":[{"key":"c1","label":"Sr No","kind":"serial"}],"rows":[{"c1":"1"}]}
+      {
+        "rfqDetails": {"vesselName": "M/V Oceanic Star", "customerName": "ABC Marine Ltd.", "rfqNumber": "RFQ-102"},
+        "columns": [{"key":"c1","label":"Sr No","kind":"serial"}],
+        "rows": [{"c1":"1"}]
+      }
     `;
 
     const startTime = Date.now();
@@ -164,6 +179,7 @@ export async function POST(req: NextRequest) {
       const validated = aiOutputSchema.parse(parsed);
 
       return NextResponse.json({
+        rfqDetails: validated.rfqDetails,
         columns: validated.columns,
         rows: validated.rows,
         method: "ai_fallback",
