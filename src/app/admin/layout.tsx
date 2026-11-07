@@ -1,6 +1,8 @@
 import React from "react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "QuoteCraft Owner Command Center | Administration",
   description: "Private SaaS Founder & Owner Command Center for QuoteCraft.",
@@ -24,4 +26,3 @@ export default function AdminLayout({
     </div>
   );
 }
-
