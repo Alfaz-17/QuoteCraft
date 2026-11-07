@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { getUserQuotations, createQuotation } from "@/lib/prisma";
+import { trackPlatformEvent } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,6 +53,12 @@ export async function POST(req: NextRequest) {
       taxPercent: typeof body.taxPercent === "number" ? body.taxPercent : 0,
       shippingCharge: typeof body.shippingCharge === "number" ? body.shippingCharge : 0,
     });
+
+    trackPlatformEvent({
+      userId,
+      eventType: "QUOTE_SAVED",
+      metadata: { quotationId: created?.id, number: body.number, currency: body.currency, itemsCount: Array.isArray(body.items) ? body.items.length : 0 },
+    }).catch(() => {});
 
     return NextResponse.json({ quotation: created }, { status: 201 });
   } catch (error) {

@@ -69,6 +69,7 @@ export function Sidebar() {
   const { signOut } = useClerk();
 
   // Don't render sidebar if not authenticated
+  if (pathname?.startsWith("/admin")) return null;
   if (!isLoaded || !isSignedIn) return null;
 
   const displayName = user?.fullName || user?.firstName || user?.username || "Marine Supplier";

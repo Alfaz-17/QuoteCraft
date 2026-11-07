@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { findUserApiKey } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logAiUsage, trackPlatformEvent } from "@/lib/admin-auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-parser";
 import { z } from "zod";
@@ -70,6 +71,21 @@ export async function POST(req: NextRequest) {
         const deterministicResult = await parseExcelDeterministically(buffer);
 
         if (deterministicResult && deterministicResult.rows.length > 0) {
+          logAiUsage({
+            userId,
+            fileName,
+            mimeType,
+            method: "deterministic_excel",
+            itemCount: deterministicResult.rows.length,
+            durationMs: deterministicResult.durationMs,
+            status: "SUCCESS",
+          }).catch(() => {});
+          trackPlatformEvent({
+            userId,
+            eventType: "EXTRACTION_SUCCESS",
+            metadata: { method: "deterministic_excel", items: deterministicResult.rows.length },
+          }).catch(() => {});
+
           return NextResponse.json({
             columns: deterministicResult.columns,
             rows: deterministicResult.rows,
@@ -178,6 +194,31 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(cleanedJson);
       const validated = aiOutputSchema.parse(parsed);
 
+      const usage = (result as { response?: { usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number } } })?.response?.usageMetadata;
+      const inputTokens = usage?.promptTokenCount || 0;
+      const outputTokens = usage?.candidatesTokenCount || 0;
+      const totalTokens = usage?.totalTokenCount || (inputTokens + outputTokens);
+
+      logAiUsage({
+        userId,
+        fileName,
+        mimeType,
+        method: "ai_fallback",
+        model: "gemini-2.5-flash",
+        inputTokens,
+        outputTokens,
+        totalTokens,
+        itemCount: validated.rows.length,
+        durationMs: Date.now() - startTime,
+        status: "SUCCESS",
+      }).catch(() => {});
+
+      trackPlatformEvent({
+        userId,
+        eventType: "EXTRACTION_SUCCESS",
+        metadata: { method: "ai_fallback", tokens: totalTokens, items: validated.rows.length },
+      }).catch(() => {});
+
       return NextResponse.json({
         rfqDetails: validated.rfqDetails,
         columns: validated.columns,
@@ -196,6 +237,18 @@ export async function POST(req: NextRequest) {
     console.error("Import RFQ Error:", error);
 
     const errMsg = (error as Error)?.message || String(error);
+
+    logAiUsage({
+      method: "ai_fallback",
+      status: "FAILED",
+      errorMessage: errMsg,
+    }).catch(() => {});
+
+    trackPlatformEvent({
+      eventType: "EXTRACTION_FAIL",
+      metadata: { error: errMsg },
+    }).catch(() => {});
+
     let friendlyMessage = "An unexpected error occurred during document analysis. Please try again.";
 
     if (

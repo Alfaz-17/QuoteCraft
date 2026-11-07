@@ -8,16 +8,22 @@ generator client {
 }
 
 model User {
-  id            String      @id @default(uuid())
-  clerkUserId   String?     @unique
+  id            String        @id @default(uuid())
+  clerkUserId   String?       @unique
   name          String?
-  email         String      @unique
+  email         String        @unique
   password      String?
+  role          String        @default("USER") // 'USER' | 'SUPER_ADMIN'
+  status        String        @default("ACTIVE") // 'ACTIVE' | 'SUSPENDED'
+  lastLoginAt   DateTime?
   geminiApiKey  String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   quotations    Quotation[]
   profile       UserProfile?
+  aiUsageLogs   AiUsageLog[]
+  events        PlatformEvent[]
+  tickets       SupportTicket[]
 }
 
 model Quotation {
@@ -56,4 +62,83 @@ model UserProfile {
   tableColumns   Json
   builderConfig  Json
   updatedAt      DateTime @updatedAt
+}
+
+model AiUsageLog {
+  id               String   @id @default(uuid())
+  userId           String?
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail        String?
+  fileName         String?
+  mimeType         String?
+  method           String   // 'deterministic_excel' | 'ai_fallback' | 'manual'
+  model            String?  @default("gemini-2.5-flash")
+  inputTokens      Int      @default(0)
+  outputTokens     Int      @default(0)
+  totalTokens      Int      @default(0)
+  estimatedCostUsd Float    @default(0.0)
+  durationMs       Int      @default(0)
+  itemCount        Int      @default(0)
+  status           String   // 'SUCCESS' | 'FAILED'
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+}
+
+model PlatformEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType String   // 'RFQ_UPLOAD', 'EXTRACTION_SUCCESS', 'EXTRACTION_FAIL', 'QUOTE_SAVED', 'PDF_EXPORTED', 'USER_SIGNUP', 'USER_LOGIN'
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail     String
+  userName      String?
+  category      String   @default("TECHNICAL") // 'TECHNICAL', 'AI_EXTRACTION', 'ACCOUNT', 'BILLING', 'FEATURE_REQUEST', 'FEEDBACK'
+  subject       String
+  message       String
+  status        String   @default("OPEN") // 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'
+  priority      String   @default("MEDIUM") // 'LOW', 'MEDIUM', 'HIGH', 'URGENT'
+  internalNotes String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PlatformSetting {
+  key         String   @id
+  value       Json
+  description String?
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminAuditLog {
+  id           String   @id @default(uuid())
+  adminId      String
+  adminEmail   String
+  action       String
+  targetEntity String
+  targetId     String?
+  details      Json     @default("{}")
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+}
+
+model SubscriptionPlan {
+  id                    String   @id
+  name                  String
+  description           String?
+  priceMonthlyUsd       Float    @default(0)
+  priceYearlyUsd        Float    @default(0)
+  monthlyQuotationLimit Int      @default(50)
+  monthlyAiLimit        Int      @default(30)
+  features              Json     @default("[]")
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
