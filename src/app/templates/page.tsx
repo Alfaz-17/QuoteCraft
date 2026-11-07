@@ -6,7 +6,7 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { Ship, Check, ArrowRight, Palette, Sliders } from "lucide-react";
+import { Check, ArrowLeft, ArrowRight, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/Toast";
 import { useQuotationState } from "@/hooks/useQuotationState";
@@ -52,146 +52,125 @@ export default function TemplatesPage() {
       console.error(e);
     }
 
-    toastSuccess(`Default template set to "${name}"!`);
+    toastSuccess(`Template set to "${name}"!`);
+  };
+
+  const handleUseTemplate = () => {
+    toastSuccess("Template active! Loading quotation builder...");
+    router.push("/");
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#FAF9F5] min-h-screen text-slate-900 pb-24 md:pb-12 font-sans">
-      {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3.5 sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+    <div className="flex-1 flex flex-col bg-[#FAF9F5] min-h-screen text-[#0F172A] pb-28 md:pb-12">
+      {/* ===== SCREEN 8: NATIVE APP HEADER ===== */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3 sticky top-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/dashboard"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors -ml-1 min-h-[44px] min-w-[44px]"
+              aria-label="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-base sm:text-lg font-black text-[#0F172A] tracking-tight leading-none">
               Templates
-            </span>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-bold text-slate-800">Quotation Styles</span>
+            </h1>
           </div>
 
           <Link
             href="/settings"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] hover:underline min-h-[44px]"
           >
             <Palette className="w-3.5 h-3.5" />
-            Color Palettes & Fonts in Settings
+            <span className="hidden sm:inline">Branding in Settings</span>
           </Link>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-6 animate-in fade-in duration-300">
+      <main className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-4 sm:py-6 space-y-5 animate-in fade-in duration-300">
         <div className="space-y-1">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight">
             Quotation Templates
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Select your organization&apos;s default quotation layout. Colors and fonts are configured in Settings.
+          <p className="text-[13px] text-[#475569] font-medium">
+            Choose your organization&apos;s default layout for all generated PDF quotations.
           </p>
         </div>
 
-        {/* Templates Grid with Right Callout Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* 4 Templates Preview Cards (8 cols) */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {QUOTATION_TEMPLATES.map((tpl) => {
-              const isSelected = selectedId === tpl.id;
+        {/* 2x2 Visual Templates Grid (Screen 8 in Mockup) */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-5">
+          {QUOTATION_TEMPLATES.map((tpl) => {
+            const isSelected = selectedId === tpl.id;
 
-              return (
-                <div
-                  key={tpl.id}
-                  onClick={() => handleSelectTemplate(tpl.id, tpl.name)}
-                  className={`bg-white rounded-lg border-2 p-5 transition-all cursor-pointer relative flex flex-col justify-between ${
-                    isSelected
-                      ? "border-[#0F766E] shadow-md ring-4 ring-[#0F766E]/10"
-                      : "border-slate-200/90 hover:border-slate-300 hover:shadow-xs"
-                  }`}
-                >
-                  {/* Selected Check Badge */}
-                  {isSelected && (
-                    <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-[#0F766E] text-white flex items-center justify-center shadow-xs">
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </div>
-                  )}
+            return (
+              <div
+                key={tpl.id}
+                onClick={() => handleSelectTemplate(tpl.id, tpl.name)}
+                className={`bg-white rounded-2xl border-2 p-3 sm:p-4 transition-all cursor-pointer relative flex flex-col justify-between hover:shadow-sm active:scale-[0.98] ${
+                  isSelected
+                    ? "border-[#0F766E] shadow-sm ring-4 ring-[#0F766E]/10"
+                    : "border-slate-200/90 hover:border-slate-300"
+                }`}
+              >
+                {/* Selected Check Badge */}
+                {isSelected && (
+                  <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-[#0F766E] text-white flex items-center justify-center shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                )}
 
-                  {/* Template Visual Thumbnail Skeleton */}
-                  <div className="bg-[#FAF9F5] rounded-md border border-slate-200/80 p-4 mb-4 space-y-2 h-44 flex flex-col justify-between overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <div 
-                        className="w-16 h-3 rounded"
-                        style={{ backgroundColor: state.branding.primaryColor || "#0F766E" }}
-                      />
-                      <div className="w-12 h-2.5 bg-slate-300 rounded" />
-                    </div>
-
-                    <div className="space-y-1.5 py-1">
-                      <div className="w-full h-2 bg-slate-200 rounded" />
-                      <div className="w-5/6 h-2 bg-slate-200 rounded" />
-                      <div className="w-4/6 h-2 bg-slate-200 rounded" />
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
-                      <span className="text-xs font-mono font-bold text-slate-400 uppercase">
-                        {tpl.tagline}
-                      </span>
-                      <div 
-                        className="w-16 h-3 rounded opacity-80"
-                        style={{ backgroundColor: state.branding.secondaryColor || "#F59E0B" }}
-                      />
-                    </div>
+                {/* Template Visual Thumbnail Skeleton */}
+                <div className="bg-[#FAF9F5] rounded-xl border border-slate-200/80 p-3 mb-3 space-y-2 h-32 sm:h-44 flex flex-col justify-between overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                    <div 
+                      className="w-12 sm:w-16 h-2.5 sm:h-3 rounded"
+                      style={{ backgroundColor: state.branding.primaryColor || "#0F766E" }}
+                    />
+                    <div className="w-8 sm:w-12 h-2 sm:h-2.5 bg-slate-300 rounded" />
                   </div>
 
-                  {/* Info */}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-slate-900">{tpl.name}</h4>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#E0F2F1] text-[#0F766E]">
-                        {tpl.source}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 line-clamp-2">
-                      {tpl.description}
-                    </p>
+                  <div className="space-y-1.5 py-1">
+                    <div className="w-full h-1.5 sm:h-2 bg-slate-200 rounded" />
+                    <div className="w-5/6 h-1.5 sm:h-2 bg-slate-200 rounded" />
+                    <div className="w-4/6 h-1.5 sm:h-2 bg-slate-200 rounded" />
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-200 flex justify-between items-center">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase truncate">
+                      {tpl.name}
+                    </span>
+                    <div 
+                      className="w-10 sm:w-14 h-2 sm:h-2.5 rounded opacity-80"
+                      style={{ backgroundColor: state.branding.secondaryColor || "#F59E0B" }}
+                    />
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Right Callout Banner Card (4 cols) */}
-          <div className="lg:col-span-4 bg-gradient-to-br from-[#041E26] via-[#0A333C] to-[#0D4D47] text-white rounded-lg p-6 sm:p-8 space-y-6 shadow-xl border border-[#0D3845] flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-md bg-[#0F766E] text-[#F59E0B] flex items-center justify-center shadow-md">
-                <Ship className="w-6 h-6 stroke-[2]" />
+                {/* Template Name & Source */}
+                <div className="space-y-0.5">
+                  <h4 className="font-extrabold text-xs sm:text-sm text-[#0F172A] truncate">
+                    {tpl.name}
+                  </h4>
+                  <p className="text-[11px] text-[#475569] truncate">
+                    {tpl.description}
+                  </p>
+                </div>
               </div>
+            );
+          })}
+        </div>
 
-              <div>
-                <h3 className="text-xl font-black text-white tracking-tight">
-                  Maritime & Industrial Document Layouts
-                </h3>
-                <p className="text-xs text-teal-100/90 font-medium mt-2 leading-relaxed">
-                  Your chosen template automatically formats all generated PDF quotations. You can customize colors, fonts, company details, and bank credentials in Settings.
-                </p>
-              </div>
-
-              <div className="pt-2 border-t border-teal-800/60 space-y-2">
-                <Link
-                  href="/settings"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-[#F59E0B] hover:underline"
-                >
-                  <Sliders className="w-3.5 h-3.5" />
-                  Customize Color Palette & Fonts →
-                </Link>
-              </div>
-            </div>
-
-            <Button
-              asChild
-              className="w-full h-11 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-lg shadow-[#0F766E]/30"
-            >
-              <Link href="/">
-                Create Quotation <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Link>
-            </Button>
-          </div>
+        {/* Primary CTA Button: Use Template (Screen 8 in Mockup) */}
+        <div className="pt-2">
+          <Button
+            type="button"
+            onClick={handleUseTemplate}
+            className="w-full h-12 rounded-xl text-sm font-bold bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white shadow-md shadow-[#0F766E]/20 transition-all flex items-center justify-center gap-2 min-h-[48px]"
+          >
+            <span>Use Template</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </main>
     </div>

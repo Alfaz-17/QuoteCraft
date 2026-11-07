@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
+  ArrowRight, 
   Download, 
   MessageCircle, 
   Copy, 
@@ -272,7 +273,7 @@ export function Step3AddPricesAndSend({
                   : "text-slate-600"
               }`}
             >
-              Add Prices
+              Details
             </button>
             <button
               type="button"
@@ -283,7 +284,7 @@ export function Step3AddPricesAndSend({
                   : "text-slate-600"
               }`}
             >
-              PDF Preview
+              Preview
             </button>
           </div>
 
@@ -733,19 +734,33 @@ export function Step3AddPricesAndSend({
               <Trash2 className="w-4 h-4" />
             </Button>
 
+            {activeMobileView === "pricing" ? (
+              <Button
+                onClick={() => setActiveMobileView("preview")}
+                className="min-h-[48px] px-6 rounded-xl font-bold text-sm bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white flex-1 sm:hidden shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2"
+              >
+                <span>Preview Quotation</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : null}
+
             <Button
               variant="outline"
               onClick={handleShareWhatsApp}
-              className="min-h-[44px] px-4 rounded-lg font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
+              className={`min-h-[48px] px-4 rounded-xl font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 ${
+                activeMobileView === "pricing" ? "hidden sm:flex" : "flex-1 sm:flex-initial"
+              }`}
             >
               <MessageCircle className="w-4 h-4 text-emerald-600" />
-              <span>WhatsApp</span>
+              <span>Share</span>
             </Button>
 
             <Button
               disabled={isDownloading}
               onClick={handleDownloadPDF}
-              className="min-h-[48px] px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
+              className={`min-h-[48px] px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2 ${
+                activeMobileView === "pricing" ? "hidden sm:flex" : "flex-1 sm:flex-initial"
+              }`}
             >
               {isDownloading ? (
                 <>
@@ -753,7 +768,7 @@ export function Step3AddPricesAndSend({
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4" /> Download PDF
+                  <Download className="w-4 h-4" /> Download
                 </>
               )}
             </Button>

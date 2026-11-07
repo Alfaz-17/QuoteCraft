@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { 
-  Ship, 
   ArrowRight, 
   Download, 
   Loader2, 
@@ -15,17 +14,20 @@ import {
   CheckCircle2, 
   Clock, 
   TrendingUp, 
-  UploadCloud, 
-  MoreVertical,
-  Check,
-  Trash2
+  Plus, 
+  Bell,
+  Trash2,
+  Calendar,
+  Building2,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Currency, LineItem, TableColumn, QuotationState } from "@/types/quotation.types";
+import { Currency, LineItem, TableColumn, QuotationState, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { DualOrbitalSpinner, HeroSailingLoader } from "@/components/ui/Loaders";
 import { useToast } from "@/components/ui/Toast";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
+import { calculateSubtotal, calculateGrandTotal } from "@/utils/calculations";
 
 interface QuotationRecord {
   id: string;
@@ -124,10 +126,10 @@ export default function DashboardPage() {
       const pdfState: QuotationState = {
         branding: {
           logo: null,
-          primaryColor: "#0B1528",
-          secondaryColor: "#1E3A8A",
+          primaryColor: "#0F766E",
+          secondaryColor: "#F59E0B",
           textColor: "#0F172A",
-          font: "Inter",
+          font: "Manrope",
           layout: "marine",
         },
         documentInfo: {
@@ -210,177 +212,151 @@ export default function DashboardPage() {
     }
   };
 
-  // Metrics derived strictly from real user quotations (no demo/fake data)
+  // Metrics strictly derived from user's actual quotations
   const totalCount = quotations.length;
   const quoteCount = quotations.filter((q) => q.items && q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
   const draftCount = quotations.filter((q) => q.type === "rfq" || !q.items || !q.items.some((i) => (Number(i.unitPrice) || 0) > 0)).length;
-  const conversionRate = totalCount > 0 ? `${Math.round((quoteCount / totalCount) * 100)}%` : "0%";
 
-  const firstName = user?.firstName || user?.fullName?.split(" ")[0] || "Marine Supplier";
-  const userInitial = firstName.charAt(0).toUpperCase();
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const thisMonthCount = quotations.filter((q) => {
+    const rawDate = q.createdAt || q.date;
+    if (!rawDate) return false;
+    const d = new Date(rawDate);
+    return !isNaN(d.getTime()) && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  }).length;
+
+  const firstName = user?.firstName || user?.fullName?.split(" ")[0] || "Partner";
+
+  // Helper to calculate total for a quote card
+  const getQuoteTotalFormatted = (quote: QuotationRecord) => {
+    const sym = CURRENCY_SYMBOLS[quote.currency] || "$";
+    const sub = calculateSubtotal(quote.items || [], quote.tableColumns);
+    const total = calculateGrandTotal(sub, quote.discount || 0, quote.discountType || "flat", quote.taxPercent || 0, quote.shippingCharge || 0);
+    return `${sym} ${total.toLocaleString(quote.currency === "INR" ? "en-IN" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F8FAFC] min-h-screen text-slate-900 pb-24 md:pb-12">
-      {/* Mobile-First Header (Screen 2) */}
-      <header className="bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3.5 sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <QuoteCraftLogo size={32} showText={false} />
-            <div>
-              <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none">
-                Quote<span className="text-[#0F766E]">Craft</span>
-              </h1>
-              <p className="text-xs text-slate-500 font-semibold mt-0.5 hidden sm:block">
-                Marine Dashboard
-              </p>
-            </div>
-          </div>
+    <div className="flex-1 flex flex-col bg-[#FAF9F5] min-h-screen text-[#0F172A] pb-24 md:pb-12">
+      {/* ===== SCREEN 1: NATIVE APP HEADER ===== */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3 sticky top-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-2 group min-h-[44px]">
+            <QuoteCraftLogo size={32} showText={true} />
+          </Link>
 
-          <div className="flex items-center gap-2.5">
-            {user?.imageUrl ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={user.imageUrl}
-                alt={firstName}
-                className="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-2xs"
-              />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-[#0F766E] text-white font-bold text-xs flex items-center justify-center shadow-2xs">
-                {userInitial}
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Notifications"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-[#475569] hover:bg-slate-100 transition-colors relative min-h-[44px] min-w-[44px]"
+            >
+              <Bell className="w-5 h-5 text-slate-600" />
+              <span className="w-2 h-2 rounded-full bg-[#0F766E] absolute top-2.5 right-2.5 ring-2 ring-white" />
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full p-4 sm:p-8 space-y-5 animate-in fade-in duration-300">
-        {/* Welcome Text (Screen 2 in Mobile Mockup) */}
+      <main className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-5 sm:py-6 space-y-6 animate-in fade-in duration-300">
+        {/* Welcome Section */}
         <div className="space-y-1">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Hello, {firstName} 👋
+          <h2 className="text-[22px] sm:text-2xl font-black text-[#0F172A] tracking-tight">
+            Welcome back, {firstName}!
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Let&apos;s create a quotation today
+          <p className="text-[13px] text-[#475569] font-medium">
+            Create professional quotations in just a few clicks.
           </p>
         </div>
 
-        {/* Big Brand Upload Card (Screen 2 in Mobile Mockup) */}
-        <Link
-          href="/"
-          className="group block relative overflow-hidden rounded-lg bg-gradient-to-br from-[#0F766E] via-[#0D6B63] to-[#041E26] text-white p-6 sm:p-8 shadow-md border border-[#115E59] transition-all active:scale-[0.99] hover:shadow-lg"
-        >
-          <div className="flex flex-col items-center text-center space-y-3">
-            <div className="w-12 h-12 rounded-md bg-white/15 backdrop-blur-md flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform">
-              <UploadCloud className="w-6 h-6 text-[#F59E0B] stroke-[2.2]" />
-            </div>
+        {/* Primary CTA Button: + New Quotation (48px height, Deep Teal, Active scale) */}
+        <div>
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-2 w-full h-12 px-6 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-[#0F766E]/20 transition-all min-h-[48px]"
+          >
+            <Plus className="w-5 h-5 stroke-[2.5]" />
+            <span>+ New Quotation</span>
+          </Link>
+        </div>
 
-            <div className="space-y-1">
-              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
-                Upload Customer Request
-              </h3>
-              <p className="text-xs text-teal-100/90 font-medium">
-                Drag & drop your Excel or PDF RFQ file
-              </p>
-            </div>
-          </div>
-        </Link>
-
-        {/* 4 Stat Cards in 2x2 Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* 1. Total RFQs */}
-          <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {totalCount}
-              </h4>
-              <p className="text-xs font-semibold text-slate-500 mt-1">
-                Total Quotes
-              </p>
-            </div>
+        {/* 4 Stat Cards: Total, Sent, Drafts, This Month */}
+        <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
+          {/* Total */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 text-center shadow-xs flex flex-col justify-center items-center min-h-[72px]">
+            <span className="text-xl sm:text-2xl font-black font-mono text-[#0F172A] leading-tight">
+              {totalCount}
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#475569] mt-0.5">
+              Total
+            </span>
           </div>
 
-          {/* 2. Quotations */}
-          <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Check className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {quoteCount}
-              </h4>
-              <p className="text-xs font-semibold text-slate-500 mt-1">
-                Priced Quotes
-              </p>
-            </div>
+          {/* Sent */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 text-center shadow-xs flex flex-col justify-center items-center min-h-[72px]">
+            <span className="text-xl sm:text-2xl font-black font-mono text-[#0F766E] leading-tight">
+              {quoteCount}
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#475569] mt-0.5">
+              Sent
+            </span>
           </div>
 
-          {/* 3. Drafts */}
-          <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xl sm:text-2xl font-black font-mono text-slate-900 leading-none">
-                {draftCount}
-              </h4>
-              <p className="text-xs font-semibold text-slate-500 mt-1">
-                Drafts
-              </p>
-            </div>
+          {/* Drafts */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 text-center shadow-xs flex flex-col justify-center items-center min-h-[72px]">
+            <span className="text-xl sm:text-2xl font-black font-mono text-[#F59E0B] leading-tight">
+              {draftCount}
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#475569] mt-0.5">
+              Drafts
+            </span>
           </div>
 
-          {/* 4. Conversion / Success Rate */}
-          <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xl sm:text-2xl font-black font-mono text-emerald-600 leading-none">
-                {conversionRate}
-              </h4>
-              <p className="text-xs font-semibold text-slate-500 mt-1">
-                Priced Rate
-              </p>
-            </div>
+          {/* This Month */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 text-center shadow-xs flex flex-col justify-center items-center min-h-[72px]">
+            <span className="text-xl sm:text-2xl font-black font-mono text-[#16A34A] leading-tight">
+              {thisMonthCount}
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold text-[#475569] mt-0.5">
+              This Month
+            </span>
           </div>
         </div>
 
         {/* Recent Quotations Section */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-black text-slate-900 tracking-tight">
+            <h3 className="text-base font-extrabold text-[#0F172A] tracking-tight">
               Recent Quotations
             </h3>
             <Link
               href="/quotations"
-              className="text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] flex items-center gap-1"
+              className="text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] flex items-center gap-1 min-h-[36px]"
             >
               View All <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {loading ? (
-            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
               <DualOrbitalSpinner size="md" />
-              <p className="text-xs font-medium">Loading quotations...</p>
+              <p className="text-xs font-medium text-[#475569]">Loading quotations...</p>
             </div>
           ) : quotations.length === 0 ? (
-            <div className="bg-white rounded-lg border border-slate-200/90 p-8 shadow-xs text-center space-y-3">
-              <div className="w-12 h-12 rounded-full bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-8 shadow-xs text-center space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#E0F2F1] text-[#0F766E] mx-auto flex items-center justify-center">
                 <FileText className="w-6 h-6 stroke-[2]" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold text-slate-800">No quotations created yet</h4>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Upload an RFQ file or start a fresh quotation to see your recent quotes and real-time conversion metrics here.
+                <h4 className="text-sm font-bold text-[#0F172A]">No quotations created yet</h4>
+                <p className="text-xs text-[#475569] max-w-sm mx-auto">
+                  Upload an RFQ file or start a fresh quotation to view your recent quotations here.
                 </p>
               </div>
-              <Button asChild className="h-9 px-4 rounded-lg text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white">
+              <Button asChild className="h-10 px-5 rounded-xl text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white">
                 <Link href="/">
-                  <UploadCloud className="w-3.5 h-3.5 mr-1.5" /> Create Your First Quotation
+                  <Plus className="w-4 h-4 mr-1.5" /> Create Your First Quotation
                 </Link>
               </Button>
             </div>
@@ -390,66 +366,54 @@ export default function DashboardPage() {
                 const isDraft = quote.type === "rfq" || !quote.items.some((i) => (Number(i.unitPrice) || 0) > 0);
                 const statusLabel = isDraft ? "Draft" : "Sent";
                 const statusClass = isDraft
-                  ? "bg-slate-100 text-slate-700 border-slate-200"
-                  : "bg-emerald-50 text-emerald-700 border-emerald-200";
+                  ? "bg-amber-50 text-amber-800 border-amber-200"
+                  : "bg-emerald-50 text-emerald-800 border-emerald-200";
+
+                const clientName = quote.client?.companyName || quote.client?.name || "Standard Client";
+                const formattedPrice = getQuoteTotalFormatted(quote);
 
                 return (
                   <div
                     key={quote.id}
-                    className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-xs flex items-center justify-between hover:border-slate-300 transition-all"
+                    onClick={() => handleOpenInBuilder(quote)}
+                    className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-xs flex items-center justify-between gap-3 hover:border-slate-300 active:scale-[0.99] transition-all cursor-pointer"
                   >
-                    <div className="space-y-1 min-w-0 pr-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-xs text-slate-900 shrink-0">
-                          {quote.number}
-                        </span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-xs text-slate-700 font-bold truncate">
-                          {quote.client?.companyName || quote.client?.name || "Standard Client"}
-                        </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <span>{quote.date}</span>
-                        {quote.vessel && <span>• Vessel: {quote.vessel}</span>}
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="font-mono font-bold text-xs sm:text-sm text-[#0F172A] truncate">
+                          {quote.number}
+                        </p>
+                        <p className="text-xs text-[#475569] font-medium truncate">
+                          {clientName}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${statusClass}`}>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusClass}`}>
                         {statusLabel}
                       </span>
-
-                      {isDraft ? (
-                        <Button
-                          size="sm"
-                          onClick={() => handleOpenInBuilder(quote)}
-                          className="h-8 px-2.5 rounded-md text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[32px]"
-                        >
-                          Edit
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={downloadingId === quote.id}
-                          onClick={() => handleDownloadPDF(quote)}
-                          className="h-8 px-2.5 rounded-md text-xs font-bold border-teal-200 text-[#0F766E] hover:bg-[#E0F2F1] min-h-[32px]"
-                        >
-                          {downloadingId === quote.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Download className="w-3.5 h-3.5" />
-                          )}
-                        </Button>
-                      )}
-
+                      <span className="font-mono font-bold text-xs text-[#0F172A] hidden sm:inline">
+                        {formattedPrice}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setDeleteQuoteTarget(quote)}
-                        className="w-8 h-8 rounded-md flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                        title="Delete Quotation"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadPDF(quote);
+                        }}
+                        disabled={downloadingId === quote.id}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-[#0F766E] hover:bg-teal-50 transition-colors"
+                        title="Download PDF"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        {downloadingId === quote.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -458,57 +422,43 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      </main>
 
-        {/* Delete Confirmation Modal */}
-        {deleteQuoteTarget && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-                  <Trash2 className="w-5 h-5 stroke-[2.2]" />
-                </div>
-                <div>
-                  <h3 className="font-black text-slate-900 text-base leading-tight">Delete Quotation?</h3>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">{deleteQuoteTarget.number}</p>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Are you sure you want to permanently delete quotation <strong className="font-mono text-slate-900">{deleteQuoteTarget.number}</strong> for{" "}
-                <strong className="text-slate-900">{deleteQuoteTarget.client?.companyName || deleteQuoteTarget.client?.name || "Customer"}</strong>? This action cannot be undone.
+      {/* Delete Confirmation Modal */}
+      {deleteQuoteTarget && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-5 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div className="text-center space-y-1">
+              <h4 className="text-base font-extrabold text-[#0F172A]">Delete Quotation?</h4>
+              <p className="text-xs text-[#475569] leading-relaxed">
+                Are you sure you want to delete <span className="font-mono font-bold text-slate-800">{deleteQuoteTarget.number}</span>? This action cannot be undone.
               </p>
-
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isDeleting}
-                  onClick={() => setDeleteQuoteTarget(null)}
-                  className="h-9 px-4 rounded-xl text-xs font-bold text-slate-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isDeleting}
-                  onClick={handleDeleteQuotation}
-                  className="h-9 px-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs flex items-center gap-1.5"
-                >
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
-                    </>
-                  )}
-                </Button>
-              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isDeleting}
+                onClick={() => setDeleteQuoteTarget(null)}
+                className="flex-1 h-10 rounded-xl text-xs font-bold border-slate-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteQuotation}
+                className="flex-1 h-10 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
+              >
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+              </Button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }

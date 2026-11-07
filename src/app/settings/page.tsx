@@ -25,7 +25,10 @@ import {
   ArrowLeft,
   Palette,
   Type,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  Sliders,
+  ShieldCheck
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { 
@@ -37,10 +40,14 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const { state, dispatch } = useQuotationState();
   const { signOut } = useClerk();
   const { success: toastSuccess } = useToast();
+
+  const userName = user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Alfaz Bilakhiya";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "alfazbilakhiya17@gmail.com";
+  const userInitial = (user?.firstName?.[0] || userName[0] || "A").toUpperCase();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -189,52 +196,38 @@ export default function SettingsPage() {
         <div className="block md:hidden space-y-4">
           {mobileSection === "menu" ? (
             <div className="space-y-4">
-              {/* Company Profile Card */}
-              <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-md bg-[#E0F2F1] text-[#0F766E] border border-teal-200 flex items-center justify-center p-2 shadow-2xs">
-                  {state.branding.logo ? (
+              {/* User Profile Card (Screen 9 visual reference) */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-[#0F766E] text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs overflow-hidden">
+                  {user?.imageUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={state.branding.logo}
-                      alt="Company Logo"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    <img src={user.imageUrl} alt={userName} className="w-full h-full object-cover" />
                   ) : (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src="/logo-mark.png"
-                      alt="QuoteCraft Logo"
-                      className="max-h-full max-w-full object-contain"
-                    />
+                    <span>{userInitial}</span>
                   )}
                 </div>
-
-                <div>
-                  <h3 className="font-black text-base text-slate-900 leading-tight">
-                    {companyName}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 truncate">
+                    {userName}
                   </h3>
-                  <button
-                    type="button"
-                    onClick={() => setMobileSection("company")}
-                    className="text-xs font-bold text-[#0F766E] hover:underline mt-1 inline-block"
-                  >
-                    Edit Profile
-                  </button>
+                  <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                    {userEmail}
+                  </p>
                 </div>
               </div>
 
-              {/* Navigation List Items with Chevrons */}
-              <div className="bg-white rounded-lg border border-slate-200/90 shadow-xs divide-y divide-slate-100 overflow-hidden">
+              {/* Grouped Settings Navigation Card */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setMobileSection("company")}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                  className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
                       <Building className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Company Details</span>
+                    <span className="text-sm font-semibold text-slate-800">Company Profile</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
@@ -242,78 +235,75 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setMobileSection("templates")}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                  className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
-                      <Layers className="w-4 h-4" />
+                    <div className="w-9 h-9 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
+                      <Palette className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Quotation Templates & Color</span>
+                    <span className="text-sm font-semibold text-slate-800">Branding &amp; Design</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => toastSuccess("Notification preferences are synced to your account.")}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                  onClick={() => setMobileSection("business")}
+                  className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
-                      <Bell className="w-4 h-4" />
+                    <div className="w-9 h-9 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Notification Preferences</span>
+                    <span className="text-sm font-semibold text-slate-800">Quotation Preferences</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => toastSuccess("Clerk Authentication & Google Gemini AI are active.")}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                  onClick={() => setMobileSection("business")}
+                  className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
-                      <Puzzle className="w-4 h-4" />
+                    <div className="w-9 h-9 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
+                      <Sliders className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-slate-800">Integrations</span>
+                    <span className="text-sm font-semibold text-slate-800">Business Settings</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
 
-                <a
-                  href="mailto:support@quotecraft.app"
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center">
-                      <LifeBuoy className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-bold text-slate-800">Help & Support</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </a>
-
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-rose-50/50 transition-colors text-rose-600"
+                  onClick={() => toastSuccess("Account & security managed securely via Clerk.")}
+                  className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                      <LogOut className="w-4 h-4" />
+                    <div className="w-9 h-9 rounded-xl bg-[#E0F2F1] text-[#0F766E] flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold">Logout</span>
+                    <span className="text-sm font-semibold text-slate-800">Account &amp; Security</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-rose-400" />
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
                 </button>
               </div>
+
+              {/* Sign Out Action Button */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full px-4 py-3 flex items-center gap-3 text-left font-bold text-sm text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+              >
+                <LogOut className="w-4 h-4 text-rose-600" />
+                <span>Sign Out</span>
+              </button>
             </div>
           ) : mobileSection === "templates" ? (
             /* Mobile Templates Sub-Screen */
-            <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-5">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="font-bold text-sm text-slate-900">Template & Branding</h3>
+                <h3 className="font-bold text-sm text-slate-900">Branding &amp; Templates</h3>
                 <button
                   type="button"
                   onClick={() => setMobileSection("menu")}
@@ -332,7 +322,7 @@ export default function SettingsPage() {
                       key={tmpl.id}
                       type="button"
                       onClick={() => setSelectedLayout(tmpl.id)}
-                      className={`w-full p-3 rounded-md border text-left transition-all flex items-start justify-between gap-3 ${
+                      className={`w-full p-3 rounded-xl border text-left transition-all flex items-start justify-between gap-3 ${
                         selectedLayout === tmpl.id
                           ? "border-[#0F766E] bg-[#E0F2F1]/30 ring-1 ring-[#0F766E]"
                           : "border-slate-200 hover:bg-slate-50"
@@ -389,7 +379,7 @@ export default function SettingsPage() {
                 <select
                   value={selectedFont}
                   onChange={(e) => setSelectedFont(e.target.value)}
-                  className="w-full h-10 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/60"
+                  className="w-full h-11 px-3 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/60"
                 >
                   {PRESET_FONTS.map((font) => (
                     <option key={font.id} value={font.name}>
@@ -401,14 +391,65 @@ export default function SettingsPage() {
 
               <Button
                 onClick={handleSaveBranding}
-                className="w-full h-11 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
+                className="w-full h-12 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
               >
-                <Save className="w-4 h-4 mr-1.5" /> Save Template & Colors
+                <Save className="w-4 h-4 mr-1.5" /> Save Template &amp; Colors
+              </Button>
+            </div>
+          ) : mobileSection === "business" ? (
+            /* Mobile Business & Terms Sub-Screen */
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="font-bold text-sm text-slate-900">Business Info &amp; Terms</h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileSection("menu")}
+                  className="text-xs font-bold text-[#0F766E]"
+                >
+                  Back
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Bank Account Details (Swift / IBAN)</Label>
+                <textarea
+                  rows={4}
+                  value={state.company.bankDetails || ""}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_COMPANY",
+                      payload: { bankDetails: e.target.value },
+                    })
+                  }
+                  placeholder="Bank: Emirates NBD&#10;IBAN: AE2902600010029384810&#10;SWIFT: ENBDAEAD"
+                  className="w-full text-xs font-mono p-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#0F766E] outline-none leading-relaxed"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Standard Commercial Terms</Label>
+                <textarea
+                  rows={4}
+                  value={state.terms}
+                  onChange={(e) => dispatch({ type: "SET_TERMS", payload: e.target.value })}
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#0F766E] outline-none leading-relaxed"
+                  placeholder="• Delivery: Ex-Works&#10;• Payment: 30 days&#10;• Validity: 30 days"
+                />
+              </div>
+
+              <Button
+                onClick={() => {
+                  toastSuccess("Business settings updated successfully!");
+                  setMobileSection("menu");
+                }}
+                className="w-full h-12 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
+              >
+                <Save className="w-4 h-4 mr-1.5" /> Save Business Settings
               </Button>
             </div>
           ) : (
             /* Mobile Company Form Sub-Screen */
-            <div className="bg-white rounded-lg border border-slate-200/90 p-5 shadow-xs space-y-4">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="font-bold text-sm text-slate-900">Edit Company Profile</h3>
                 <button
@@ -425,7 +466,7 @@ export default function SettingsPage() {
                 <Input
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="h-10 text-xs rounded-xl"
+                  className="h-11 text-xs rounded-xl"
                 />
               </div>
 
@@ -435,7 +476,7 @@ export default function SettingsPage() {
                   type="email"
                   value={companyEmail}
                   onChange={(e) => setCompanyEmail(e.target.value)}
-                  className="h-10 text-xs rounded-xl"
+                  className="h-11 text-xs rounded-xl"
                 />
               </div>
 
@@ -444,7 +485,7 @@ export default function SettingsPage() {
                 <Input
                   value={companyPhone}
                   onChange={(e) => setCompanyPhone(e.target.value)}
-                  className="h-10 text-xs rounded-xl font-mono"
+                  className="h-11 text-xs rounded-xl font-mono"
                 />
               </div>
 
@@ -453,13 +494,13 @@ export default function SettingsPage() {
                 <Input
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
-                  className="h-10 text-xs rounded-xl"
+                  className="h-11 text-xs rounded-xl"
                 />
               </div>
 
               <Button
                 onClick={handleSaveCompany}
-                className="w-full h-11 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
+                className="w-full h-12 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
               >
                 <Save className="w-4 h-4 mr-1.5" /> Save Changes
               </Button>

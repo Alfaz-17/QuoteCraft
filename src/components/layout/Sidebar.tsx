@@ -34,7 +34,7 @@ const menuItems = [
     name: "My Quotations",
     href: "/quotations",
     icon: FileText,
-    mobileLabel: "My Quotes",
+    mobileLabel: "Quotes",
   },
   {
     name: "Templates",

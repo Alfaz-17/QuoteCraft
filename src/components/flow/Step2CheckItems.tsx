@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { QuotationState, LineItem, TableColumn, Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
+import { EditItemModal } from "./EditItemModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
@@ -13,6 +14,7 @@ import {
   ArrowRight, 
   Plus, 
   Trash2, 
+  Pencil, 
   Check, 
   ChevronDown, 
   ChevronUp,
@@ -82,6 +84,8 @@ export function Step2CheckItems({
 }: Step2CheckItemsProps) {
   const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingItem, setEditingItem] = useState<LineItem | null>(null);
+  const [filterMode, setFilterMode] = useState<"all" | "review" | "verified">("all");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [showColumnsModal, setShowColumnsModal] = useState(false);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -130,7 +134,8 @@ export function Step2CheckItems({
 
   // Filter items by search and active tab
   const filteredItems = items.filter((item) => {
-    if (activeTab === "review" && !isItemNeedsReview(item)) return false;
+    if (filterMode === "review" && !isItemNeedsReview(item)) return false;
+    if (filterMode === "verified" && isItemNeedsReview(item)) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = (item.itemName || "").toLowerCase().includes(q);
@@ -330,192 +335,139 @@ export function Step2CheckItems({
 
       {/* ── SEARCH & FILTER CONTROLS ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {reviewCount > 0 ? (
-          <div className="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab("all")}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                activeTab === "all"
-                  ? "bg-white text-slate-900 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              All items ({items.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("review")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                activeTab === "review"
-                  ? "bg-white text-slate-900 shadow-2xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-amber-700 font-bold">Needs Check ({reviewCount})</span>
-            </button>
-          </div>
-        ) : (
-          <div className="text-xs text-slate-500 flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>
-              <strong>Excel Tip:</strong> You can paste an entire column of prices directly into any Unit Price box.
-            </span>
-          </div>
-        )}
+        {/* Filter Pills (Screen 3 in Mockup) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => {
+              setFilterMode("all");
+              setActiveTab("all");
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
+              filterMode === "all"
+                ? "bg-[#0F766E] text-white shadow-xs"
+                : "bg-white text-[#475569] border border-slate-200/80 hover:bg-slate-50"
+            }`}
+          >
+            All ({items.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFilterMode("review");
+              setActiveTab("review");
+            }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
+              filterMode === "review"
+                ? "bg-[#0F766E] text-white shadow-xs"
+                : "bg-white text-amber-800 border border-amber-200 hover:bg-amber-50"
+            }`}
+          >
+            {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-500" />}
+            <span>Needs Review ({reviewCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFilterMode("verified");
+              setActiveTab("all");
+            }}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
+              filterMode === "verified"
+                ? "bg-[#0F766E] text-white shadow-xs"
+                : "bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50"
+            }`}
+          >
+            Verified ({Math.max(0, items.length - reviewCount)})
+          </button>
+        </div>
 
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search items or part numbers..."
-            className="h-10 pl-9 pr-3 text-xs sm:text-sm rounded-lg border-slate-300 bg-white"
+            placeholder="Search items..."
+            className="h-10 pl-9 pr-3 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
           />
         </div>
       </div>
 
-      {/* ── MOBILE TOUCH CARDS (< md) ── */}
+      {/* ── MOBILE TOUCH CARDS (Screen 3 in Mockup) ── */}
       <div className="block md:hidden space-y-3">
         {filteredItems.map((item, idx) => {
           const reason = getItemReviewReason(item);
           const needsReview = reason !== null;
-          const isExpanded = expandedItemId === item.id;
           const qtyVal = toNumber(item[qtyKey]) || 1;
           const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
           const lineTotal = calculateRowTotal(item, tableColumns);
-          const isZero = !priceVal || priceVal <= 0;
 
           return (
             <div
               key={item.id}
-              className={`bg-white rounded-lg border p-3.5 shadow-2xs space-y-3 transition-all ${
+              className={`bg-white rounded-2xl border p-4 shadow-xs space-y-3 transition-all ${
                 needsReview
-                  ? "border-amber-300 bg-amber-50/20"
-                  : isZero
-                  ? "border-amber-200 bg-amber-50/10"
-                  : "border-slate-200"
+                  ? "border-amber-300 bg-amber-50/15"
+                  : "border-slate-200/90"
               }`}
             >
-              <div className="flex items-start justify-between gap-2.5">
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                    {idx + 1}
-                  </span>
-
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <input
-                      type="text"
-                      value={item.itemName || ""}
-                      onChange={(e) => onUpdateItem(item.id, { itemName: e.target.value })}
-                      placeholder="Item name"
-                      className="w-full text-sm font-bold text-slate-900 bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-teal-600 rounded px-1 -mx-1"
-                    />
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <input
-                        type="text"
-                        value={item.partNumber || ""}
-                        onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
-                        placeholder="Part No."
-                        className="text-xs font-mono font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 max-w-[130px]"
-                      />
-                      <span className="text-xs font-bold text-slate-700">
-                        Qty: {qtyVal} {item.unit || "PCS"}
-                      </span>
-                    </div>
-
-                    {needsReview && (
-                      <p className="text-xs font-semibold text-amber-700 flex items-center gap-1 mt-1">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>{reason}</span>
-                      </p>
-                    )}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-sm text-[#0F172A] truncate">
+                      {item.itemName || "Unnamed Item"}
+                    </h4>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
+                        needsReview
+                          ? "bg-amber-50 text-amber-700 border-amber-200"
+                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      }`}
+                    >
+                      {needsReview ? "Review" : "OK"}
+                    </span>
                   </div>
+
+                  <p className="font-mono text-xs text-[#475569]">
+                    {item.partNumber ? `PN-${item.partNumber}` : "PN-N/A"}
+                  </p>
+
+                  <p className="text-xs font-semibold text-[#0F172A]">
+                    Qty: {qtyVal} Unit: {item.unit || "PCS"}
+                  </p>
+
+                  {needsReview && reason && (
+                    <p className="text-xs text-amber-700 font-semibold flex items-center gap-1 mt-1">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span>{reason}</span>
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <span className="text-xs text-slate-400 font-medium">Total</span>
-                  <span className="font-mono text-sm font-bold text-slate-900">
-                    {currencySymbol}{lineTotal > 0 ? lineTotal.toFixed(2) : "0.00"}
-                  </span>
+                {/* Action Icons: Edit (Pencil) & Delete (Trash) - Screen 3 in Mockup */}
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                    className="p-1 rounded text-slate-400 hover:text-slate-700"
-                    aria-label="Expand details"
+                    onClick={() => setEditingItem(item)}
+                    aria-label="Edit Item"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-[#0F766E] hover:bg-teal-50 border border-teal-100 transition-colors"
+                    title="Edit Item"
                   >
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    <Pencil className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onDeleteItem(item.id)}
+                    aria-label="Delete Item"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 transition-colors"
+                    title="Delete Item"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* Price input on mobile */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-                <label className="text-xs font-bold text-slate-700 shrink-0">
-                  Unit Price ({currencySymbol})
-                </label>
-                <div className="relative flex-1 max-w-[170px]">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold select-none">
-                    {currencySymbol}
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={priceVal > 0 ? priceVal : ""}
-                    placeholder="0.00"
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value) || 0;
-                      onUpdateItem(item.id, {
-                        unitPrice: val,
-                        [priceKey]: val,
-                      });
-                    }}
-                    className={`w-full pl-6 pr-3 py-2 text-right font-mono text-sm font-bold rounded-lg border transition-all ${
-                      isZero
-                        ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-teal-600 focus:bg-white"
-                        : "border-slate-300 text-slate-900 focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* Expanded Mobile Controls */}
-              {isExpanded && (
-                <div className="pt-2 border-t border-slate-100 space-y-2 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">Quantity</label>
-                      <input
-                        type="number"
-                        value={typeof item.quantity === "number" ? item.quantity : ""}
-                        onChange={(e) => onUpdateItem(item.id, { quantity: Number(e.target.value) || 0, isMissingQty: false })}
-                        className="w-full h-9 px-2 rounded-lg border border-slate-300 font-mono text-xs mt-1"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-600">Unit</label>
-                      <input
-                        type="text"
-                        value={item.unit || "PCS"}
-                        onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="w-full h-9 px-2 rounded-lg border border-slate-300 text-xs mt-1"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end pt-1">
-                    <button
-                      type="button"
-                      onClick={() => onDeleteItem(item.id)}
-                      className="text-xs text-rose-600 font-bold flex items-center gap-1 hover:underline p-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Delete Item
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}
@@ -855,12 +807,20 @@ export function Step2CheckItems({
               onClick={onNext}
               className="min-h-[48px] px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
             >
-              <span>Preview &amp; Send Quote</span>
+              <span>Continue</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </footer>
+
+      {/* ── SCREEN 4: EDIT ITEM MODAL ── */}
+      <EditItemModal
+        isOpen={editingItem !== null}
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSave={(id, updates) => onUpdateItem(id, updates)}
+      />
 
       {/* ── CONFIRMATION MODAL: CLEAR / RE-UPLOAD EXTRACTION ── */}
       {showClearModal && (
