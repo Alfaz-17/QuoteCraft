@@ -235,7 +235,7 @@ function QuotationBuilder() {
   return (
     <div className="h-[100dvh] flex flex-col bg-[#FAF9F5] overflow-hidden text-[#0F172A] selection:bg-teal-500/10 selection:text-teal-900">
       {/* ===== NATIVE APP TOOLBAR (z-30) ===== */}
-      <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex items-center justify-between z-30 shadow-2xs">
+      <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] flex items-center justify-between z-30 shadow-2xs app-chrome select-none">
         {/* Brand & Document Info */}
         <div className="flex items-center gap-2.5">
           <Link href="/dashboard" className="flex items-center gap-2 group min-h-[44px]" title="Return to Dashboard">

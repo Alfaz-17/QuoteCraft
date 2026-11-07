@@ -22,6 +22,14 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     apple: "/apple-touch-icon.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "QuoteCraft",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 import type { Viewport } from "next";
@@ -32,10 +40,12 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#0F766E",
 };
 
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Providers } from "./providers";
+import { PwaInstallBanner } from "@/components/ui/PwaInstallBanner";
 
 export default function RootLayout({
   children,
@@ -54,6 +64,7 @@ export default function RootLayout({
               {children}
             </div>
           </div>
+          <PwaInstallBanner />
         </Providers>
       </body>
     </html>
