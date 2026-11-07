@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
+  FileText, 
   ArrowRight, 
   Download, 
   MessageCircle, 
@@ -234,6 +235,31 @@ export function Step3AddPricesAndSend({
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* ── SCROLLING MIDDLE CONTENT ── */}
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-5 max-w-7xl mx-auto w-full pb-8">
+        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
+        <div className="bg-[#0F766E] rounded-3xl p-5 sm:p-6 text-white flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
+              3
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
+                  Step 3
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
+                Quotation Details
+              </h3>
+              <p className="text-xs text-teal-100/90 font-medium">
+                Add customer, pricing and terms
+              </p>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
+        </div>
+
         {/* Top Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -753,7 +779,7 @@ export function Step3AddPricesAndSend({
             <Button
               disabled={isDownloading}
               onClick={handleDownloadPDF}
-              className={`min-h-[48px] px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2 ${
+              className={`min-h-[48px] px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#F59E0B] hover:bg-[#D97706] active:scale-[0.98] text-white shadow-md shadow-[#F59E0B]/25 flex items-center justify-center gap-2 ${
                 activeMobileView === "pricing" ? "hidden sm:flex" : "flex-1 sm:flex-initial"
               }`}
             >

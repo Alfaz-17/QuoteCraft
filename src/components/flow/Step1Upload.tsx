@@ -286,8 +286,35 @@ export function Step1Upload({
           </div>
         </div>
 
-        {/* ===== SCREEN 2: MAIN UPLOAD CARD ===== */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
+        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden space-y-0">
+          {/* Curved Deep Teal Header Banner */}
+          <div className="bg-[#0F766E] p-5 sm:p-6 text-white flex items-center justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
+                1
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
+                    Step 1
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
+                  Upload RFQ
+                </h3>
+                <p className="text-xs text-teal-100/90 font-medium">
+                  Upload your RFQ or import from file
+                </p>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
+              <UploadCloud className="w-5 h-5" />
+            </div>
+          </div>
+
+          {/* Card Body */}
+          <div className="p-5 sm:p-7 space-y-5">
           {inputMode === "file" ? (
             <div>
               <input
@@ -393,15 +420,28 @@ export function Step1Upload({
                     <UploadCloud className="w-7 h-7 stroke-[2.2]" />
                   </div>
 
-                  <div className="space-y-1">
-                    <p className="text-sm sm:text-base font-extrabold text-[#0F172A]">
+                  <div className="space-y-3">
+                    <p className="text-base font-extrabold text-[#0F172A]">
                       Drag &amp; drop your file here
                     </p>
-                    <p className="text-xs text-[#0F766E] font-bold">
-                      or choose file
+                    <p className="text-xs text-[#475569] font-medium">
+                      or
                     </p>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fileInputRef.current?.click();
+                        }}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold shadow-sm transition-transform active:scale-95"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>Browse Files</span>
+                      </button>
+                    </div>
                     <p className="text-xs text-[#475569] font-medium pt-1">
-                      Supports PDF, Excel
+                      Supports PDF, Excel, DOCX • Max 10MB
                     </p>
                   </div>
                 </div>
@@ -438,16 +478,35 @@ export function Step1Upload({
             </div>
           )}
 
-          {/* Start blank quotation shortcut */}
-          <div className="pt-1 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={onSkipUpload}
-              className="text-xs font-bold text-[#0F766E] hover:underline min-h-[36px] px-3"
-            >
-              Or start with a blank quote &rarr;
-            </button>
+          {/* Divider: —— OR —— */}
+          <div className="relative flex items-center justify-center my-3">
+            <div className="border-t border-slate-200 w-full" />
+            <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest shrink-0">
+              OR
+            </span>
           </div>
+
+          {/* Enter Manually Card */}
+          <button
+            type="button"
+            onClick={onSkipUpload}
+            className="w-full bg-slate-50 hover:bg-slate-100/80 border border-slate-200/90 rounded-2xl p-4 flex items-center justify-between text-left transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-[#0F766E] flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-extrabold text-sm text-[#0F172A]">
+                  Enter Manually
+                </p>
+                <p className="text-xs text-[#475569] font-medium">
+                  Add items manually if needed
+                </p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F766E] group-hover:translate-x-0.5 transition-all" />
+          </button>
 
           {/* Privacy Assurance */}
           <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 pt-1">
@@ -455,8 +514,8 @@ export function Step1Upload({
             <span>Your files are private. Only you can view your quotations.</span>
           </div>
         </div>
-
         </div>
+      </div>
     </div>
   );
 }

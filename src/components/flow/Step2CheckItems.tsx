@@ -15,7 +15,9 @@ import {
   Plus, 
   Trash2, 
   Pencil, 
-  Check, 
+  Check,
+  CheckSquare,
+  GripVertical,
   ChevronDown, 
   ChevronUp,
   SlidersHorizontal,
@@ -221,6 +223,31 @@ export function Step2CheckItems({
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* ── SCROLLING MIDDLE CONTENT ── */}
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-4 max-w-7xl mx-auto w-full pb-8">
+        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
+        <div className="bg-[#0F766E] rounded-3xl p-5 sm:p-6 text-white flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
+              2
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
+                  Step 2
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
+                Review Items
+              </h3>
+              <p className="text-xs text-teal-100/90 font-medium">
+                Verify and edit extracted products
+              </p>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
+            <CheckSquare className="w-5 h-5" />
+          </div>
+        </div>
+
         {/* ── TOP HEADER & PRIMARY ACTION TOOLBAR ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -427,7 +454,7 @@ export function Step2CheckItems({
         </div>
       </div>
 
-      {/* ── MOBILE TOUCH CARDS (Screen 3 in Mockup) ── */}
+      {/* ── MOBILE TOUCH CARDS (Matching 3-Step Infographic) ── */}
       <div className="block md:hidden space-y-3">
         {filteredItems.map((item, idx) => {
           const reason = getItemReviewReason(item);
@@ -445,66 +472,140 @@ export function Step2CheckItems({
                   : "border-slate-200/90"
               }`}
             >
+              {/* Top row: Drag handle + Details + Green verified badge */}
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-extrabold text-sm text-[#0F172A] truncate">
-                      {item.itemName || "Unnamed Item"}
-                    </h4>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
-                        needsReview
-                          ? "bg-amber-50 text-amber-700 border-amber-200"
-                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      }`}
+                <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                  <div className="text-slate-300 mt-1 shrink-0 cursor-grab">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm sm:text-base text-[#0F172A] truncate">
+                        {item.itemName || "Unnamed Item"}
+                      </h4>
+                    </div>
+
+                    <p className="font-mono text-xs font-semibold text-slate-500">
+                      {item.partNumber ? `Part No: ${item.partNumber}` : "Part No: N/A"}
+                    </p>
+
+                    {item.description && (
+                      <p className="text-xs text-[#475569] line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {needsReview && reason && (
+                      <p className="text-xs text-amber-700 font-semibold flex items-center gap-1 pt-1">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>{reason}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status indicator badge (Green checkmark like infographic or Review warning) */}
+                <div className="shrink-0">
+                  {needsReview ? (
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      Review
+                    </span>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-2xs">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom Row: Stepper Qty [ - 10 + ], Unit Dropdown [ PCS v ], and Price */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                {/* Stepper + Unit */}
+                <div className="flex items-center gap-1.5">
+                  <div className="inline-flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => onUpdateItem(item.id, { quantity: Math.max(1, qtyVal - 1), isMissingQty: false })}
+                      className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 text-sm shadow-2xs active:scale-95"
                     >
-                      {needsReview ? "Review" : "OK"}
+                      -
+                    </button>
+                    <span className="w-8 text-center font-mono font-bold text-xs text-slate-900">
+                      {qtyVal}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onUpdateItem(item.id, { quantity: qtyVal + 1, isMissingQty: false })}
+                      className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 text-sm shadow-2xs active:scale-95"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <select
+                    value={item.unit || "PCS"}
+                    onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
+                    className="h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase text-slate-700"
+                  >
+                    <option value="PCS">PCS</option>
+                    <option value="SET">SET</option>
+                    <option value="MTR">MTR</option>
+                    <option value="LTR">LTR</option>
+                    <option value="KGS">KGS</option>
+                    <option value="BOX">BOX</option>
+                  </select>
+                </div>
+
+                {/* Price Display / Total & Actions */}
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    {priceVal > 0 && (
+                      <span className="text-[11px] text-slate-400 block font-mono">
+                        {currencySymbol}{priceVal.toFixed(2)}
+                      </span>
+                    )}
+                    <span className="font-mono text-sm font-black text-[#0F172A]">
+                      {currencySymbol}{lineTotal > 0 ? lineTotal.toFixed(2) : "0.00"}
                     </span>
                   </div>
 
-                  <p className="font-mono text-xs text-[#475569]">
-                    {item.partNumber ? `PN-${item.partNumber}` : "PN-N/A"}
-                  </p>
-
-                  <p className="text-xs font-semibold text-[#0F172A]">
-                    Qty: {qtyVal} Unit: {item.unit || "PCS"}
-                  </p>
-
-                  {needsReview && reason && (
-                    <p className="text-xs text-amber-700 font-semibold flex items-center gap-1 mt-1">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                      <span>{reason}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Action Icons: Edit (Pencil) & Delete (Trash) - Screen 3 in Mockup */}
-                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() => setEditingItem(item)}
-                    aria-label="Edit Item"
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-[#0F766E] hover:bg-teal-50 border border-teal-100 transition-colors"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-[#0F766E] hover:bg-teal-50 border border-teal-100 transition-colors"
                     title="Edit Item"
                   >
-                    <Pencil className="w-4 h-4" />
+                    <Pencil className="w-3.5 h-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onDeleteItem(item.id)}
-                    aria-label="Delete Item"
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 transition-colors"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 transition-colors"
                     title="Delete Item"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
-
             </div>
           );
         })}
+
+        {/* Bottom Card Summary Row matching the Infographic */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E0F2F1] text-[#0F766E]">
+            <CheckSquare className="w-3.5 h-3.5" />
+            {items.length} items selected
+          </span>
+          <div className="text-right">
+            <span className="text-xs text-slate-500 font-medium mr-1.5">Total:</span>
+            <span className="font-mono text-base font-black text-[#0F172A]">
+              {formattedTotal}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* ── DESKTOP UNIFIED SPREADSHEET TABLE (md+) ── */}
