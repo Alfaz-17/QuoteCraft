@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuotationState } from "@/hooks/useQuotationState";
 import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
 import { Step1Upload } from "@/components/flow/Step1Upload";
@@ -41,7 +42,8 @@ export default function Home() {
 }
 
 function QuotationBuilder() {
-  const { state, dispatch } = useQuotationState();
+  const router = useRouter();
+  const { state, dispatch, isHydrated } = useQuotationState();
   const { success: toastSuccess, info: toastInfo } = useToast();
 
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
@@ -50,6 +52,26 @@ function QuotationBuilder() {
 
   // Undo history stack
   const undoStack = useRef<LineItem[][]>([]);
+
+  // Check if authenticated user has completed company onboarding
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (!state.company.name) {
+      (async () => {
+        try {
+          const res = await fetch("/api/user/profile");
+          if (res.ok) {
+            const data = await res.json();
+            if (!data?.profile?.company?.name) {
+              router.replace("/onboarding");
+            }
+          }
+        } catch {
+          // ignore
+        }
+      })();
+    }
+  }, [isHydrated, state.company.name, router]);
 
   useEffect(() => {
     // If draft already has items, start at Step 3 (Prices) or Step 2 (Check items)

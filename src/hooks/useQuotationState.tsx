@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { quotationReducer, initialState, QuotationAction } from "./quotationReducer";
-import { QuotationState } from "../types/quotation.types";
+import { QuotationState, Currency } from "../types/quotation.types";
 import { calculateSubtotal } from "../utils/calculations";
 
 export type SyncStatus = "local" | "syncing" | "synced" | "error";
@@ -101,6 +101,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
             company:      profile.company      ?? state.company,
             branding:     { ...(profile.branding ?? {}), logo: state.branding.logo },
             terms:        profile.terms         ?? state.terms,
+            currency:     (profile.builderConfig?.currency as Currency) || state.currency,
             tableColumns: profile.tableColumns?.length ? profile.tableColumns : state.tableColumns,
             builderConfig: profile.builderConfig ?? state.builderConfig,
           } as QuotationState,

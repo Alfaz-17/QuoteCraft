@@ -105,7 +105,22 @@ export default function DashboardPage() {
       if (!isSignedIn) {
         router.replace("/sign-in");
       } else {
-        fetchQuotations();
+        // Verify if user has completed company onboarding
+        (async () => {
+          try {
+            const res = await fetch("/api/user/profile");
+            if (res.ok) {
+              const data = await res.json();
+              if (!data?.profile?.company?.name) {
+                router.replace("/onboarding");
+                return;
+              }
+            }
+          } catch {
+            // continue gracefully if offline
+          }
+          fetchQuotations();
+        })();
       }
     }
   }, [isLoaded, isSignedIn, router, fetchQuotations]);
