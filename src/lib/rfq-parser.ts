@@ -1,13 +1,15 @@
 import ExcelJS from "exceljs";
+import { extractText } from "unpdf";
 import { ImportResult, ImportedColumn, ImportKind } from "@/utils/importMapping";
 
 export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 export interface DeterministicParseResult extends ImportResult {
-  method: "deterministic_excel" | "ai_fallback";
+  method: "deterministic_excel" | "deterministic_pdf" | "ai_fallback";
   durationMs: number;
   uncertainCount: number;
   sheetName?: string;
+  extractedText?: string;
   rfqDetails?: {
     vesselName?: string;
     customerName?: string;
@@ -228,4 +230,185 @@ export async function xlsxToText(buffer: Buffer): Promise<string> {
     if (lines.length) parts.push(`## Sheet: ${ws.name}\n${lines.join("\n")}`);
   });
   return parts.join("\n\n");
+}
+
+/**
+ * Extracts raw selectable text stream from a digital PDF buffer using unpdf.
+ * Detects if the PDF is scanned (contains no text stream).
+ */
+export async function extractPdfText(
+  buffer: Buffer
+): Promise<{ text: string; totalPages: number; isScanned: boolean }> {
+  try {
+    const uint8 = new Uint8Array(buffer);
+    const result = await extractText(uint8);
+    const rawText = Array.isArray(result.text) ? result.text.join("\n") : String(result.text || "");
+    const cleanText = rawText.replace(/\r\n/g, "\n").trim();
+    // A scanned PDF with only image pages typically has < 30 alphanumeric characters
+    const alphanumericCount = (cleanText.match(/[a-zA-Z0-9]/g) || []).length;
+    const isScanned = alphanumericCount < 30;
+
+    return {
+      text: cleanText,
+      totalPages: result.totalPages || 1,
+      isScanned,
+    };
+  } catch (err) {
+    console.warn("PDF text extraction error:", err);
+    return { text: "", totalPages: 1, isScanned: true };
+  }
+}
+
+/**
+ * Deterministically parses a digital PDF into columns and rows without calling an LLM.
+ * Returns null if the PDF is scanned or if no clear table layout can be determined.
+ */
+export async function parsePdfDeterministically(
+  buffer: Buffer
+): Promise<DeterministicParseResult | null> {
+  const startTime = Date.now();
+  try {
+    const { text: fullText, isScanned } = await extractPdfText(buffer);
+    if (isScanned || !fullText || fullText.length < 40) {
+      return null;
+    }
+
+    const lines = fullText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    if (lines.length < 3) {
+      return null;
+    }
+
+    // 1. Scan header lines for vessel, customer, RFQ ref, date
+    const rfqDetails: { vesselName?: string; customerName?: string; rfqNumber?: string; date?: string } = {};
+    for (let i = 0; i < Math.min(25, lines.length); i++) {
+      const line = lines[i];
+      const vesselMatch =
+        line.match(/(?:vessel(?:\s*name)?|ship)\s*[:\-]\s*(.+)/i) ||
+        line.match(/^(?:m\/?v|mt|mv)\s+([a-z0-9\s\.\-_]+)/i);
+      if (vesselMatch && !rfqDetails.vesselName) {
+        rfqDetails.vesselName = (vesselMatch[1] || line).trim();
+      }
+
+      const clientMatch = line.match(/(?:buyer|customer|client|company|purchaser|to)\s*[:\-]\s*(.+)/i);
+      if (clientMatch && !rfqDetails.customerName) {
+        rfqDetails.customerName = clientMatch[1].trim();
+      }
+
+      const rfqMatch = line.match(/(?:rfq|enquiry|inquiry|requisition|quote\s*ref)\s*(?:no|number|#)?\s*[:\-]\s*(.+)/i);
+      if (rfqMatch && !rfqDetails.rfqNumber) {
+        rfqDetails.rfqNumber = rfqMatch[1].trim();
+      }
+
+      const dateMatch = line.match(/(?:date)\s*[:\-]\s*(\d{1,4}[-/\.]\d{1,2}[-/\.]\d{1,4}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})/i);
+      if (dateMatch && !rfqDetails.date) {
+        rfqDetails.date = dateMatch[1].trim();
+      }
+    }
+
+    // 2. Identify delimiter and Table Header Line
+    let headerLineIndex = -1;
+    let detectedDelimiter: RegExp | string = /\t+/;
+    let detectedHeaders: { label: string; kind: ImportKind }[] = [];
+
+    const delimiters: (RegExp | string)[] = [/\t+/, /\s*\|\s*/, /\s*;\s*/, /\s{2,}/];
+
+    for (let i = 0; i < Math.min(30, lines.length); i++) {
+      const line = lines[i];
+
+      for (const delim of delimiters) {
+        const tokens = line.split(delim).map((t) => t.trim()).filter(Boolean);
+        if (tokens.length >= 2) {
+          const classified = tokens.map((t) => ({ label: t, kind: classifyHeader(t) }));
+          const hasName = classified.some((c) => c.kind === "name" || c.kind === "description");
+          const hasPartOrQty = classified.some(
+            (c) => c.kind === "partNumber" || c.kind === "qty" || c.kind === "serial"
+          );
+
+          if (hasName && hasPartOrQty) {
+            headerLineIndex = i;
+            detectedDelimiter = delim;
+            detectedHeaders = classified;
+            break;
+          }
+        }
+      }
+      if (headerLineIndex !== -1) break;
+    }
+
+    // If no clear table headers found with certainty, return null to fall back to Gemini
+    if (headerLineIndex === -1 || detectedHeaders.length < 2) {
+      return null;
+    }
+
+    // Build columns
+    const columns: ImportedColumn[] = detectedHeaders.map((h, idx) => ({
+      key: `c${idx + 1}`,
+      label: h.label,
+      kind: h.kind,
+    }));
+
+    // 3. Parse Data Rows
+    const rows: Record<string, unknown>[] = [];
+    let uncertainCount = 0;
+
+    for (let i = headerLineIndex + 1; i < lines.length; i++) {
+      const line = lines[i];
+      const lower = line.toLowerCase();
+      if (
+        lower.startsWith("total") ||
+        lower.startsWith("grand total") ||
+        lower.startsWith("terms &") ||
+        lower.startsWith("terms and") ||
+        lower.startsWith("authorized signature") ||
+        lower.startsWith("payment terms")
+      ) {
+        break;
+      }
+
+      const tokens = line.split(detectedDelimiter).map((t) => t.trim()).filter((t) => t !== "");
+      if (tokens.length === 0) continue;
+
+      const rowObj: Record<string, unknown> = {};
+      let hasData = false;
+
+      columns.forEach((col, cIdx) => {
+        const val = tokens[cIdx] ?? "";
+        rowObj[col.key] = val;
+        if (val) hasData = true;
+      });
+
+      if (!hasData) continue;
+
+      const qtyCol = columns.find((c) => c.kind === "qty");
+      if (qtyCol) {
+        const qVal = rowObj[qtyCol.key];
+        if (!qVal || Number(qVal) <= 0) {
+          uncertainCount++;
+        }
+      }
+
+      rows.push(rowObj);
+    }
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return {
+      columns,
+      rows,
+      method: "deterministic_pdf",
+      durationMs: Date.now() - startTime,
+      uncertainCount,
+      rfqDetails,
+      extractedText: fullText,
+    };
+  } catch (err) {
+    console.error("Deterministic PDF parse error:", err);
+    return null;
+  }
 }

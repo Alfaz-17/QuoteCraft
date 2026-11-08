@@ -4,7 +4,13 @@ import { findUserApiKey } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAiUsage, trackPlatformEvent } from "@/lib/admin-auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { xlsxToText, parseExcelDeterministically, XLSX_MIME } from "@/lib/rfq-parser";
+import {
+  xlsxToText,
+  parseExcelDeterministically,
+  parsePdfDeterministically,
+  extractPdfText,
+  XLSX_MIME,
+} from "@/lib/rfq-parser";
 import { z } from "zod";
 
 const aiOutputSchema = z.object({
@@ -63,7 +69,11 @@ export async function POST(req: NextRequest) {
       mimeType === XLSX_MIME ||
       /\.(xlsx|xls)$/i.test(fileName || "");
 
-    // 2. LAYER A: DETERMINISTIC EXCEL EXTRACTION (Zero LLM cost, instant, 100% deterministic)
+    const isPdf =
+      mimeType === "application/pdf" ||
+      /\.pdf$/i.test(fileName || "");
+
+    // 2. LAYER A1: DETERMINISTIC EXCEL EXTRACTION (Zero LLM cost, instant, 100% deterministic)
     if (fileData && isExcel) {
       try {
         const base64Data = fileData.split(",")[1] || fileData;
@@ -98,6 +108,53 @@ export async function POST(req: NextRequest) {
         }
       } catch (detErr) {
         console.warn("Deterministic Excel parse skipped to fallback:", detErr);
+      }
+    }
+
+    // 2B. LAYER A2: DETERMINISTIC DIGITAL PDF EXTRACTION (Zero LLM cost, instant for digital PDFs)
+    let extractedPdfTextContent: string | null = null;
+    if (fileData && isPdf) {
+      try {
+        const base64Data = fileData.split(",")[1] || fileData;
+        const buffer = Buffer.from(base64Data, "base64");
+
+        // 1. Try deterministic table scraper
+        const pdfResult = await parsePdfDeterministically(buffer);
+
+        if (pdfResult && pdfResult.rows.length > 0) {
+          logAiUsage({
+            userId,
+            fileName,
+            mimeType,
+            method: "deterministic_pdf",
+            itemCount: pdfResult.rows.length,
+            durationMs: pdfResult.durationMs,
+            status: "SUCCESS",
+          }).catch(() => {});
+
+          trackPlatformEvent({
+            userId,
+            eventType: "EXTRACTION_SUCCESS",
+            metadata: { method: "deterministic_pdf", items: pdfResult.rows.length },
+          }).catch(() => {});
+
+          return NextResponse.json({
+            columns: pdfResult.columns,
+            rows: pdfResult.rows,
+            method: "deterministic_pdf",
+            durationMs: pdfResult.durationMs,
+            uncertainCount: pdfResult.uncertainCount,
+            rfqDetails: pdfResult.rfqDetails,
+          });
+        }
+
+        // 2. If table scraper needs assistance, check if digital text was extracted
+        const textExtract = await extractPdfText(buffer);
+        if (!textExtract.isScanned && textExtract.text && textExtract.text.length > 40) {
+          extractedPdfTextContent = textExtract.text;
+        }
+      } catch (pdfErr) {
+        console.warn("Deterministic PDF parse skipped to fallback:", pdfErr);
       }
     }
 
@@ -163,6 +220,11 @@ export async function POST(req: NextRequest) {
       const base64Data = fileData.split(",")[1] || fileData;
       const csvText = Buffer.from(base64Data, "base64").toString("utf-8");
       result = await model.generateContent(`${systemPrompt}\n\nInput RFQ (CSV):\n${csvText}`);
+    } else if (fileData && isPdf && extractedPdfTextContent) {
+      // High-performance Hybrid: Send extracted digital text instead of heavy PDF image
+      result = await model.generateContent(
+        `${systemPrompt}\n\nInput RFQ Document (Text extracted directly from Digital PDF):\n${extractedPdfTextContent}`
+      );
     } else if (fileData && mimeType) {
       // Multimodal import (file)
       const base64Data = fileData.split(",")[1] || fileData;

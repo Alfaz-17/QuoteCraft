@@ -153,7 +153,7 @@ export async function logAiUsage(data: {
   userEmail?: string | null;
   fileName?: string | null;
   mimeType?: string | null;
-  method: "deterministic_excel" | "ai_fallback" | "manual";
+  method: "deterministic_excel" | "deterministic_pdf" | "ai_fallback" | "manual";
   model?: string;
   inputTokens?: number;
   outputTokens?: number;
