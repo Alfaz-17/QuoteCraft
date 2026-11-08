@@ -163,18 +163,7 @@ function QuotationBuilder() {
     pushUndo(state.items);
     dispatch({
       type: "SET_ITEMS",
-      payload: [
-        {
-          id: Date.now().toString(),
-          itemName: "",
-          description: "",
-          partNumber: "",
-          quantity: 1,
-          unit: "pcs",
-          condition: "",
-          unitPrice: 0,
-        },
-      ],
+      payload: [],
     });
     setCurrentStep(1);
     toastSuccess("Cleared extracted items. You can now upload a new RFQ file or start fresh.");
