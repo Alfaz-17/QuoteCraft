@@ -12,24 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
-  FileText, 
   ArrowRight, 
   Download, 
   MessageCircle, 
   Copy, 
   Check, 
-  AlertCircle, 
-  FileSpreadsheet, 
-  Eye, 
-  Trash2, 
-  Building,
   ChevronDown,
-  HelpCircle,
-  BellRing,
-  Loader2
+  Mail,
+  X,
+  Plus
 } from "lucide-react";
 import { 
-  calculateRowTotal, 
   calculateSubtotal, 
   calculateDiscountAmount, 
   calculateTaxAmount, 
@@ -41,6 +34,7 @@ import { generateProfessionalPDF } from "@/lib/pdf-generator";
 import { PreviewContainer } from "@/components/preview/PreviewContainer";
 import { useToast } from "@/components/ui/Toast";
 import { DualOrbitalSpinner } from "@/components/ui/Loaders";
+import { StepHeader } from "./StepHeader";
 
 interface Step3AddPricesAndSendProps {
   state: QuotationState;
@@ -69,20 +63,20 @@ export function Step3AddPricesAndSend({
   onUpdateDocInfo,
   onUpdateState,
   onBack,
-  onNewQuote,
 }: Step3AddPricesAndSendProps) {
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Desktop/Mobile View state: defaults to "preview" for instant document review
-  const [activeMobileView, setActiveMobileView] = useState<"pricing" | "preview">("preview");
-  const [showLivePreviewOnDesktop, setShowLivePreviewOnDesktop] = useState(true);
-  const [showDocMetadata, setShowDocMetadata] = useState(false);
+  // Stage: Section A ("pricing") vs Section B ("preview")
+  const [stage, setStage] = useState<"pricing" | "preview">("pricing");
   const [isDownloading, setIsDownloading] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [showFollowupModal, setShowFollowupModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showTaxHelp, setShowTaxHelp] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+
+  // Collapsible accordion states in Section A
+  const [openCharges, setOpenCharges] = useState(false);
+  const [openCustomer, setOpenCustomer] = useState(false);
+  const [openVessel, setOpenVessel] = useState(false);
 
   const { items, tableColumns, currency, discount, discountType, taxPercent, shippingCharge } = state;
   const currencySymbol = CURRENCY_SYMBOLS[currency] || "$";
@@ -96,20 +90,20 @@ export function Step3AddPricesAndSend({
   const taxAmt = calculateTaxAmount(afterDiscount, taxPercent);
   const grandTotal = calculateGrandTotal(subtotal, discount, discountType, taxPercent, shippingCharge);
 
-  // Unpriced items check (Error prevention)
   const unpricedItems = useMemo(() => {
     return items.filter((item) => {
+      if (item.isTba) return false;
       const p = toNumber(item[priceKey] ?? item.unitPrice);
       return !p || p <= 0;
     });
   }, [items, priceKey]);
 
-  const formattedTotal = `${currencySymbol} ${grandTotal.toLocaleString(
+  const formattedTotal = `${currencySymbol}${grandTotal.toLocaleString(
     currency === "INR" ? "en-IN" : "en-US",
     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
   )}`;
 
-  // Keyboard navigation like Excel
+  // Keyboard navigation down price column
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Enter" || e.key === "ArrowDown") {
       e.preventDefault();
@@ -128,49 +122,17 @@ export function Step3AddPricesAndSend({
     }
   };
 
-  // Paste whole column of prices from Excel
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, startIndex: number) => {
-    const pasteData = e.clipboardData.getData("text");
-    if (!pasteData) return;
-
-    const lines = pasteData
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    if (lines.length > 1) {
-      e.preventDefault();
-      const updates: { id: string; price: number }[] = [];
-
-      lines.forEach((line, offset) => {
-        const targetIndex = startIndex + offset;
-        if (targetIndex < items.length) {
-          const cleanNum = parseFloat(line.replace(/,/g, "").replace(/[^0-9.-]/g, ""));
-          if (!isNaN(cleanNum)) {
-            updates.push({ id: items[targetIndex].id, price: cleanNum });
-          }
-        }
-      });
-
-      if (updates.length > 0) {
-        onBatchUpdatePrices(updates);
-        toastSuccess(`Pasted ${updates.length} prices from spreadsheet!`);
-      }
-    }
-  };
-
   // Download PDF
   const handleDownloadPDF = async () => {
     if (unpricedItems.length > 0) {
-      toastInfo(`Note: ${unpricedItems.length} item(s) currently have 0 price.`);
+      toastInfo(`Notice: ${unpricedItems.length} item(s) currently priced at 0.`);
     }
 
     setIsDownloading(true);
     try {
-      await new Promise((r) => setTimeout(r, 80));
+      await new Promise((r) => setTimeout(r, 60));
       await generateProfessionalPDF(state);
-      toastSuccess("Branded PDF quotation generated successfully!");
-      setShowFollowupModal(true);
+      toastSuccess("PDF Quotation downloaded successfully!");
     } catch (err: unknown) {
       toastError((err as Error).message || "Failed to generate PDF document.");
     } finally {
@@ -192,7 +154,7 @@ export function Step3AddPricesAndSend({
       "",
       `Thank you for your enquiry${vesselName}. We are pleased to quote for *${items.length} item(s)*.`,
       "",
-      `*Total Amount:* *${formattedTotal}*`,
+      `*Grand Total:* *${formattedTotal}*`,
       state.terms ? `*Terms:* ${state.terms.split("\n")[0]}` : "",
       "",
       `Regards,`,
@@ -207,10 +169,22 @@ export function Step3AddPricesAndSend({
       : `https://wa.me/?text=${encoded}`;
 
     window.open(whatsappUrl, "_blank");
-    toastSuccess("WhatsApp message opened! Attach the downloaded PDF to complete sending.");
-    setShowFollowupModal(true);
+    toastSuccess("WhatsApp opened! You can now send the message and attach the PDF.");
   };
 
+  // Email quote
+  const handleShareEmail = () => {
+    const quoteNo = state.documentInfo.number || "QUOTATION";
+    const clientName = state.client.companyName || state.client.name || "Customer";
+    const emailTo = state.client.email || "";
+    const subject = encodeURIComponent(`Quotation ${quoteNo} - ${clientName}`);
+    const body = encodeURIComponent(
+      `Dear ${clientName},\n\nPlease find our quotation ${quoteNo} totaling ${formattedTotal} for ${items.length} item(s).\n\nBest regards,\n${state.company.name || "Sales Team"}`
+    );
+    window.open(`mailto:${emailTo}?subject=${subject}&body=${body}`, "_blank");
+  };
+
+  // Copy summary
   const handleCopySummary = () => {
     const quoteNo = state.documentInfo.number || "QUOTATION";
     const clientName = state.client.companyName || state.client.name || "Customer";
@@ -218,375 +192,314 @@ export function Step3AddPricesAndSend({
     navigator.clipboard.writeText(summary);
     setCopiedLink(true);
     toastSuccess("Quotation summary copied to clipboard!");
-    setTimeout(() => setCopiedLink(false), 3000);
+    setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  const handleDeleteCurrentQuote = async () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("marine_quotation_draft");
-      localStorage.removeItem("quotation_draft_items");
-    }
-    toastSuccess("Quotation draft reset.");
-    setShowDeleteModal(false);
-    onNewQuote();
-  };
-
-  return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      {/* ── SCROLLING MIDDLE CONTENT ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-5 max-w-7xl mx-auto w-full pb-8">
-        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
-        <div className="bg-[#0F766E] rounded-3xl p-5 sm:p-6 text-white flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
-              3
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
-                  Step 3
-                </span>
-              </div>
-              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
-                Quotation Details
-              </h3>
-              <p className="text-xs text-teal-100/90 font-medium">
-                Add customer, pricing and terms
-              </p>
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
-            <FileText className="w-5 h-5" />
-          </div>
-        </div>
-
-        {/* Top Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-[13px] font-bold text-[#475569] hover:text-[#0F172A] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
-              title="Return to edit items and unit prices"
-            >
-              <ArrowLeft className="w-4 h-4" /> Edit Items &amp; Prices
-            </button>
-            <div>
-              <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-                Preview &amp; Send Quotation
-              </h2>
-              <p className="text-[13px] text-[#475569] hidden sm:block mt-0.5">
-                Review your branded vector A4 PDF, verify customer details, and dispatch via WhatsApp or Download
-              </p>
-            </div>
-          </div>
-
-        {/* View toggles & Quick Actions */}
-        <div className="flex items-center gap-2">
-          {/* Mobile Segments */}
-          <div className="inline-flex sm:hidden p-1 bg-slate-200/80 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setActiveMobileView("pricing")}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                activeMobileView === "pricing"
-                  ? "bg-white text-slate-900 shadow-2xs"
-                  : "text-slate-600"
-              }`}
-            >
-              Details
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMobileView("preview")}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-                activeMobileView === "preview"
-                  ? "bg-white text-slate-900 shadow-2xs"
-                  : "text-slate-600"
-              }`}
-            >
-              Preview
-            </button>
-          </div>
-
-          {/* Desktop Preview Toggle */}
+  // ══════════════════════════════════════════════════
+  // SECTION B: PREVIEW & SEND SCREEN
+  // ══════════════════════════════════════════════════
+  if (stage === "preview") {
+    return (
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+        {/* Preview Sub-Header */}
+        <div className="bg-white border-b border-[#E2E8F0] px-4 py-3 flex items-center justify-between shrink-0">
           <button
             type="button"
-            onClick={() => setShowLivePreviewOnDesktop(!showLivePreviewOnDesktop)}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border border-slate-300 text-slate-700 hover:bg-slate-50"
+            onClick={() => setStage("pricing")}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors py-1 px-2.5 rounded-lg hover:bg-slate-100 min-h-[38px]"
           >
-            <Eye className="w-4 h-4 text-brand-600" />
-            <span>{showLivePreviewOnDesktop ? "Hide Live PDF" : "Show Live PDF"}</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Pricing</span>
           </button>
 
-          {/* Customer / Vessel Details Toggle */}
-          <button
-            type="button"
-            onClick={() => setShowDocMetadata(!showDocMetadata)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border border-slate-300 text-slate-700 hover:bg-slate-50"
-          >
-            <Building className="w-4 h-4 text-slate-500" />
-            <span>{state.client.companyName ? state.client.companyName : "Customer & Vessel"}</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showDocMetadata ? "rotate-180" : ""}`} />
-          </button>
-        </div>
-      </div>
-
-      {/* Customer & Vessel Metadata Drawer / Card */}
-      {showDocMetadata && (
-        <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-xs space-y-4 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-            <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-              Quotation Header Details
-            </h4>
-            <span className="text-xs text-slate-500">Appears on the printed PDF</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Quote / Ref No.</Label>
-              <Input
-                value={state.documentInfo.number || ""}
-                onChange={(e) => onUpdateDocInfo({ number: e.target.value })}
-                className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Customer Company</Label>
-              <Input
-                value={state.client.companyName || state.client.name || ""}
-                onChange={(e) => onUpdateClient({ companyName: e.target.value, name: e.target.value })}
-                placeholder="e.g. Oceanic Shipping Co."
-                className="h-9 text-xs sm:text-sm font-semibold rounded-lg border-slate-300"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Vessel Name</Label>
-              <Input
-                value={state.documentInfo.vessel || ""}
-                onChange={(e) => onUpdateDocInfo({ vessel: e.target.value })}
-                placeholder="e.g. M/V Oceanic Star"
-                className="h-9 text-xs sm:text-sm font-semibold rounded-lg border-slate-300"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Currency</Label>
-              <select
-                value={currency}
-                onChange={(e) => onSetCurrency(e.target.value as Currency)}
-                className="w-full h-9 px-2 rounded-lg border border-slate-300 font-bold text-xs sm:text-sm bg-white"
-              >
-                {Object.keys(CURRENCY_SYMBOLS).map((c) => (
-                  <option key={c} value={c}>
-                    {c} ({CURRENCY_SYMBOLS[c as Currency]})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pre-Send Warning if unpriced items exist */}
-      {unpricedItems.length > 0 && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50/70 p-3 flex items-center justify-between text-xs sm:text-sm">
-          <div className="flex items-center gap-2 text-amber-900 font-medium">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              <strong className="font-bold">{unpricedItems.length} item(s)</strong> have no price entered yet ($0.00).
+          <div className="text-center">
+            <span className="text-xs font-mono font-bold text-slate-700">
+              {state.documentInfo.number || "Draft"}
             </span>
+            <h3 className="text-sm font-black text-[#172033] leading-none">
+              Quotation Preview
+            </h3>
           </div>
-          <span className="text-xs text-amber-800 hidden sm:inline">
-            You can still export, or type rates below.
-          </span>
-        </div>
-      )}
 
-      {/* Main Content: Pricing Table & Live Preview */}
-      <div className={`grid gap-6 items-start ${showLivePreviewOnDesktop ? "grid-cols-1 lg:grid-cols-12" : "grid-cols-1"}`}>
-        
-        {/* Left Column: Pricing Table (lg:col-span-7 or full) */}
-        <div className={`${showLivePreviewOnDesktop ? "lg:col-span-7" : "col-span-1"} ${activeMobileView === "preview" ? "hidden sm:block" : "block"} space-y-4`}>
-          
-          {/* Excel Paste Tip Banner */}
-          <div className="bg-teal-50 border border-teal-200/80 rounded-xl p-3 flex items-center justify-between text-xs text-brand-700">
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-brand-600 shrink-0" />
-              <span>
-                <strong>Excel ProTip:</strong> Copy a whole price column from Excel and press <kbd className="font-mono bg-white px-1.5 py-0.5 rounded border border-teal-200">Ctrl+V</kbd> into any unit price box!
+          <div className="w-16" /> {/* Spacer */}
+        </div>
+
+        {/* Scrollable PDF Viewer */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 max-w-3xl mx-auto w-full pb-24">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-2 sm:p-4 shadow-sm overflow-hidden">
+            <PreviewContainer data={state} onUpdateState={onUpdateState} />
+          </div>
+        </div>
+
+        {/* Sticky Bottom Actions: Download PDF (Primary) + Share Quotation (Secondary) */}
+        <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <span className="text-xs text-[#64748B] block">Total:</span>
+              <span className="font-mono font-black text-base sm:text-lg text-[#347A72]">
+                {formattedTotal}
               </span>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowShareModal(true)}
+                className="h-12 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 min-h-[48px]"
+              >
+                <span>Share Quotation</span>
+              </Button>
+
+              <Button
+                disabled={isDownloading}
+                onClick={handleDownloadPDF}
+                className="h-12 px-5 sm:px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#347A72] hover:bg-[#28645E] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+              >
+                {isDownloading ? (
+                  <>
+                    <DualOrbitalSpinner size="sm" className="mr-1.5" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
+        </footer>
 
-          {/* Mobile Pricing Cards (Shown on mobile < md) */}
-          <div className="block md:hidden space-y-3">
-            {items.map((item, idx) => {
-              const qtyVal = toNumber(item[qtyKey]) || 1;
-              const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
-              const lineTotal = calculateRowTotal(item, tableColumns);
-              const isZero = !priceVal || priceVal <= 0;
-
-              return (
-                <div
-                  key={item.id}
-                  className={`bg-white rounded-lg border p-3.5 shadow-2xs space-y-3 transition-all ${
-                    isZero ? "border-amber-300 bg-amber-50/10" : "border-slate-200"
-                  }`}
+        {/* Share Modal / BottomSheet */}
+        {showShareModal && (
+          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+            <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl border border-slate-200">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="font-extrabold text-base text-[#172033]">
+                  Share Quotation
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-bold text-slate-900 leading-snug">
-                          {item.itemName || "Unnamed Item"}
-                        </h4>
-                        {item.partNumber && (
-                          <p className="text-xs font-mono text-slate-500 mt-0.5">
-                            Part: {item.partNumber}
-                          </p>
-                        )}
-                        <p className="text-xs text-slate-600 font-semibold mt-1">
-                          Quantity: <span className="font-bold text-slate-900">{qtyVal} {item.unit || "PCS"}</span>
-                        </p>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareModal(false);
+                    handleShareWhatsApp();
+                  }}
+                  className="w-full p-3.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-900 font-bold text-sm flex items-center gap-3 transition-colors text-left min-h-[48px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-sm">Send via WhatsApp</p>
+                    <p className="text-xs text-emerald-700 font-normal">
+                      Opens WhatsApp with formatted quotation text
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareModal(false);
+                    handleShareEmail();
+                  }}
+                  className="w-full p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm flex items-center gap-3 transition-colors text-left min-h-[48px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-sm">Send via Email</p>
+                    <p className="text-xs text-slate-500 font-normal">
+                      Opens your mail client with prefilled details
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowShareModal(false);
+                    handleCopySummary();
+                  }}
+                  className="w-full p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm flex items-center gap-3 transition-colors text-left min-h-[48px]"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                    {copiedLink ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-sm">{copiedLink ? "Copied to Clipboard" : "Copy Summary Text"}</p>
+                    <p className="text-xs text-slate-500 font-normal">
+                      Quick overview to paste anywhere
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════════
+  // SECTION A: PRICING SCREEN
+  // ══════════════════════════════════════════════════
+  return (
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+      {/* Scrollable Pricing Form */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 max-w-2xl mx-auto w-full space-y-4 pb-28">
+        {/* Step Progress & Title */}
+        <StepHeader
+          step={3}
+          title="Pricing"
+          subtitle="Enter unit prices and quotation details."
+        />
+
+        {/* Currency Selector Strip */}
+        <div className="flex items-center justify-between bg-white rounded-xl border border-[#E2E8F0] p-3 shadow-xs">
+          <span className="text-xs font-semibold text-[#64748B]">Currency:</span>
+          <select
+            value={currency}
+            onChange={(e) => onSetCurrency(e.target.value as Currency)}
+            className="h-8 px-2.5 rounded-lg border border-slate-300 font-bold text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#347A72]"
+          >
+            {Object.keys(CURRENCY_SYMBOLS).map((c) => (
+              <option key={c} value={c}>
+                {c} ({CURRENCY_SYMBOLS[c as Currency]})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Pricing Items List */}
+        <div className="space-y-3">
+          {items.map((item, idx) => {
+            const qty = toNumber(item[qtyKey] ?? item.quantity) || 1;
+            const price = toNumber(item[priceKey] ?? item.unitPrice) || 0;
+            const lineTotal = item.isTba ? 0 : qty * price;
+
+            return (
+              <div
+                key={item.id}
+                className="bg-white rounded-2xl border border-[#E2E8F0] p-4 space-y-3 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm sm:text-base text-[#172033] truncate">
+                      {item.itemName || "Unnamed Item"}
+                    </p>
+                    <p className="text-xs text-[#64748B] font-medium mt-0.5">
+                      Quantity: <strong className="text-slate-800">{qty} {item.unit || "PCS"}</strong>
+                      {item.partNumber && <span> • Part: <span className="font-mono">{item.partNumber}</span></span>}
+                    </p>
+                  </div>
+
+                  {/* TBA Toggle */}
+                  <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 cursor-pointer shrink-0 select-none">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(item.isTba)}
+                      onChange={(e) =>
+                        onUpdateItem(item.id, {
+                          isTba: e.target.checked,
+                        })
+                      }
+                      className="rounded border-slate-300 text-[#347A72] focus:ring-[#347A72]"
+                    />
+                    <span>TBA</span>
+                  </label>
+                </div>
+
+                {/* Price Input Row */}
+                {item.isTba ? (
+                  <div className="p-2.5 rounded-xl bg-slate-50 text-xs font-semibold text-slate-500 border border-slate-200 text-center">
+                    Price to be advised (TBA) — Excluded from total
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <div className="flex-1 max-w-[200px]">
+                      <Label className="text-xs font-semibold text-[#64748B] block mb-1">
+                        Unit Price
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
+                          {currencySymbol}
+                        </span>
+                        <input
+                          ref={(el) => {
+                            inputRefs.current[idx] = el;
+                          }}
+                          type="number"
+                          step="any"
+                          min="0"
+                          placeholder="0.00"
+                          inputMode="decimal"
+                          enterKeyHint="next"
+                          value={price > 0 ? price : ""}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            onUpdateItem(item.id, {
+                              unitPrice: val,
+                              [priceKey]: val,
+                            });
+                          }}
+                          onKeyDown={(e) => handleKeyDown(e, idx)}
+                          className="w-full h-11 pl-8 pr-3 rounded-xl border border-slate-300 font-mono font-bold text-base text-[#172033] bg-white focus:outline-none focus:ring-2 focus:ring-[#347A72]"
+                        />
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-xs text-slate-400 font-medium block">Total</span>
-                      <span className="text-sm font-mono font-bold text-slate-900">
-                        {currencySymbol}{lineTotal > 0 ? lineTotal.toFixed(2) : "0.00"}
+                    <div className="text-right">
+                      <span className="text-xs text-[#64748B] block mb-1 font-medium">
+                        Total
+                      </span>
+                      <span className="font-mono font-black text-sm sm:text-base text-[#172033]">
+                        {currencySymbol}{lineTotal.toFixed(2)}
                       </span>
                     </div>
                   </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-                  {/* Mobile Unit Price Input Field */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-                    <label className="text-xs font-bold text-slate-700 shrink-0">
-                      Unit Price ({currencySymbol})
-                    </label>
-                    <div className="relative flex-1 max-w-[170px]">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold select-none">
-                        {currencySymbol}
-                      </span>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="any"
-                        value={priceVal > 0 ? priceVal : ""}
-                        placeholder="0.00"
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value) || 0;
-                          onUpdateItem(item.id, {
-                            unitPrice: val,
-                            [priceKey]: val,
-                          });
-                        }}
-                        className={`w-full pl-6 pr-3 py-2 text-right font-mono text-[16px] font-bold rounded-lg border transition-all min-h-[44px] ${
-                          isZero
-                            ? "border-amber-300 bg-amber-50/20 text-[#0F172A] focus:border-[#0F766E] focus:bg-white"
-                            : "border-slate-300 text-[#0F172A] focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Desktop Table View (hidden on mobile, visible on md+) */}
-          <div className="hidden md:block bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-xs">
-                    <th className="py-3 px-3.5 w-10 text-center">#</th>
-                    <th className="py-3 px-3.5 min-w-[200px]">Item Description</th>
-                    <th className="py-3 px-3 w-20 text-right">Qty</th>
-                    <th className="py-3 px-3.5 w-32 text-right">Unit Price ({currencySymbol})</th>
-                    <th className="py-3 px-3.5 w-28 text-right">Total ({currencySymbol})</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-800">
-                  {items.map((item, idx) => {
-                    const qtyVal = toNumber(item[qtyKey]) || 1;
-                    const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
-                    const lineTotal = calculateRowTotal(item, tableColumns);
-                    const isZero = !priceVal || priceVal <= 0;
-
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-3.5 text-center font-mono text-xs text-slate-400 font-bold">
-                          {idx + 1}
-                        </td>
-                        <td className="py-3 px-3.5">
-                          <p className="font-bold text-slate-900 text-sm truncate max-w-xs">
-                            {item.itemName || "Unnamed Item"}
-                          </p>
-                          {item.partNumber && (
-                            <p className="text-xs font-mono text-slate-500 mt-0.5">
-                              {item.partNumber}
-                            </p>
-                          )}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-xs text-slate-700 font-semibold">
-                          {qtyVal} {item.unit || "PCS"}
-                        </td>
-                        <td className="py-3 px-3.5 text-right">
-                          <div className="relative inline-flex items-center justify-end w-full">
-                            <span className="absolute left-2.5 text-xs text-slate-400 font-bold select-none">
-                              {currencySymbol}
-                            </span>
-                            <input
-                              ref={(el) => {
-                                inputRefs.current[idx] = el;
-                              }}
-                              type="number"
-                              min="0"
-                              step="any"
-                              value={priceVal > 0 ? priceVal : ""}
-                              placeholder="0.00"
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value) || 0;
-                                onUpdateItem(item.id, {
-                                  unitPrice: val,
-                                  [priceKey]: val,
-                                });
-                              }}
-                              onKeyDown={(e) => handleKeyDown(e, idx)}
-                              onPaste={(e) => handlePaste(e, idx)}
-                              className={`w-28 pl-6 pr-2.5 py-1.5 text-right font-mono text-sm font-bold rounded-lg border transition-all tabular-nums ${
-                                isZero
-                                  ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-brand-600 focus:bg-white"
-                                  : "border-slate-300 text-slate-900 focus:border-brand-600 focus:ring-1 focus:ring-brand-600"
-                              }`}
-                            />
-                          </div>
-                        </td>
-                        <td className="py-3 px-3.5 text-right font-mono text-sm font-bold text-slate-900 tabular-nums">
-                          {lineTotal > 0 ? lineTotal.toFixed(2) : "-"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+        {/* Collapsible Section 1: Additional Charges (Discount, Tax, Shipping) */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => setOpenCharges((prev) => !prev)}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors"
+          >
+            <div>
+              <p className="font-bold text-sm text-[#172033]">Additional Charges</p>
+              <p className="text-xs text-[#64748B]">Discount, Tax, and Shipping charge</p>
             </div>
-          </div>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                openCharges ? "rotate-180" : ""
+              }`}
+            />
+          </button>
 
-          {/* Pricing Adjustments: Discount, Tax & Delivery */}
-          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3">
-            <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-              Quotation Adjustments
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          {openCharges && (
+            <div className="p-4 pt-1 border-t border-slate-100 space-y-3.5 bg-slate-50/40 animate-in fade-in">
               {/* Discount */}
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-600">Discount</Label>
-                <div className="flex gap-1.5">
+                <Label className="text-xs font-semibold text-slate-700">Discount</Label>
+                <div className="flex gap-2">
                   <Input
                     type="number"
                     min="0"
@@ -594,12 +507,12 @@ export function Step3AddPricesAndSend({
                     value={discount || ""}
                     placeholder="0"
                     onChange={(e) => onSetDiscount(parseFloat(e.target.value) || 0, discountType)}
-                    className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
+                    className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                   />
                   <select
                     value={discountType}
                     onChange={(e) => onSetDiscount(discount, e.target.value as "flat" | "percent")}
-                    className="h-9 px-2 rounded-lg border border-slate-300 text-xs font-bold bg-white"
+                    className="h-10 px-3 rounded-xl border border-slate-300 text-xs font-bold bg-white text-slate-700"
                   >
                     <option value="flat">{currencySymbol} Flat</option>
                     <option value="percent">% Off</option>
@@ -609,16 +522,7 @@ export function Step3AddPricesAndSend({
 
               {/* Tax */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold text-slate-600">Tax (VAT / GST %)</Label>
-                  <button
-                    type="button"
-                    onClick={() => setShowTaxHelp(!showTaxHelp)}
-                    className="text-slate-400 hover:text-slate-600"
-                  >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <Label className="text-xs font-semibold text-slate-700">Tax (VAT / GST %)</Label>
                 <Input
                   type="number"
                   min="0"
@@ -627,18 +531,13 @@ export function Step3AddPricesAndSend({
                   value={taxPercent || ""}
                   placeholder="0 %"
                   onChange={(e) => onSetTaxPercent(parseFloat(e.target.value) || 0)}
-                  className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
+                  className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                 />
-                {showTaxHelp && (
-                  <p className="text-xs text-slate-500 pt-0.5">
-                    For marine exports / offshore supply, tax is often 0% (zero-rated).
-                  </p>
-                )}
               </div>
 
-              {/* Delivery / Freight Charge */}
+              {/* Shipping */}
               <div className="space-y-1">
-                <Label className="text-xs font-semibold text-slate-600">Delivery / Boat Charge</Label>
+                <Label className="text-xs font-semibold text-slate-700">Shipping / Delivery Charge</Label>
                 <Input
                   type="number"
                   min="0"
@@ -646,233 +545,144 @@ export function Step3AddPricesAndSend({
                   value={shippingCharge || ""}
                   placeholder="0.00"
                   onChange={(e) => onSetShipping(parseFloat(e.target.value) || 0)}
-                  className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
+                  className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                 />
               </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Right Column: Live Branded PDF Preview (lg:col-span-5) */}
-        <div className={`${showLivePreviewOnDesktop ? "lg:col-span-5" : "hidden"} ${activeMobileView === "pricing" ? "hidden sm:block" : "block"} space-y-4`}>
-          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-brand-600" />
-                <h4 className="text-sm font-bold text-slate-900">Live Quotation Preview</h4>
+        {/* Collapsible Section 2: Customer Details */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => setOpenCustomer((prev) => !prev)}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors"
+          >
+            <div>
+              <p className="font-bold text-sm text-[#172033]">Customer Details</p>
+              <p className="text-xs text-[#64748B]">
+                {state.client.companyName ? state.client.companyName : "Buyer name and contact info"}
+              </p>
+            </div>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                openCustomer ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {openCustomer && (
+            <div className="p-4 pt-1 border-t border-slate-100 space-y-3 bg-slate-50/40 animate-in fade-in">
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Customer / Company Name</Label>
+                <Input
+                  value={state.client.companyName || ""}
+                  onChange={(e) => onUpdateClient({ companyName: e.target.value })}
+                  placeholder="e.g. Ocean Marine Ltd."
+                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                />
               </div>
-              <span className="text-xs text-slate-500">
-                {state.documentInfo.number || "Draft"}
-              </span>
-            </div>
 
-            {/* Document preview container */}
-            <div className="bg-slate-100 rounded-xl p-1 sm:p-2 overflow-hidden shadow-inner border border-slate-200/80">
-              <PreviewContainer data={state} onUpdateState={onUpdateState} />
-            </div>
-
-            {/* Action Buttons in card */}
-            <div className="space-y-2 pt-2">
-              <Button
-                disabled={isDownloading}
-                onClick={handleDownloadPDF}
-                className="w-full min-h-[48px] rounded-lg font-bold text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-sm flex items-center justify-center gap-2"
-              >
-                {isDownloading ? (
-                  <>
-                    <DualOrbitalSpinner size="sm" className="mr-2" /> Generating Branded PDF...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" /> Download PDF Quotation
-                  </>
-                )}
-              </Button>
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Contact Person</Label>
+                <Input
+                  value={state.client.name || ""}
+                  onChange={(e) => onUpdateClient({ name: e.target.value })}
+                  placeholder="e.g. Capt. Smith"
+                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                />
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleShareWhatsApp}
-                  className="min-h-[44px] rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
-                >
-                  <MessageCircle className="w-4 h-4 text-emerald-600" />
-                  <span>Send WhatsApp</span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleCopySummary}
-                  className="min-h-[44px] rounded-lg text-xs sm:text-sm font-bold border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5"
-                >
-                  {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
-                  <span>{copiedLink ? "Copied" : "Copy Summary"}</span>
-                </Button>
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Email</Label>
+                  <Input
+                    value={state.client.email || ""}
+                    onChange={(e) => onUpdateClient({ email: e.target.value })}
+                    placeholder="purchasing@vessel.com"
+                    className="h-10 text-xs rounded-xl border-slate-300 bg-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">Phone</Label>
+                  <Input
+                    value={state.client.phone || ""}
+                    onChange={(e) => onUpdateClient({ phone: e.target.value })}
+                    placeholder="+91..."
+                    className="h-10 text-xs rounded-xl border-slate-300 bg-white"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* Collapsible Section 3: Vessel Details */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => setOpenVessel((prev) => !prev)}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors"
+          >
+            <div>
+              <p className="font-bold text-sm text-[#172033]">Vessel Details</p>
+              <p className="text-xs text-[#64748B]">
+                {state.documentInfo.vessel ? state.documentInfo.vessel : "Ship name and port reference"}
+              </p>
+            </div>
+            <ChevronDown
+              className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                openVessel ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {openVessel && (
+            <div className="p-4 pt-1 border-t border-slate-100 space-y-3 bg-slate-50/40 animate-in fade-in">
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">Vessel Name</Label>
+                <Input
+                  value={state.documentInfo.vessel || ""}
+                  onChange={(e) => onUpdateDocInfo({ vessel: e.target.value })}
+                  placeholder="e.g. M/V Oceanic Star"
+                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold text-slate-700">RFQ / Enquiry Ref</Label>
+                <Input
+                  value={state.documentInfo.reference || ""}
+                  onChange={(e) => onUpdateDocInfo({ reference: e.target.value })}
+                  placeholder="e.g. RFQ-2026-ENG-09"
+                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      {/* ── END SCROLLING MIDDLE CONTENT ── */}
 
-      {/* ── STICKY IN-FLOW BOTTOM TOTAL & ACTION BAR (z-30) ── */}
-      <footer className="shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md z-30 px-4 sm:px-8 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Left: Financial Totals Breakdown */}
-          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="hidden sm:block">
-              <span className="text-[#475569]">Subtotal:</span>{" "}
-              <strong className="font-mono text-[#0F172A] font-bold">{currencySymbol}{subtotal.toFixed(2)}</strong>
-            </div>
-            {discountAmt > 0 && (
-              <div className="hidden sm:block">
-                <span className="text-[#475569]">Discount:</span>{" "}
-                <strong className="font-mono text-amber-700 font-bold">-{currencySymbol}{discountAmt.toFixed(2)}</strong>
-              </div>
-            )}
-            {taxAmt > 0 && (
-              <div className="hidden sm:block">
-                <span className="text-[#475569]">Tax:</span>{" "}
-                <strong className="font-mono text-[#0F172A] font-bold">+{currencySymbol}{taxAmt.toFixed(2)}</strong>
-              </div>
-            )}
-            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto sm:border-l sm:border-slate-200 sm:pl-4">
-              <span className="text-[#475569] font-bold">Grand Total:</span>{" "}
-              <span className="font-mono text-base sm:text-lg font-extrabold text-[#0F766E] ml-2">
-                {formattedTotal}
-              </span>
-            </div>
+      {/* ── STICKY BOTTOM ACTION BAR (Exact User Architecture) ── */}
+      <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <span className="text-xs text-[#64748B] block">Total:</span>
+            <span className="font-mono font-black text-base sm:text-lg text-[#347A72]">
+              {formattedTotal}
+            </span>
           </div>
 
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDeleteModal(true)}
-              className="min-h-[44px] px-3 rounded-lg text-xs font-semibold text-rose-600 border-slate-200 hover:bg-rose-50"
-              title="Delete draft"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-
-            {activeMobileView === "pricing" ? (
-              <Button
-                onClick={() => setActiveMobileView("preview")}
-                className="min-h-[48px] px-6 rounded-xl font-bold text-sm bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white flex-1 sm:hidden shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-2"
-              >
-                <span>Preview Quotation</span>
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            ) : null}
-
-            <Button
-              variant="outline"
-              onClick={handleShareWhatsApp}
-              className={`min-h-[48px] px-4 rounded-xl font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-1.5 ${
-                activeMobileView === "pricing" ? "hidden sm:flex" : "flex-1 sm:flex-initial"
-              }`}
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-600" />
-              <span>Share</span>
-            </Button>
-
-            <Button
-              disabled={isDownloading}
-              onClick={handleDownloadPDF}
-              className={`min-h-[48px] px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#F59E0B] hover:bg-[#D97706] active:scale-[0.98] text-white shadow-md shadow-[#F59E0B]/25 flex items-center justify-center gap-2 ${
-                activeMobileView === "pricing" ? "hidden sm:flex" : "flex-1 sm:flex-initial"
-              }`}
-            >
-              {isDownloading ? (
-                <>
-                  <DualOrbitalSpinner size="sm" className="mr-2" /> Generating...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" /> Download
-                </>
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setStage("preview")}
+            className="h-12 px-6 rounded-xl font-bold text-sm bg-[#347A72] hover:bg-[#28645E] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+          >
+            <span>Preview Quotation</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </footer>
-
-      {/* Retention / Follow-up Reminder Modal */}
-      {showFollowupModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 sm:p-7 max-w-sm w-full text-center space-y-4 shadow-xl border border-slate-100 animate-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
-              <Check className="w-6 h-6 stroke-[3]" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-slate-900">
-                Quotation {state.documentInfo.number ? state.documentInfo.number : ""} Ready!
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600">
-                Your quotation has been generated and saved securely.
-              </p>
-            </div>
-
-            <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-brand-700 font-semibold flex items-center gap-2 text-left">
-              <BellRing className="w-4 h-4 text-brand-600 shrink-0" />
-              <span>Would you like QuoteCraft to remind you to follow up on this quote in 3 days?</span>
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <Button
-                variant="outline"
-                onClick={() => setShowFollowupModal(false)}
-                className="flex-1 h-10 rounded-lg text-xs font-semibold border-slate-300"
-              >
-                Skip for now
-              </Button>
-              <Button
-                onClick={() => {
-                  toastSuccess("Follow-up reminder set for 3 days!");
-                  setShowFollowupModal(false);
-                }}
-                className="flex-1 h-10 rounded-lg font-bold text-xs bg-brand-600 hover:bg-brand-700 text-white"
-              >
-                Remind in 3 days
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Draft Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">Reset quotation draft?</h3>
-              <p className="text-xs text-slate-500">
-                This will clear current items. Your company profile and saved quotes remain safe.
-              </p>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 h-10 rounded-lg text-xs font-semibold border-slate-300"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteCurrentQuote}
-                className="flex-1 h-10 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white"
-              >
-                Reset Draft
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
     </div>
   );
 }
-

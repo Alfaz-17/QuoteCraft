@@ -1,43 +1,22 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { QuotationState, LineItem, TableColumn, Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
+import React, { useState } from "react";
+import { QuotationState, LineItem, TableColumn, Currency } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { EditItemModal } from "./EditItemModal";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { 
-  CheckCircle2, 
   AlertTriangle, 
   Search, 
-  ArrowLeft, 
   ArrowRight, 
   Plus, 
   Trash2, 
   Pencil, 
-  Check,
-  CheckSquare,
-  GripVertical,
-  ChevronDown, 
-  ChevronUp,
-  SlidersHorizontal,
-  X,
-  RotateCcw,
-  Building,
-  Ship,
-  HelpCircle,
-  Eye,
-  EyeOff
+  CheckCircle2,
+  Minus,
+  Check
 } from "lucide-react";
-import { 
-  calculateRowTotal, 
-  calculateSubtotal, 
-  calculateDiscountAmount, 
-  calculateTaxAmount, 
-  calculateGrandTotal, 
-  getRoleKey, 
-  toNumber 
-} from "@/utils/calculations";
+import { StepHeader } from "./StepHeader";
 
 interface Step2CheckItemsProps {
   state?: QuotationState;
@@ -64,65 +43,24 @@ interface Step2CheckItemsProps {
   onBack: () => void;
 }
 
+const COMMON_UNITS = ["PCS", "SETS", "LOT", "KGS", "MTR", "BOX", "DRUM", "PAIR"];
+
 export function Step2CheckItems({
-  state,
   items,
-  tableColumns,
   onUpdateItem,
-  onBatchUpdatePrices,
   onDeleteItem,
   onAddItem,
-  onSetCurrency,
-  onSetDiscount,
-  onSetTaxPercent,
-  onSetShipping,
-  onUpdateClient,
-  onUpdateDocInfo,
-  onUpdateColumn,
-  onSetColumns,
-  onClearExtraction,
   onNext,
-  onBack,
 }: Step2CheckItemsProps) {
-  const [activeTab, setActiveTab] = useState<"all" | "review">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterMode, setFilterMode] = useState<"all" | "review">("all");
   const [editingItem, setEditingItem] = useState<LineItem | null>(null);
-  const [filterMode, setFilterMode] = useState<"all" | "review" | "verified">("all");
-  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
-  const [showColumnsModal, setShowColumnsModal] = useState(false);
-  const [showClearModal, setShowClearModal] = useState(false);
-  const [showDocMetadata, setShowDocMetadata] = useState(false);
-  const [showTaxHelp, setShowTaxHelp] = useState(false);
 
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const qtyKey = getRoleKey(tableColumns, "qty") ?? "quantity";
-  const priceKey = getRoleKey(tableColumns, "price") ?? "unitPrice";
-
-  // Financial calculations
-  const currency = state?.currency || "USD";
-  const currencySymbol = CURRENCY_SYMBOLS[currency] || "$";
-  const discount = state?.discount || 0;
-  const discountType = state?.discountType || "flat";
-  const taxPercent = state?.taxPercent || 0;
-  const shippingCharge = state?.shippingCharge || 0;
-
-  const subtotal = calculateSubtotal(items, tableColumns);
-  const discountAmt = calculateDiscountAmount(subtotal, discount, discountType);
-  const afterDiscount = Math.max(0, subtotal - discountAmt);
-  const taxAmt = calculateTaxAmount(afterDiscount, taxPercent);
-  const grandTotal = calculateGrandTotal(subtotal, discount, discountType, taxPercent, shippingCharge);
-  const formattedTotal = `${currencySymbol} ${grandTotal.toLocaleString(
-    currency === "INR" ? "en-IN" : "en-US",
-    { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-  )}`;
-
-  // Identify items needing review
+  // Review status calculation
   const getItemReviewReason = (item: LineItem): string | null => {
     if (item.isMissingQty) return "Quantity unclear in RFQ";
-    const qtyVal = toNumber(item[qtyKey]);
-    if (!qtyVal || qtyVal <= 0) return "Please check quantity";
-    if (!item.itemName || !item.itemName.trim()) return "Missing item name";
+    if (!item.quantity || item.quantity <= 0) return "Please check quantity";
+    if (!item.itemName || !item.itemName.trim()) return "Missing item description";
     if (item.needsReview) return "Review part specifications";
     return null;
   };
@@ -134,10 +72,8 @@ export function Step2CheckItems({
   const needsReviewItems = items.filter(isItemNeedsReview);
   const reviewCount = needsReviewItems.length;
 
-  // Filter items by search and active tab
   const filteredItems = items.filter((item) => {
     if (filterMode === "review" && !isItemNeedsReview(item)) return false;
-    if (filterMode === "verified" && isItemNeedsReview(item)) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = (item.itemName || "").toLowerCase().includes(q);
@@ -148,929 +84,325 @@ export function Step2CheckItems({
     return true;
   });
 
-  const handleJumpToNextReview = () => {
-    setActiveTab("review");
-    if (needsReviewItems.length > 0) {
-      setExpandedItemId(needsReviewItems[0].id);
-    }
-  };
-
-  // Keyboard navigation like Excel
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === "Enter" || e.key === "ArrowDown") {
-      e.preventDefault();
-      const nextInput = inputRefs.current[index + 1];
-      if (nextInput) {
-        nextInput.focus();
-        nextInput.select();
-      }
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      const prevInput = inputRefs.current[index - 1];
-      if (prevInput) {
-        prevInput.focus();
-        prevInput.select();
-      }
-    }
-  };
-
-  // Paste whole column of prices from Excel
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, startIndex: number) => {
-    const pasteData = e.clipboardData.getData("text");
-    if (!pasteData) return;
-
-    const lines = pasteData
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    if (lines.length > 1) {
-      e.preventDefault();
-      const updates: { id: string; price: number }[] = [];
-
-      lines.forEach((line, offset) => {
-        const targetIndex = startIndex + offset;
-        if (targetIndex < items.length) {
-          const cleanNum = parseFloat(line.replace(/,/g, "").replace(/[^0-9.-]/g, ""));
-          if (!isNaN(cleanNum)) {
-            updates.push({ id: items[targetIndex].id, price: cleanNum });
-          }
-        }
-      });
-
-      if (updates.length > 0 && onBatchUpdatePrices) {
-        onBatchUpdatePrices(updates);
-      }
-    }
-  };
-
-  const handleToggleColumnVisibility = (id: string, currentVisible: boolean) => {
-    if (onUpdateColumn) {
-      onUpdateColumn(id, { visible: !currentVisible });
-    }
-  };
-
-  const handleMoveColumn = (index: number, direction: -1 | 1) => {
-    if (!onSetColumns) return;
-    const target = index + direction;
-    if (target < 0 || target >= tableColumns.length) return;
-    const next = [...tableColumns];
-    [next[index], next[target]] = [next[target], next[index]];
-    onSetColumns(next);
-  };
-
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      {/* ── SCROLLING MIDDLE CONTENT ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6 space-y-4 max-w-7xl mx-auto w-full pb-8">
-        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
-        <div className="bg-[#0F766E] rounded-3xl p-5 sm:p-6 text-white flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
-              2
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
-                  Step 2
-                </span>
-              </div>
-              <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
-                Review Items
-              </h3>
-              <p className="text-xs text-teal-100/90 font-medium">
-                Verify and edit extracted products
-              </p>
-            </div>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
-            <CheckSquare className="w-5 h-5" />
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+      {/* ── SCROLLABLE LIST ── */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 max-w-2xl mx-auto w-full space-y-4 pb-24">
+        {/* Step Progress & Title */}
+        <StepHeader
+          step={2}
+          title="Review Items"
+          subtitle="Make sure AI extraction is correct before generating the quotation."
+        />
+
+        {/* Item Count & Trust Status */}
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-[#172033]">
+              {items.length} {items.length === 1 ? "item" : "items"} extracted
+            </span>
+            {reviewCount > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                {reviewCount} need review
+              </span>
+            ) : items.length > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                All verified
+              </span>
+            ) : null}
           </div>
         </div>
 
-        {/* ── TOP HEADER & PRIMARY ACTION TOOLBAR ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        {/* Filter Chips: All & Needs Review */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="inline-flex p-1 bg-slate-200/80 rounded-xl border border-slate-300/70">
             <button
               type="button"
-              onClick={onBack}
-              className="text-[13px] font-bold text-[#475569] hover:text-[#0F172A] flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
-              title="Return to Request"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Upload RFQ</span>
-              <span className="sm:hidden">Back</span>
-            </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-[22px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-                  Review Extracted Items
-                </h2>
-                <span className="text-[12px] font-mono font-bold px-2 py-0.5 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200">
-                  {items.length} items
-                </span>
-              </div>
-              <p className="text-[13px] text-[#475569] hidden sm:block mt-0.5">
-                Review extracted products, part numbers, and quantities before entering prices
-              </p>
-            </div>
-          </div>
-
-          {/* Actions: Clear Extraction + Add Row + Next */}
-          <div className="flex items-center gap-2">
-            {/* Discard / Re-upload button */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowClearModal(true)}
-              className="min-h-[44px] px-3.5 rounded-lg text-[13px] font-semibold border-rose-200 text-rose-700 hover:bg-rose-50"
-              title="Clear items and re-upload a different RFQ"
-            >
-              <RotateCcw className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
-              <span className="hidden sm:inline">Clear &amp; Re-upload</span>
-              <span className="sm:hidden">Reset</span>
-            </Button>
-
-            {/* Table Layout */}
-            {onSetColumns && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowColumnsModal(true)}
-                className="min-h-[44px] px-3.5 rounded-lg text-[13px] font-semibold border-slate-300 text-slate-700 hover:bg-slate-50 hidden sm:flex items-center"
-                title="Configure visible table columns"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-                <span>Columns</span>
-              </Button>
-            )}
-
-          {/* Add Row */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onAddItem}
-            className="h-10 px-3 rounded-lg text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50"
-          >
-            <Plus className="w-4 h-4 mr-1 text-[#0F766E]" />
-            <span>Add Row</span>
-          </Button>
-
-          {/* Next Button: Takes to Pricing */}
-          <Button
-            onClick={onNext}
-            className="h-10 px-5 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[40px] shadow-sm flex items-center gap-1.5"
-          >
-            <span>Continue to Pricing</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* ── SCRAPED RFQ DETAILS SUMMARY (CRYSTAL CLEAR) ── */}
-      {Boolean(state?.documentInfo?.vessel || state?.client?.companyName || state?.documentInfo?.reference) && (
-        <div className="bg-[#E0F2F1]/70 border border-teal-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0F766E] text-white flex items-center justify-center shrink-0 shadow-2xs">
-              <Ship className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-black text-sm text-[#0F172A]">
-                  {state?.documentInfo?.vessel ? state.documentInfo.vessel : "Extracted RFQ Requisition"}
-                </span>
-                <span className="text-[11px] font-bold text-teal-800 bg-teal-100 border border-teal-200 px-2 py-0.5 rounded-full">
-                  Auto-extracted
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-[#475569] mt-0.5 font-medium flex-wrap">
-                {state?.client?.companyName && (
-                  <span>Buyer: <strong className="text-[#0F172A]">{state.client.companyName}</strong></span>
-                )}
-                {state?.documentInfo?.reference && (
-                  <span>• Ref: <strong className="font-mono text-[#0F172A]">{state.documentInfo.reference}</strong></span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs font-bold text-[#0F766E] self-start sm:self-auto">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{items.length} line items ready</span>
-          </div>
-        </div>
-      )}
-
-      {/* ── CLEAN STATUS INDICATOR (NO WALL-OF-TEXT BANNER) ── */}
-      {reviewCount > 0 ? (
-        <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs animate-in fade-in duration-150">
-          <div className="flex items-center gap-2 text-amber-900 font-bold">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              {reviewCount} item{reviewCount > 1 ? "s" : ""} need attention (e.g. quantity or specification).
-            </span>
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleJumpToNextReview}
-            className="h-8 px-3 rounded-md text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shrink-0"
-          >
-            Jump to check ({reviewCount})
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs">
-          <div className="flex items-center gap-2 text-emerald-800 font-semibold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>All {items.length} items verified and ready for commercial pricing.</span>
-          </div>
-          <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
-            {items.length} items
-          </span>
-        </div>
-      )}
-
-      {/* ── SEARCH & FILTER CONTROLS ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Filter Pills (Screen 3 in Mockup) */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <button
-            type="button"
-            onClick={() => {
-              setFilterMode("all");
-              setActiveTab("all");
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
-              filterMode === "all"
-                ? "bg-[#0F766E] text-white shadow-xs"
-                : "bg-white text-[#475569] border border-slate-200/80 hover:bg-slate-50"
-            }`}
-          >
-            All ({items.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFilterMode("review");
-              setActiveTab("review");
-            }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
-              filterMode === "review"
-                ? "bg-[#0F766E] text-white shadow-xs"
-                : "bg-white text-amber-800 border border-amber-200 hover:bg-amber-50"
-            }`}
-          >
-            {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-500" />}
-            <span>Needs Review ({reviewCount})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFilterMode("verified");
-              setActiveTab("all");
-            }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all min-h-[38px] ${
-              filterMode === "verified"
-                ? "bg-[#0F766E] text-white shadow-xs"
-                : "bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50"
-            }`}
-          >
-            Verified ({Math.max(0, items.length - reviewCount)})
-          </button>
-        </div>
-
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search items..."
-            className="h-10 pl-9 pr-3 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
-          />
-        </div>
-      </div>
-
-      {/* ── MOBILE TOUCH CARDS (Matching 3-Step Infographic) ── */}
-      <div className="block md:hidden space-y-3">
-        {filteredItems.map((item, idx) => {
-          const reason = getItemReviewReason(item);
-          const needsReview = reason !== null;
-          const qtyVal = toNumber(item[qtyKey]) || 1;
-          const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
-          const lineTotal = calculateRowTotal(item, tableColumns);
-
-          return (
-            <div
-              key={item.id}
-              className={`bg-white rounded-2xl border p-4 shadow-xs space-y-3 transition-all ${
-                needsReview
-                  ? "border-amber-300 bg-amber-50/15"
-                  : "border-slate-200/90"
+              onClick={() => setFilterMode("all")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                filterMode === "all"
+                  ? "bg-white text-[#172033] shadow-xs"
+                  : "text-[#64748B] hover:text-[#172033]"
               }`}
             >
-              {/* Top row: Drag handle + Details + Green verified badge */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <div className="text-slate-300 mt-1 shrink-0 cursor-grab">
-                    <GripVertical className="w-4 h-4" />
-                  </div>
+              All ({items.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode("review")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[36px] ${
+                filterMode === "review"
+                  ? "bg-white text-amber-800 shadow-xs"
+                  : "text-amber-700 hover:text-amber-900"
+              }`}
+            >
+              {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-500" />}
+              <span>Needs Review ({reviewCount})</span>
+            </button>
+          </div>
 
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-extrabold text-sm sm:text-base text-[#0F172A] truncate">
-                        {item.itemName || "Unnamed Item"}
-                      </h4>
-                    </div>
-
-                    <p className="font-mono text-xs font-semibold text-slate-500">
-                      {item.partNumber ? `Part No: ${item.partNumber}` : "Part No: N/A"}
-                    </p>
-
-                    {item.description && (
-                      <p className="text-xs text-[#475569] line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-
-                    {needsReview && reason && (
-                      <p className="text-xs text-amber-700 font-semibold flex items-center gap-1 pt-1">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>{reason}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status indicator badge (Green checkmark like infographic or Review warning) */}
-                <div className="shrink-0">
-                  {needsReview ? (
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                      Review
-                    </span>
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-2xs">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Bottom Row: Stepper Qty [ - 10 + ], Unit Dropdown [ PCS v ], and Price */}
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                {/* Stepper + Unit */}
-                <div className="flex items-center gap-1.5">
-                  <div className="inline-flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => onUpdateItem(item.id, { quantity: Math.max(1, qtyVal - 1), isMissingQty: false })}
-                      className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 text-sm shadow-2xs active:scale-95"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-mono font-bold text-xs text-slate-900">
-                      {qtyVal}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onUpdateItem(item.id, { quantity: qtyVal + 1, isMissingQty: false })}
-                      className="w-7 h-7 rounded-lg bg-white text-slate-700 font-bold flex items-center justify-center hover:bg-slate-200 text-sm shadow-2xs active:scale-95"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <select
-                    value={item.unit || "PCS"}
-                    onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                    className="h-8 px-2 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase text-slate-700"
-                  >
-                    <option value="PCS">PCS</option>
-                    <option value="SET">SET</option>
-                    <option value="MTR">MTR</option>
-                    <option value="LTR">LTR</option>
-                    <option value="KGS">KGS</option>
-                    <option value="BOX">BOX</option>
-                  </select>
-                </div>
-
-                {/* Price Display / Total & Actions */}
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    {priceVal > 0 && (
-                      <span className="text-[11px] text-slate-400 block font-mono">
-                        {currencySymbol}{priceVal.toFixed(2)}
-                      </span>
-                    )}
-                    <span className="font-mono text-sm font-black text-[#0F172A]">
-                      {currencySymbol}{lineTotal > 0 ? lineTotal.toFixed(2) : "0.00"}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingItem(item)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-[#0F766E] hover:bg-teal-50 border border-teal-100 transition-colors"
-                    title="Edit Item"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onDeleteItem(item.id)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-100 transition-colors"
-                    title="Delete Item"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Bottom Card Summary Row matching the Infographic */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E0F2F1] text-[#0F766E]">
-            <CheckSquare className="w-3.5 h-3.5" />
-            {items.length} items selected
-          </span>
-          <div className="text-right">
-            <span className="text-xs text-slate-500 font-medium mr-1.5">Total:</span>
-            <span className="font-mono text-base font-black text-[#0F172A]">
-              {formattedTotal}
-            </span>
+          {/* Quick Search Input */}
+          <div className="relative w-44 sm:w-56">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search items..."
+              className="w-full h-9 pl-9 pr-3 rounded-xl border border-slate-300 text-xs text-slate-800 placeholder-slate-400 bg-white focus:outline-none focus:ring-1 focus:ring-[#347A72]"
+            />
           </div>
         </div>
-      </div>
 
-      {/* ── DESKTOP UNIFIED SPREADSHEET TABLE (md+) ── */}
-      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
-            <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-slate-200 shadow-2xs">
-              <tr className="text-slate-600 font-bold text-xs uppercase tracking-wider">
-                <th className="py-3 px-3.5 w-12 text-center">#</th>
-                <th className="py-3 px-3.5 min-w-[260px]">Item Description</th>
-                <th className="py-3 px-3 min-w-[150px]">Part / Drawing No.</th>
-                <th className="py-3 px-3 w-28 text-right">Quantity</th>
-                <th className="py-3 px-3 w-20 text-center">Unit</th>
-                <th className="py-3 px-3.5 w-28 text-center">Status</th>
-                <th className="py-3 px-3 w-20 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
-              {filteredItems.map((item, idx) => {
-                const reason = getItemReviewReason(item);
-                const needsReview = reason !== null;
-                const qtyVal = toNumber(item[qtyKey]) || 1;
-                const priceVal = toNumber(item[priceKey] ?? item.unitPrice);
-                const lineTotal = calculateRowTotal(item, tableColumns);
-                const isZero = !priceVal || priceVal <= 0;
+        {/* Compact Item Cards List */}
+        <div className="space-y-3">
+          {filteredItems.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+              <p className="text-sm font-semibold text-slate-600">No items match your filter.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterMode("all");
+                  setSearchQuery("");
+                }}
+                className="text-xs font-bold text-[#347A72] hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            filteredItems.map((item, idx) => {
+              const needsReview = isItemNeedsReview(item);
+              const reviewReason = getItemReviewReason(item);
 
-                return (
-                  <tr
-                    key={item.id}
-                    className={`border-b border-slate-100 transition-colors ${
-                      needsReview
-                        ? "bg-amber-50/40 hover:bg-amber-50/60"
-                        : "odd:bg-white even:bg-slate-50/30 hover:bg-teal-50/20"
-                    }`}
-                  >
-                    <td className="py-2.5 px-3.5 text-center font-mono text-xs font-bold text-slate-400">
-                      {idx + 1}
-                    </td>
-
-                    <td className="py-2.5 px-3.5">
-                      <input
-                        type="text"
-                        value={item.itemName || ""}
-                        onChange={(e) => onUpdateItem(item.id, { itemName: e.target.value })}
-                        placeholder="Item description"
-                        className="w-full font-bold text-sm text-slate-900 bg-transparent border border-transparent hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 transition-all"
-                      />
-                      {item.description && (
-                        <p className="text-xs text-slate-500 font-normal px-2 truncate max-w-md">
-                          {item.description}
-                        </p>
-                      )}
-                      {needsReview && (
-                        <p className="text-xs text-amber-700 font-semibold px-2 flex items-center gap-1 mt-0.5">
-                          <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                          <span>{reason}</span>
-                        </p>
-                      )}
-                    </td>
-
-                    <td className="py-2.5 px-3">
-                      <input
-                        type="text"
-                        value={item.partNumber || ""}
-                        onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
-                        placeholder="Part No."
-                        className="w-full font-mono text-xs font-bold text-slate-700 bg-slate-100/70 border border-slate-200/90 hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 transition-all"
-                      />
-                    </td>
-
-                    <td className="py-2.5 px-3 text-right">
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={typeof item.quantity === "number" ? item.quantity : ""}
-                        onChange={(e) =>
-                          onUpdateItem(item.id, {
-                            quantity: Number(e.target.value) || 0,
-                            isMissingQty: false,
-                          })
-                        }
-                        className="w-20 text-right font-mono text-sm font-bold text-slate-900 bg-white border border-slate-300 hover:border-slate-400 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md px-2 py-1 tabular-nums transition-all"
-                      />
-                    </td>
-
-                    <td className="py-2.5 px-3 text-center">
-                      <input
-                        type="text"
-                        value={item.unit || "PCS"}
-                        onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="w-16 text-center text-xs font-bold uppercase text-slate-700 bg-slate-100/60 border border-slate-200 hover:border-slate-300 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20 rounded-md py-1 transition-all"
-                      />
-                    </td>
-
-                    <td className="py-2.5 px-3.5 text-right">
-                      <div className="relative inline-flex items-center justify-end w-full">
-                        <span className="absolute left-2.5 text-xs text-slate-400 font-bold select-none">
-                          {currencySymbol}
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white rounded-2xl border transition-all p-4 space-y-3 shadow-xs ${
+                    needsReview
+                      ? "border-amber-300 ring-2 ring-amber-400/10"
+                      : "border-[#E2E8F0] hover:border-slate-300"
+                  }`}
+                >
+                  {/* Row 1: Item Name (Inline Editable) & Status Badge */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-slate-400 shrink-0">
+                          #{idx + 1}
                         </span>
                         <input
-                          ref={(el) => {
-                            inputRefs.current[idx] = el;
+                          type="text"
+                          value={item.itemName || ""}
+                          onChange={(e) =>
+                            onUpdateItem(item.id, {
+                              itemName: e.target.value,
+                              needsReview: false,
+                            })
+                          }
+                          placeholder="Product Name or Description"
+                          className="w-full font-bold text-base text-[#172033] bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#347A72] focus:bg-slate-50/50 rounded px-1 -mx-1 transition-colors focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      {needsReview ? (
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                          Review
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          OK
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Part Number */}
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[#64748B] font-semibold">Part No:</span>
+                    <input
+                      type="text"
+                      value={item.partNumber || ""}
+                      onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
+                      placeholder="e.g. MP-102"
+                      className="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[180px] focus:outline-none focus:ring-1 focus:ring-[#347A72]"
+                    />
+                  </div>
+
+                  {/* Row 3: Quantity Stepper & Unit Dropdown */}
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-[#64748B]">Qty:</span>
+                      <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cur = Number(item.quantity) || 1;
+                            if (cur > 1) {
+                              onUpdateItem(item.id, {
+                                quantity: cur - 1,
+                                isMissingQty: false,
+                              });
+                            }
                           }}
+                          className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+
+                        <input
                           type="number"
-                          min="0"
+                          min="1"
                           step="any"
-                          value={priceVal > 0 ? priceVal : ""}
-                          placeholder="0.00"
+                          value={item.quantity || ""}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value) || 0;
                             onUpdateItem(item.id, {
-                              unitPrice: val,
-                              [priceKey]: val,
+                              quantity: val,
+                              isMissingQty: false,
                             });
                           }}
-                          onKeyDown={(e) => handleKeyDown(e, idx)}
-                          onPaste={(e) => handlePaste(e, idx)}
-                          className={`w-32 pl-6 pr-2.5 py-1.5 text-right font-mono text-sm font-bold rounded-md border transition-all tabular-nums ${
-                            isZero
-                              ? "border-amber-300 bg-amber-50/20 text-slate-900 focus:border-[#0F766E] focus:bg-white focus:ring-2 focus:ring-[#0F766E]/20"
-                              : "border-slate-300 bg-white text-slate-900 focus:border-[#0F766E] focus:ring-2 focus:ring-[#0F766E]/20"
-                          }`}
+                          className="w-12 h-8 text-center font-bold text-sm text-[#172033] focus:outline-none border-x border-slate-200"
                         />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cur = Number(item.quantity) || 1;
+                            onUpdateItem(item.id, {
+                              quantity: cur + 1,
+                              isMissingQty: false,
+                            });
+                          }}
+                          className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                    </td>
 
-                    <td className="py-2.5 px-3.5 text-right font-mono text-sm font-black text-slate-900 tabular-nums">
-                      {lineTotal > 0 ? lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-"}
-                    </td>
+                      {/* Unit Dropdown */}
+                      <select
+                        value={item.unit ? item.unit.toUpperCase() : "PCS"}
+                        onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
+                        className="h-8 px-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-[#347A72]"
+                      >
+                        {COMMON_UNITS.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                    <td className="py-2.5 px-3 text-center">
+                    {/* Actions: Edit Specs & Delete */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem(item)}
+                        className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+                        title="Edit specifications"
+                        aria-label="Edit item"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => onDeleteItem(item.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
-                        title="Delete line item"
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+                        title="Delete item"
+                        aria-label="Delete item"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+
+                  {/* Row 4: Specification (if present) */}
+                  {(item.description || item.technicalSpecification) && (
+                    <div className="bg-slate-50 rounded-xl p-2.5 text-xs text-[#64748B] font-medium border border-slate-100">
+                      <span className="font-semibold text-slate-700">Specification: </span>
+                      <span>{item.description || item.technicalSpecification}</span>
+                    </div>
+                  )}
+
+                  {/* Flagged Item Prompt (Missing info resolution) */}
+                  {needsReview && reviewReason && (
+                    <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs text-amber-900">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>{reviewReason}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUpdateItem(item.id, {
+                            isMissingQty: false,
+                            needsReview: false,
+                            quantity: item.quantity > 0 ? item.quantity : 1,
+                            unit: item.unit || "PCS",
+                          })
+                        }
+                        className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shrink-0 flex items-center gap-1"
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                        <span>Mark OK</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Secondary Action: + Add Item */}
+        <div className="pt-2 text-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onAddItem}
+            className="w-full h-11 rounded-xl text-xs font-bold border-dashed border-slate-300 text-[#347A72] hover:bg-slate-50 flex items-center justify-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Item</span>
+          </Button>
         </div>
       </div>
 
-      {/* ── QUOTATION ADJUSTMENTS: CURRENCY, DISCOUNT, TAX & SHIPPING ── */}
-      <div className="bg-white rounded-lg border border-slate-200/90 p-4 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h4 className="text-xs sm:text-sm font-bold text-slate-800">
-            Quotation Currency &amp; Adjustments
-          </h4>
-          {onUpdateClient && (
-            <button
-              type="button"
-              onClick={() => setShowDocMetadata(!showDocMetadata)}
-              className="text-xs text-[#0F766E] font-bold hover:underline flex items-center gap-1"
-            >
-              <Building className="w-3.5 h-3.5" />
-              <span>{showDocMetadata ? "Hide Header Details" : "Customer & Vessel Details"}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showDocMetadata ? "rotate-180" : ""}`} />
-            </button>
-          )}
-        </div>
-
-        {/* Customer & Vessel Drawer */}
-        {showDocMetadata && onUpdateClient && onUpdateDocInfo && state && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 pb-3 border-b border-slate-100 text-xs animate-in fade-in duration-150">
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Quotation No.</Label>
-              <Input
-                value={state.documentInfo.number || ""}
-                onChange={(e) => onUpdateDocInfo({ number: e.target.value })}
-                className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Customer Company</Label>
-              <Input
-                value={state.client.companyName || state.client.name || ""}
-                onChange={(e) => onUpdateClient({ companyName: e.target.value, name: e.target.value })}
-                placeholder="e.g. Oceanic Shipping Co."
-                className="h-9 text-xs sm:text-sm font-semibold rounded-lg border-slate-300"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Vessel Name</Label>
-              <Input
-                value={state.documentInfo.vessel || ""}
-                onChange={(e) => onUpdateDocInfo({ vessel: e.target.value })}
-                placeholder="e.g. M/V Oceanic Star"
-                className="h-9 text-xs sm:text-sm font-semibold rounded-lg border-slate-300"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-          {/* Currency */}
-          {onSetCurrency && (
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Currency</Label>
-              <select
-                value={currency}
-                onChange={(e) => onSetCurrency(e.target.value as Currency)}
-                className="w-full h-9 px-2 rounded-lg border border-slate-300 font-bold text-xs sm:text-sm bg-white"
-              >
-                {Object.keys(CURRENCY_SYMBOLS).map((c) => (
-                  <option key={c} value={c}>
-                    {c} ({CURRENCY_SYMBOLS[c as Currency]})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Discount */}
-          {onSetDiscount && (
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Discount</Label>
-              <div className="flex gap-1.5">
-                <Input
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={discount || ""}
-                  placeholder="0"
-                  onChange={(e) => onSetDiscount(parseFloat(e.target.value) || 0, discountType)}
-                  className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
-                />
-                <select
-                  value={discountType}
-                  onChange={(e) => onSetDiscount(discount, e.target.value as "flat" | "percent")}
-                  className="h-9 px-2 rounded-lg border border-slate-300 text-xs font-bold bg-white"
-                >
-                  <option value="flat">{currencySymbol} Flat</option>
-                  <option value="percent">% Off</option>
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* Tax */}
-          {onSetTaxPercent && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-slate-600">Tax (VAT / GST %)</Label>
-                <button
-                  type="button"
-                  onClick={() => setShowTaxHelp(!showTaxHelp)}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                step="any"
-                value={taxPercent || ""}
-                placeholder="0 %"
-                onChange={(e) => onSetTaxPercent(parseFloat(e.target.value) || 0)}
-                className="h-9 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
-              />
-            </div>
-          )}
-
-          {/* Shipping / Delivery */}
-          {onSetShipping && (
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-600">Launch / Shipping Charge</Label>
-              <Input
-                type="number"
-                min="0"
-                step="any"
-                value={shippingCharge || ""}
-                placeholder="0.00"
-                onChange={(e) => onSetShipping(parseFloat(e.target.value) || 0)}
-                className="h-10 text-xs sm:text-sm font-mono font-bold rounded-lg border-slate-300"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-      {/* ── END SCROLLING MIDDLE CONTENT ── */}
-
-      {/* ── STICKY IN-FLOW BOTTOM TOTAL & NEXT ACTION BAR (z-30) ── */}
-      <footer className="shrink-0 border-t border-slate-200/90 bg-white/95 backdrop-blur-md z-30 px-4 sm:px-8 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-lg">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Left: Financial Totals Breakdown */}
-          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="hidden sm:block">
-              <span className="text-slate-500">Subtotal:</span>{" "}
-              <strong className="font-mono text-slate-800 font-bold">{currencySymbol}{subtotal.toFixed(2)}</strong>
-            </div>
-            {discountAmt > 0 && (
-              <div className="hidden sm:block">
-                <span className="text-slate-500">Discount:</span>{" "}
-                <strong className="font-mono text-amber-700 font-bold">-{currencySymbol}{discountAmt.toFixed(2)}</strong>
-              </div>
-            )}
-            {taxAmt > 0 && (
-              <div className="hidden sm:block">
-                <span className="text-slate-500">Tax:</span>{" "}
-                <strong className="font-mono text-slate-800 font-bold">+{currencySymbol}{taxAmt.toFixed(2)}</strong>
-              </div>
-            )}
-            <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto sm:border-l sm:border-slate-200 sm:pl-4">
-              <span className="text-slate-500 font-bold">Grand Total:</span>{" "}
-              <span className="font-mono text-base sm:text-lg font-extrabold text-[#0F766E] ml-2">
-                {formattedTotal}
-              </span>
-            </div>
+      {/* ── STICKY BOTTOM ACTION BAR (Exact User Architecture) ── */}
+      <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <div className="text-sm font-bold text-[#172033]">
+            <span>{items.length} {items.length === 1 ? "Item" : "Items"}</span>
           </div>
 
-          {/* Right: Next Step Primary Action */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onAddItem}
-              className="min-h-[44px] px-4 rounded-lg font-bold text-xs border-slate-300 text-slate-700 hover:bg-slate-50"
-            >
-              <Plus className="w-4 h-4 mr-1 text-[#0F766E]" />
-              <span>Add Row</span>
-            </Button>
-
-            <Button
-              onClick={onNext}
-              className="min-h-[48px] px-6 rounded-lg font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white flex-1 sm:flex-initial shadow-sm flex items-center justify-center gap-2"
-            >
-              <span>Continue</span>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            onClick={onNext}
+            className="h-12 px-6 rounded-xl font-bold text-sm bg-[#347A72] hover:bg-[#28645E] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+          >
+            <span>Continue</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </footer>
 
-      {/* ── SCREEN 4: EDIT ITEM MODAL ── */}
+      {/* Edit Item Specification Modal */}
       <EditItemModal
-        isOpen={editingItem !== null}
+        isOpen={Boolean(editingItem)}
         item={editingItem}
         onClose={() => setEditingItem(null)}
-        onSave={(id, updates) => onUpdateItem(id, updates)}
+        onSave={(id, updates) => {
+          onUpdateItem(id, updates);
+          setEditingItem(null);
+        }}
       />
-
-      {/* ── CONFIRMATION MODAL: CLEAR / RE-UPLOAD EXTRACTION ── */}
-      {showClearModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150 text-center">
-            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
-              <RotateCcw className="w-6 h-6 stroke-[2.2]" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900">Clear extracted items?</h3>
-              <p className="text-xs text-slate-500">
-                This will discard the {items.length} items from this draft and let you upload a different RFQ file or start fresh.
-              </p>
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowClearModal(false)}
-                className="flex-1 h-10 rounded-lg text-xs font-semibold border-slate-300"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowClearModal(false);
-                  onClearExtraction();
-                }}
-                className="flex-1 h-10 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
-              >
-                Clear &amp; Re-upload
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── TABLE COLUMNS MODAL ── */}
-      {showColumnsModal && onSetColumns && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full space-y-4 shadow-xl border border-slate-200 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Table Columns Layout</h3>
-                <p className="text-xs text-slate-500">Show or hide columns on your customer quotation</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowColumnsModal(false)}
-                className="p-1 rounded text-slate-400 hover:text-slate-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {tableColumns.map((col, index) => (
-                <div
-                  key={col.id}
-                  className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-800">{col.label}</span>
-                    {col.role && (
-                      <span className="text-xs font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                        {col.role}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleColumnVisibility(col.id, col.visible)}
-                      className={`p-1.5 rounded-md text-xs font-semibold flex items-center gap-1 ${
-                        col.visible ? "text-[#0F766E] hover:bg-teal-50" : "text-slate-400 hover:bg-slate-100"
-                      }`}
-                    >
-                      {col.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                      <span>{col.visible ? "Visible" : "Hidden"}</span>
-                    </button>
-
-                    <div className="flex flex-col">
-                      <button
-                        type="button"
-                        disabled={index === 0}
-                        onClick={() => handleMoveColumn(index, -1)}
-                        className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-20"
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === tableColumns.length - 1}
-                        onClick={() => handleMoveColumn(index, 1)}
-                        className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-20"
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <Button
-                onClick={() => setShowColumnsModal(false)}
-                className="h-10 px-5 rounded-lg font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white"
-              >
-                Done
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
     </div>
   );
 }

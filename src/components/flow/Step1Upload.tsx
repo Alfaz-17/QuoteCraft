@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { QuotationState, LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   UploadCloud, 
@@ -11,13 +10,14 @@ import {
   FileText, 
   ArrowRight, 
   X,
-  Lock,
   ClipboardList,
   CheckCircle2,
+  Plus
 } from "lucide-react";
 import { mapImport } from "@/utils/importMapping";
 import { useToast } from "@/components/ui/Toast";
 import { DualOrbitalSpinner } from "@/components/ui/Loaders";
+import { StepHeader } from "./StepHeader";
 
 interface Step1UploadProps {
   state: QuotationState;
@@ -52,8 +52,6 @@ export function Step1Upload({
       onUpdateDocInfo({ number: `QT-${randomSuffix}` });
     }
   }, [state.documentInfo.number, onUpdateDocInfo]);
-
-
 
   // Elapsed timer during processing
   useEffect(() => {
@@ -136,7 +134,6 @@ export function Step1Upload({
         throw new Error("Unable to identify table items. You can paste the raw text or start with a blank quote.");
       }
 
-      // Automatically apply any extracted RFQ header metadata
       if (data.rfqDetails) {
         if (data.rfqDetails.customerName) {
           onUpdateClient({
@@ -149,48 +146,22 @@ export function Step1Upload({
             vessel: data.rfqDetails.vesselName,
           });
         }
-        if (data.rfqDetails.rfqNumber) {
+        if (data.rfqDetails.rfqReference) {
           onUpdateDocInfo({
-            reference: data.rfqDetails.rfqNumber,
-          });
-        }
-      }
-
-      // Automatically apply any extracted RFQ header metadata
-      if (data.rfqDetails) {
-        if (data.rfqDetails.customerName) {
-          onUpdateClient({
-            companyName: data.rfqDetails.customerName,
-            name: data.rfqDetails.customerName,
-          });
-        }
-        if (data.rfqDetails.vesselName) {
-          onUpdateDocInfo({
-            vessel: data.rfqDetails.vesselName,
-          });
-        }
-        if (data.rfqDetails.rfqNumber) {
-          onUpdateDocInfo({
-            reference: data.rfqDetails.rfqNumber,
+            reference: data.rfqDetails.rfqReference,
           });
         }
       }
 
       const mapped = mapImport({ columns: data.columns, rows: data.rows });
       if (mapped.items.length === 0) {
-        throw new Error("No line items found. You can start with a blank quote or paste text directly.");
+        throw new Error("No line items found. You can enter items manually.");
       }
 
-      const isDeterministic = data.method === "deterministic_excel";
-      toastSuccess(
-        isDeterministic
-          ? `Found ${mapped.items.length} items from spreadsheet!`
-          : `Found ${mapped.items.length} items from document!`
-      );
-
+      toastSuccess(`Extracted ${mapped.items.length} items from ${selectedFile.name}!`);
       onImportComplete(mapped.items, mapped.columns);
     } catch (err: unknown) {
-      toastError((err as Error).message || "Could not read this file. Try pasting the text instead.");
+      toastError((err as Error).message || "Could not read this file. Try pasting text or starting manually.");
     } finally {
       setIsProcessing(false);
     }
@@ -233,8 +204,6 @@ export function Step1Upload({
     }
   };
 
-
-
   const isPdf = selectedFile?.name?.toLowerCase().endsWith(".pdf");
   const formattedFileSize = selectedFile
     ? selectedFile.size >= 1024 * 1024
@@ -243,17 +212,14 @@ export function Step1Upload({
     : "";
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 sm:py-7 space-y-5 max-w-xl mx-auto w-full pb-16">
-        {/* Title */}
-        <div className="text-center space-y-1">
-          <h2 className="text-[22px] font-black text-[#0F172A] tracking-tight">
-            Upload RFQ
-          </h2>
-          <p className="text-[13px] text-[#475569]">
-            Upload your customer enquiry to extract products and line items automatically.
-          </p>
-        </div>
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 max-w-lg mx-auto w-full space-y-5 pb-12">
+        {/* Step Progress & Screen Title */}
+        <StepHeader
+          step={1}
+          title="Upload RFQ"
+          subtitle="Extract products from customer enquiries."
+        />
 
         {/* Input Mode Selector: Upload File vs Paste Text */}
         <div className="flex justify-center">
@@ -263,12 +229,12 @@ export function Step1Upload({
               onClick={() => setInputMode("file")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "file"
-                  ? "bg-white text-[#0F172A] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  ? "bg-white text-[#172033] shadow-xs"
+                  : "text-[#64748B] hover:text-[#172033]"
               }`}
             >
-              <UploadCloud className="w-4 h-4 text-[#0F766E]" />
-              <span>Upload File</span>
+              <UploadCloud className="w-4 h-4 text-[#347A72]" />
+              <span>Upload</span>
             </button>
 
             <button
@@ -276,45 +242,18 @@ export function Step1Upload({
               onClick={() => setInputMode("paste")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "paste"
-                  ? "bg-white text-[#0F172A] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  ? "bg-white text-[#172033] shadow-xs"
+                  : "text-[#64748B] hover:text-[#172033]"
               }`}
             >
-              <ClipboardList className="w-4 h-4 text-[#0F766E]" />
+              <ClipboardList className="w-4 h-4 text-[#347A72]" />
               <span>Paste Text</span>
             </button>
           </div>
         </div>
 
-        {/* ===== INSPIRATION: SIGNATURE CURVED CARD WITH TEAL BANNER ===== */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden space-y-0">
-          {/* Curved Deep Teal Header Banner */}
-          <div className="bg-[#0F766E] p-5 sm:p-6 text-white flex items-center justify-between">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-full bg-white text-[#0F766E] font-black text-base flex items-center justify-center shrink-0 shadow-sm">
-                1
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-teal-100 bg-teal-800/40 px-2.5 py-0.5 rounded-full">
-                    Step 1
-                  </span>
-                </div>
-                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
-                  Upload RFQ
-                </h3>
-                <p className="text-xs text-teal-100/90 font-medium">
-                  Upload your RFQ or import from file
-                </p>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-teal-800/40 text-teal-100 flex items-center justify-center shrink-0">
-              <UploadCloud className="w-5 h-5" />
-            </div>
-          </div>
-
-          {/* Card Body */}
-          <div className="p-5 sm:p-7 space-y-5">
+        {/* Functional Upload Card (Single Clean Card) */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 sm:p-6 shadow-xs space-y-4">
           {inputMode === "file" ? (
             <div>
               <input
@@ -330,36 +269,35 @@ export function Step1Upload({
               />
 
               {isProcessing ? (
-                <div className="py-12 flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="py-10 flex flex-col items-center justify-center space-y-3 text-center">
                   <DualOrbitalSpinner size="lg" />
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-[#0F172A]">{processStep}</p>
-                    <p className="text-xs text-[#475569]">
-                      Extracting part numbers and quantities ({elapsedSeconds}s)
+                    <p className="text-sm font-bold text-[#172033]">{processStep}</p>
+                    <p className="text-xs text-[#64748B]">
+                      Extracting products and quantities ({elapsedSeconds}s)
                     </p>
                   </div>
                 </div>
               ) : selectedFile ? (
-                /* Selected File Preview Card (Exact Screen 2 in Mockup) */
                 <div className="space-y-4">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 flex items-center justify-between gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                           isPdf ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
                         }`}
                       >
                         {isPdf ? (
-                          <FileText className="w-6 h-6 stroke-[2]" />
+                          <FileText className="w-5 h-5 stroke-[2]" />
                         ) : (
-                          <FileSpreadsheet className="w-6 h-6 stroke-[2]" />
+                          <FileSpreadsheet className="w-5 h-5 stroke-[2]" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#0F172A] truncate">
+                        <p className="text-sm font-bold text-[#172033] truncate">
                           {selectedFile.name}
                         </p>
-                        <p className="text-xs text-[#475569] font-medium">
+                        <p className="text-xs text-[#64748B] font-medium">
                           {formattedFileSize}
                         </p>
                       </div>
@@ -378,30 +316,23 @@ export function Step1Upload({
                     </button>
                   </div>
 
-                  {/* Status Indicator */}
-                  <div className="flex items-center justify-center gap-1.5 py-1">
+                  <div className="flex items-center justify-center gap-1.5">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                      File ready to upload
+                      File ready to extract
                     </span>
                   </div>
 
-                  {/* Primary Upload CTA Button */}
                   <Button
                     type="button"
                     onClick={handleProcessFile}
-                    className="w-full h-12 rounded-xl text-sm font-bold bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white shadow-md shadow-[#0F766E]/20 transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                    className="w-full h-12 rounded-xl text-sm font-bold bg-[#347A72] hover:bg-[#28645E] active:scale-[0.98] text-white shadow-sm transition-all flex items-center justify-center gap-2 min-h-[48px]"
                   >
-                    <span>Upload File</span>
+                    <span>Extract Products</span>
                     <ArrowRight className="w-4 h-4" />
                   </Button>
-
-                  <p className="text-[11px] text-center text-[#475569] font-medium">
-                    Supported formats: PDF, XLS, XLSX
-                  </p>
                 </div>
               ) : (
-                /* Empty Upload Dropzone (Exact Screen 2 in Mockup) */
                 <div
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -410,22 +341,19 @@ export function Step1Upload({
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-8 sm:p-10 transition-all cursor-pointer text-center space-y-4 ${
+                  className={`border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer text-center space-y-4 ${
                     isDragOver
-                      ? "border-[#0F766E] bg-teal-50/50 ring-4 ring-teal-500/10"
-                      : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/40 hover:bg-slate-50/80"
+                      ? "border-[#347A72] bg-teal-50/50"
+                      : "border-slate-300 hover:border-[#347A72]/60 bg-slate-50/40 hover:bg-slate-50/80"
                   }`}
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-[#E0F2F1] text-[#0F766E] mx-auto flex items-center justify-center shadow-xs">
-                    <UploadCloud className="w-7 h-7 stroke-[2.2]" />
+                  <div className="w-12 h-12 rounded-xl bg-teal-50 text-[#347A72] mx-auto flex items-center justify-center">
+                    <UploadCloud className="w-6 h-6 stroke-[2]" />
                   </div>
 
-                  <div className="space-y-3">
-                    <p className="text-base font-extrabold text-[#0F172A]">
-                      Drag &amp; drop your file here
-                    </p>
-                    <p className="text-xs text-[#475569] font-medium">
-                      or
+                  <div className="space-y-2">
+                    <p className="text-sm font-bold text-[#172033]">
+                      Upload your file
                     </p>
                     <div>
                       <button
@@ -434,14 +362,14 @@ export function Step1Upload({
                           e.stopPropagation();
                           fileInputRef.current?.click();
                         }}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold shadow-sm transition-transform active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#347A72] hover:bg-[#28645E] text-white text-xs font-bold transition-transform active:scale-95"
                       >
-                        <FileText className="w-4 h-4" />
+                        <FileText className="w-3.5 h-3.5" />
                         <span>Browse Files</span>
                       </button>
                     </div>
-                    <p className="text-xs text-[#475569] font-medium pt-1">
-                      Supports PDF, Excel, DOCX • Max 10MB
+                    <p className="text-[11px] text-[#64748B] pt-1">
+                      PDF, Excel, DOCX • Max 10MB
                     </p>
                   </div>
                 </div>
@@ -450,19 +378,19 @@ export function Step1Upload({
           ) : (
             <div className="space-y-3">
               <Label className="text-xs font-bold text-slate-700">
-                Paste requisition text from WhatsApp or Email
+                Paste customer enquiry from WhatsApp or Email
               </Label>
               <textarea
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
-                placeholder="e.g. Please quote urgently for M/V Oceanic Star:&#10;1. 4 pcs Cylinder liner CL-102&#10;2. 8 pcs Exhaust valve spindle EV-204&#10;3. 2 pcs Fuel valve nozzle"
-                className="w-full h-44 p-3.5 rounded-xl border border-slate-300 text-base font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E] focus:border-transparent resize-y"
+                placeholder="e.g. Please quote urgently:&#10;1. 4 pcs Centrifugal pump MP-102&#10;2. 8 pcs Exhaust valve spindle&#10;3. 2 pcs Injector nozzle"
+                className="w-full h-40 p-3.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#347A72] focus:border-transparent resize-y"
               />
               <div className="flex justify-end">
                 <Button
                   disabled={isProcessing || !pastedText.trim()}
                   onClick={handleProcessPastedText}
-                  className="h-11 px-6 rounded-xl font-bold text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[44px]"
+                  className="h-11 px-5 rounded-xl font-bold text-xs sm:text-sm bg-[#347A72] hover:bg-[#28645E] text-white min-h-[44px]"
                 >
                   {isProcessing ? (
                     <>
@@ -470,50 +398,25 @@ export function Step1Upload({
                     </>
                   ) : (
                     <>
-                      Read Text <ArrowRight className="w-4 h-4 ml-1.5" />
+                      Extract From Text <ArrowRight className="w-4 h-4 ml-1.5" />
                     </>
                   )}
                 </Button>
               </div>
             </div>
           )}
+        </div>
 
-          {/* Divider: —— OR —— */}
-          <div className="relative flex items-center justify-center my-3">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest shrink-0">
-              OR
-            </span>
-          </div>
-
-          {/* Enter Manually Card */}
+        {/* Secondary Action: Enter items manually */}
+        <div className="text-center pt-1">
           <button
             type="button"
             onClick={onSkipUpload}
-            className="w-full bg-slate-50 hover:bg-slate-100/80 border border-slate-200/90 rounded-2xl p-4 flex items-center justify-between text-left transition-colors group"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#347A72] hover:text-[#28645E] py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-[#0F766E] flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                <FileSpreadsheet className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-extrabold text-sm text-[#0F172A]">
-                  Enter Manually
-                </p>
-                <p className="text-xs text-[#475569] font-medium">
-                  Add items manually if needed
-                </p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F766E] group-hover:translate-x-0.5 transition-all" />
+            <Plus className="w-4 h-4" />
+            <span>Enter items manually</span>
           </button>
-
-          {/* Privacy Assurance */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 pt-1">
-            <Lock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Your files are private. Only you can view your quotations.</span>
-          </div>
-        </div>
         </div>
       </div>
     </div>
