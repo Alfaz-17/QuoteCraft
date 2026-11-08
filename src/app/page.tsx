@@ -53,6 +53,37 @@ function QuotationBuilder() {
   // Undo history stack
   const undoStack = useRef<LineItem[][]>([]);
 
+  // Step navigation with browser history support
+  const goToStep = useCallback((step: FlowStep) => {
+    setCurrentStep(step);
+    if (typeof window !== "undefined") {
+      window.history.pushState({ step }, "");
+    }
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (currentStep === 3) {
+      goToStep(2);
+    } else if (currentStep === 2) {
+      goToStep(1);
+    } else {
+      router.push("/dashboard");
+    }
+  }, [currentStep, goToStep, router]);
+
+  // Handle hardware & browser back button (Android / iOS swipe)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && typeof e.state.step === "number") {
+        setCurrentStep(e.state.step as FlowStep);
+      } else {
+        setCurrentStep((prev) => (prev > 1 ? ((prev - 1) as FlowStep) : 1));
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Check if authenticated user has completed company onboarding
   useEffect(() => {
     if (!isHydrated) return;
@@ -171,15 +202,15 @@ function QuotationBuilder() {
   const handleImportComplete = useCallback((items: LineItem[], columns: TableColumn[]) => {
     pushUndo(state.items);
     dispatch({ type: "IMPORT_RFQ", payload: { items, columns } });
-    setCurrentStep(2);
-  }, [dispatch, state.items, pushUndo]);
+    goToStep(2);
+  }, [dispatch, state.items, pushUndo, goToStep]);
 
   const handleSkipUpload = useCallback(() => {
     if (state.items.length === 0) {
       handleAddItem();
     }
-    setCurrentStep(2);
-  }, [state.items.length, handleAddItem]);
+    goToStep(2);
+  }, [state.items.length, handleAddItem, goToStep]);
 
   const handleClearExtraction = useCallback(() => {
     pushUndo(state.items);
@@ -187,16 +218,16 @@ function QuotationBuilder() {
       type: "SET_ITEMS",
       payload: [],
     });
-    setCurrentStep(1);
+    goToStep(1);
     toastSuccess("Cleared extracted items. You can now upload a new RFQ file or start fresh.");
-  }, [dispatch, state.items, pushUndo, toastSuccess]);
+  }, [dispatch, state.items, pushUndo, toastSuccess, goToStep]);
 
   const handleNewQuote = useCallback(() => {
     pushUndo(state.items);
     dispatch({ type: "NEW_QUOTATION" });
-    setCurrentStep(1);
+    goToStep(1);
     toastSuccess("Started a new quote! Company profile was preserved.");
-  }, [dispatch, state.items, pushUndo, toastSuccess]);
+  }, [dispatch, state.items, pushUndo, toastSuccess, goToStep]);
 
   const handleUpdateDocInfo = useCallback((u: Partial<QuotationState["documentInfo"]>) => {
     dispatch({ type: "SET_DOCUMENT_INFO", payload: u });
@@ -250,22 +281,34 @@ function QuotationBuilder() {
       <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-3.5 sm:px-6 py-2.5 pt-[max(0.6rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] flex items-center justify-between z-30 select-none">
         {/* Left: Back button & Logo */}
         <div className="flex items-center gap-2 min-w-0">
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={handleBack}
             className="p-1.5 -ml-1 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors shrink-0 flex items-center justify-center min-h-[44px] min-w-[44px]"
-            title="Back to Dashboard"
-            aria-label="Back to Dashboard"
+            title={
+              currentStep === 3
+                ? "Back to Step 2 (Check Items)"
+                : currentStep === 2
+                ? "Back to Step 1 (Upload RFQ)"
+                : "Back to Dashboard"
+            }
+            aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5" />
-          </Link>
+          </button>
 
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" title="QuoteCraft Dashboard">
             <QuoteCraftLogo size={26} showText={false} />
             <span className="font-extrabold text-sm sm:text-base tracking-tight text-[#172033] leading-none group-hover:text-[#347A72] transition-colors truncate">
               Quote<span className="text-[#347A72]">Craft</span>
             </span>
+            {currentStep > 1 && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#0F766E] border border-teal-200 shrink-0">
+                Step {currentStep} of 3
+              </span>
+            )}
             {state.documentInfo?.number && (
-              <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+              <span className="hidden sm:inline-block text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
                 {state.documentInfo.number}
               </span>
             )}
@@ -390,8 +433,8 @@ function QuotationBuilder() {
             onAddColumn={(col) => dispatch({ type: "ADD_COLUMN", payload: col })}
             onSetColumns={(cols) => dispatch({ type: "SET_COLUMNS", payload: cols })}
             onClearExtraction={handleClearExtraction}
-            onNext={() => setCurrentStep(3)}
-            onBack={() => setCurrentStep(1)}
+            onNext={() => goToStep(3)}
+            onBack={() => goToStep(1)}
           />
         )}
 
@@ -412,7 +455,7 @@ function QuotationBuilder() {
               if (u.pdfLayoutMode) dispatch({ type: "SET_PDF_LAYOUT_MODE", payload: u.pdfLayoutMode });
               if (u.pdfShowSignatureBlock !== undefined) dispatch({ type: "SET_PDF_SHOW_SIGNATURE", payload: u.pdfShowSignatureBlock });
             }}
-            onBack={() => setCurrentStep(2)}
+            onBack={() => goToStep(2)}
             onNewQuote={handleNewQuote}
           />
         )}

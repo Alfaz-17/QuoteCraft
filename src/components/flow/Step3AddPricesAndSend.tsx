@@ -665,20 +665,30 @@ export function Step3AddPricesAndSend({
       </div>
 
       {/* ── STICKY BOTTOM ACTION BAR (Exact User Architecture) ── */}
-      <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <span className="text-xs text-[#64748B] block">Total:</span>
-            <span className="font-mono font-black text-base sm:text-lg text-[#347A72]">
+      <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2.5">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-11 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
+            title="Back to Step 2 (Check Items)"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden min-[380px]:inline">Items</span>
+          </button>
+
+          <div className="min-w-0 flex-1 px-1">
+            <span className="text-[11px] text-slate-500 block leading-tight">Total:</span>
+            <span className="font-mono font-black text-sm sm:text-base text-[#0F766E] truncate block">
               {formattedTotal}
             </span>
           </div>
 
           <Button
             onClick={() => setStage("preview")}
-            className="h-12 px-6 rounded-xl font-bold text-sm bg-[#347A72] hover:bg-[#28645E] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+            className="h-11 px-4 sm:px-6 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
           >
-            <span>Preview Quotation</span>
+            <span>Preview</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
