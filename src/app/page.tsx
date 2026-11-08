@@ -10,15 +10,15 @@ import { Step3AddPricesAndSend } from "@/components/flow/Step3AddPricesAndSend";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
 import { 
-  Building2, RotateCcw, FilePlus, Check, Loader2, LayoutDashboard, ArrowLeft
+  RotateCcw, FilePlus, ArrowLeft
 } from "lucide-react";
-import { LineItem, TableColumn, CURRENCY_SYMBOLS, QuotationState, Currency } from "@/types/quotation.types";
-import { calculateGrandTotal } from "@/utils/calculations";
+import { LineItem, TableColumn, QuotationState, Currency } from "@/types/quotation.types";
+
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@clerk/nextjs";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
-import { HeroSailingLoader, DualOrbitalSpinner } from "@/components/ui/Loaders";
+import { HeroSailingLoader } from "@/components/ui/Loaders";
 
 export default function Home() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
@@ -41,7 +41,7 @@ export default function Home() {
 }
 
 function QuotationBuilder() {
-  const { state, dispatch, isSaved, subtotal, isHydrated } = useQuotationState();
+  const { state, dispatch } = useQuotationState();
   const { success: toastSuccess, info: toastInfo } = useToast();
 
   const [currentStep, setCurrentStep] = useState<FlowStep>(1);
@@ -222,21 +222,21 @@ function QuotationBuilder() {
     dispatch({ type: "SET_SHIPPING", payload: ship });
   }, [dispatch]);
 
-  // Grand total calculation for the top bar
-  const grandTotal = calculateGrandTotal(
-    subtotal,
-    state.discount,
-    state.discountType,
-    state.taxPercent,
-    state.shippingCharge
-  );
-  const currencySymbol = CURRENCY_SYMBOLS[state.currency] || "₹";
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="h-[100dvh] flex flex-col bg-[#FAF9F5] overflow-hidden text-[#0F172A] selection:bg-teal-500/10 selection:text-teal-900">
       {/* ===== NATIVE APP TOOLBAR (z-30) ===== */}
       <header className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-3.5 sm:px-6 py-2 pt-[max(0.6rem,env(safe-area-inset-top))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] flex items-center justify-between z-30 shadow-2xs app-chrome select-none">
-        {/* Brand & Document Info (Back arrow + Logo + Quote number) */}
+        {/* Brand & Back arrow (No quote name/number in navbar) */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
           <Link
             href="/dashboard"
@@ -249,41 +249,14 @@ function QuotationBuilder() {
 
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" title="QuoteCraft Dashboard">
             <QuoteCraftLogo size={28} showText={false} />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-[#0F172A] leading-none group-hover:text-[#0F766E] transition-colors truncate">
-                  Quote<span className="text-[#0F766E]">Craft</span>
-                </h1>
-                {isHydrated && state.documentInfo.number && (
-                  <span
-                    suppressHydrationWarning
-                    className="text-[11px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 shrink-0 truncate max-w-[85px] sm:max-w-none"
-                  >
-                    {state.documentInfo.number}
-                  </span>
-                )}
-              </div>
-            </div>
+            <h1 className="font-extrabold text-sm sm:text-base tracking-tight text-[#0F172A] leading-none group-hover:text-[#0F766E] transition-colors truncate">
+              Quote<span className="text-[#0F766E]">Craft</span>
+            </h1>
           </Link>
         </div>
 
-        {/* Toolbar Controls (Streamlined, strictly single line on mobile) */}
-        <div className="flex items-center gap-1 sm:gap-2 shrink-0 flex-nowrap">
-          {/* Autosave status indicator */}
-          <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 border border-slate-200 shrink-0">
-            {isSaved ? (
-              <>
-                <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                <span className="text-emerald-800 font-bold hidden sm:inline">Saved</span>
-              </>
-            ) : (
-              <>
-                <DualOrbitalSpinner size="sm" />
-                <span className="text-amber-800 hidden sm:inline">Saving...</span>
-              </>
-            )}
-          </div>
-
+        {/* Toolbar Controls (Only Undo and New Quote) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-nowrap">
           {/* Undo button */}
           <button
             type="button"
@@ -295,26 +268,6 @@ function QuotationBuilder() {
             <RotateCcw className="w-4 h-4 text-slate-500" />
             <span className="hidden sm:inline">Undo</span>
           </button>
-
-          {/* Company Profile button */}
-          <button
-            type="button"
-            onClick={() => setShowCompanyModal(true)}
-            className="w-9 h-9 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 flex items-center justify-center gap-1.5 transition-colors active:scale-95 shrink-0"
-            title="Company Profile"
-            aria-label="Company Profile"
-          >
-            <Building2 className="w-4 h-4 text-[#0F766E]" />
-            <span className="hidden sm:inline">Company Profile</span>
-          </button>
-
-          {/* Live Grand Total pill (desktop only) */}
-          {isHydrated && state.items.length > 0 && grandTotal > 0 && (
-            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-mono font-bold text-emerald-800 shadow-2xs shrink-0">
-              <span className="text-xs font-sans text-emerald-700 font-semibold">Total:</span>
-              <span>{currencySymbol}{grandTotal.toLocaleString(state.currency === "INR" ? "en-IN" : "en-US", { maximumFractionDigits: 0 })}</span>
-            </div>
-          )}
 
           {/* New Quote button */}
           <button
