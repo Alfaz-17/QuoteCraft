@@ -53,7 +53,7 @@ export const adminNavItems = [
     name: "AI Usage & Costs",
     href: "/admin/ai-usage",
     icon: Cpu,
-    badge: "Gemini",
+    badge: "Groq",
   },
   {
     name: "Quotations",

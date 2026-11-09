@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAiUsage, trackPlatformEvent } from "@/lib/admin-auth";
-import { checkDailyAiQuota } from "@/lib/ai-quota";
+import { checkDailyAiQuota, getAiEngineControls } from "@/lib/ai-quota";
 import {
   extractRfqWithGroq,
   aiOutputSchema,
@@ -47,12 +47,17 @@ export async function POST(req: NextRequest) {
     fileName = body.fileName || null;
     mimeType = body.mimeType || null;
 
-    // Security & payload size check: 10MB file limit (~14MB base64 encoded string)
-    if (fileData && typeof fileData === "string" && fileData.length > 14 * 1024 * 1024) {
+    // Load AI engine settings from admin controls (dynamic)
+    const aiControls = await getAiEngineControls();
+
+    // Security & payload size check: configurable MB file limit (base64 ~1.37x)
+    const maxBytes = aiControls.maxUploadSizeMb * 1024 * 1024;
+    const maxBase64Length = Math.ceil(maxBytes * 1.37);
+    if (fileData && typeof fileData === "string" && fileData.length > maxBase64Length) {
       return NextResponse.json(
         {
           error:
-            "The uploaded file exceeds the 10MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.",
+            `The uploaded file exceeds the ${aiControls.maxUploadSizeMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
         },
         { status: 413 }
       );
@@ -235,6 +240,7 @@ export async function POST(req: NextRequest) {
       }
       extractionResult = await extractRfqWithGroq({
         textInput: sheetText,
+        customModel: aiControls.groqModel,
       });
     } else if (fileData && isCsv) {
       // CSV AI fallback using decoded text
@@ -248,13 +254,25 @@ export async function POST(req: NextRequest) {
       }
       extractionResult = await extractRfqWithGroq({
         textInput: csvText,
+        customModel: aiControls.groqModel,
       });
     } else if (fileData && isPdf && extractedPdfTextContent) {
       // Digital PDF fallback using extracted text
       extractionResult = await extractRfqWithGroq({
         textInput: extractedPdfTextContent,
+        customModel: aiControls.groqModel,
       });
     } else if (fileData && mimeType && mimeType.startsWith("image/")) {
+      // Check if image vision fallback is enabled by admin
+      if (!aiControls.enableVisionFallback) {
+        return NextResponse.json(
+          {
+            error:
+              "Image document extraction is currently disabled by administrator. Please upload an Excel, CSV, or digital PDF.",
+          },
+          { status: 403 }
+        );
+      }
       // Supported image import using Groq vision
       const base64Data = fileData.split(",")[1] || fileData;
       extractionResult = await extractRfqWithGroq({
@@ -262,11 +280,13 @@ export async function POST(req: NextRequest) {
           mimeType,
           base64Data,
         },
+        customModel: aiControls.groqModel,
       });
     } else if (rawText && typeof rawText === "string" && rawText.trim().length > 0) {
       // Raw text paste fallback
       extractionResult = await extractRfqWithGroq({
         textInput: rawText.trim(),
+        customModel: aiControls.groqModel,
       });
     } else {
       return NextResponse.json(

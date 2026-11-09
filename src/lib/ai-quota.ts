@@ -9,13 +9,27 @@ export interface DailyQuotaResult {
   remaining: number;
 }
 
+export interface AiEngineControls {
+  dailyAiLimitPerUser: number;
+  groqModel: string;
+  maxUploadSizeMb: number;
+  enableVisionFallback: boolean;
+}
+
 /**
- * Resolves the daily AI fallback limit with this priority:
- * 1. PlatformSetting "ai_engine_controls" → dailyAiLimitPerUser (admin panel)
- * 2. DAILY_AI_REQUEST_LIMIT environment variable
- * 3. Hardcoded default (5)
+ * Resolves current AI engine controls from PlatformSetting with environment fallbacks.
+ * Changes made in the Admin Settings page take effect immediately at runtime.
  */
-async function resolveDailyLimit(): Promise<number> {
+export async function getAiEngineControls(): Promise<AiEngineControls> {
+  const defaults: AiEngineControls = {
+    dailyAiLimitPerUser: process.env.DAILY_AI_REQUEST_LIMIT
+      ? parseInt(process.env.DAILY_AI_REQUEST_LIMIT, 10)
+      : DEFAULT_DAILY_AI_LIMIT,
+    groqModel: process.env.GROQ_MODEL || "qwen/qwen3.8-27b",
+    maxUploadSizeMb: 10,
+    enableVisionFallback: true,
+  };
+
   try {
     const { rows } = await db.query(
       `SELECT value FROM "PlatformSetting" WHERE key = 'ai_engine_controls' LIMIT 1`
@@ -25,16 +39,31 @@ async function resolveDailyLimit(): Promise<number> {
         typeof rows[0].value === "string"
           ? JSON.parse(rows[0].value)
           : rows[0].value;
-      if (typeof val.dailyAiLimitPerUser === "number" && val.dailyAiLimitPerUser > 0) {
-        return val.dailyAiLimitPerUser;
-      }
+
+      return {
+        dailyAiLimitPerUser:
+          typeof val.dailyAiLimitPerUser === "number" && val.dailyAiLimitPerUser > 0
+            ? val.dailyAiLimitPerUser
+            : defaults.dailyAiLimitPerUser,
+        groqModel:
+          typeof val.groqModel === "string" && val.groqModel.trim()
+            ? val.groqModel.trim()
+            : defaults.groqModel,
+        maxUploadSizeMb:
+          typeof val.maxUploadSizeMb === "number" && val.maxUploadSizeMb > 0
+            ? val.maxUploadSizeMb
+            : defaults.maxUploadSizeMb,
+        enableVisionFallback:
+          typeof val.enableVisionFallback === "boolean"
+            ? val.enableVisionFallback
+            : defaults.enableVisionFallback,
+      };
     }
   } catch {
-    // Fall through to env / default
+    // Fall through to defaults on DB error
   }
 
-  const envLimit = process.env.DAILY_AI_REQUEST_LIMIT;
-  return envLimit ? parseInt(envLimit, 10) : DEFAULT_DAILY_AI_LIMIT;
+  return defaults;
 }
 
 /**
@@ -44,7 +73,8 @@ async function resolveDailyLimit(): Promise<number> {
  * Note: Deterministic Excel and PDF extractions do not consume this quota.
  */
 export async function checkDailyAiQuota(userId: string): Promise<DailyQuotaResult> {
-  const limit = await resolveDailyLimit();
+  const controls = await getAiEngineControls();
+  const limit = controls.dailyAiLimitPerUser;
 
   try {
     const { rows } = await db.query(

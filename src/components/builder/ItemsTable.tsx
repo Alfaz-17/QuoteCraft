@@ -179,7 +179,7 @@ export function ItemsTable({
         return;
       }
 
-      loadingToastId = toastInfo("Analyzing RFQ with Gemini AI... Please hold.", 15000);
+      loadingToastId = toastInfo("Analyzing RFQ with AI... Please hold.", 15000);
 
       const res = await fetch("/api/ai/import-rfq", {
         method: "POST",

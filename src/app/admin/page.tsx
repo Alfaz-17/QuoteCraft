@@ -233,7 +233,7 @@ export default function AdminOverviewPage() {
               <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Est. Gemini Cost
+                    Est. AI Cost
                   </span>
                   <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <DollarSign className="w-4 h-4" />

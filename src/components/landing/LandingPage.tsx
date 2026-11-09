@@ -1030,7 +1030,7 @@ export function LandingPage() {
                     <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> High-Volume 50+ Item Ledger Support
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Google Gemini AI Extraction Engine
+                    <CheckCircle2 className="w-4 h-4 text-[#0F766E]" /> Ultra-Fast Groq AI Extraction Engine
                   </li>
                 </ul>
               </div>
@@ -1172,7 +1172,7 @@ export function LandingPage() {
             {[
               {
                 q: "Can I upload messy Excel or scanned PDF customer RFQs?",
-                a: "Yes. QuoteCraft's Google Gemini-powered engine is trained on maritime requisition terminology. It extracts part names, serial numbers, units, and quantities from irregular spreadsheets and scanned PDF documents."
+                a: "Yes. QuoteCraft's high-speed AI extraction engine is trained on maritime requisition terminology. It extracts part names, serial numbers, units, and quantities from irregular spreadsheets, digital PDFs, and document images."
               },
               {
                 q: "Where do I configure our company logo, color palette, and document font?",

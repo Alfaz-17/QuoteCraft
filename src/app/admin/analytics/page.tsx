@@ -194,7 +194,7 @@ export default function AdminAnalyticsPage() {
                       Extraction Architecture
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Zero-cost deterministic Excel parsing vs Gemini 2.5 Flash LLM fallback.
+                      Zero-cost deterministic Excel &amp; PDF parsing vs Groq AI fallback.
                     </p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function AdminAnalyticsPage() {
                     </div>
                   ) : (
                     data.methodBreakdown.map((m, idx) => {
-                      const isDeterministic = m.method === "deterministic_excel";
+                      const isDeterministic = m.method === "deterministic_excel" || m.method === "deterministic_pdf";
                       return (
                         <div
                           key={idx}
@@ -216,8 +216,10 @@ export default function AdminAnalyticsPage() {
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-xs text-slate-900">
                                 {isDeterministic
-                                  ? "Deterministic Excel Parser"
-                                  : "Gemini 2.5 Flash AI Fallback"}
+                                  ? m.method === "deterministic_pdf"
+                                    ? "Deterministic PDF Scraper"
+                                    : "Deterministic Excel Parser"
+                                  : "Groq Qwen AI Fallback"}
                               </span>
                               <span
                                 className={`text-[10px] font-black px-1.5 py-0.2 rounded uppercase ${

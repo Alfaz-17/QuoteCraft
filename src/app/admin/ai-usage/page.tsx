@@ -122,11 +122,11 @@ export default function AdminAiUsagePage() {
               AI Usage &amp; Cost Monitoring
             </h1>
             <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] uppercase">
-              Gemini 2.5 Flash
+              Groq Qwen 3.8-27B
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Real Gemini token consumption, estimated operational expenses, latency benchmarks, and error audits.
+            Real AI token consumption, estimated operational expenses, latency benchmarks, and error audits.
           </p>
         </div>
 
@@ -334,12 +334,14 @@ export default function AdminAiUsagePage() {
                             <td className="p-3">
                               <span
                                 className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
-                                  log.method === "deterministic_excel"
+                                  log.method === "deterministic_excel" || log.method === "deterministic_pdf"
                                     ? "bg-emerald-100 text-emerald-800"
                                     : "bg-teal-100 text-teal-800"
                                 }`}
                               >
-                                {log.method === "deterministic_excel" ? "Deterministic" : "Gemini AI"}
+                                {log.method === "deterministic_excel" || log.method === "deterministic_pdf"
+                                  ? "Deterministic"
+                                  : "Groq AI"}
                               </span>
                             </td>
                             <td className="p-3 text-right font-mono text-slate-700">
