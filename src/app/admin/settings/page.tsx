@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Lock,
+  Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,12 @@ interface SettingsMap {
     monthlyQuotations: number;
     monthlyAiExtractions: number;
     maxFileSizeMb: number;
+  };
+  ai_engine_controls?: {
+    dailyAiLimitPerUser: number;
+    groqModel: string;
+    maxUploadSizeMb: number;
+    enableVisionFallback: boolean;
   };
   maintenance_mode?: {
     enabled: boolean;
@@ -62,6 +69,12 @@ export default function AdminSettingsPage() {
   const [freeAi, setFreeAi] = useState(30);
   const [maxFileSize, setMaxFileSize] = useState(10);
 
+  // AI Engine Controls
+  const [dailyAiLimit, setDailyAiLimit] = useState(5);
+  const [groqModel, setGroqModel] = useState("qwen/qwen3.8-27b");
+  const [aiMaxUploadMb, setAiMaxUploadMb] = useState(10);
+  const [enableVision, setEnableVision] = useState(true);
+
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMsg, setMaintenanceMsg] = useState("");
 
@@ -93,6 +106,13 @@ export default function AdminSettingsPage() {
         setFreeQuotes(s.free_tier_limits.monthlyQuotations || 50);
         setFreeAi(s.free_tier_limits.monthlyAiExtractions || 30);
         setMaxFileSize(s.free_tier_limits.maxFileSizeMb || 10);
+      }
+
+      if (s.ai_engine_controls) {
+        setDailyAiLimit(s.ai_engine_controls.dailyAiLimitPerUser || 5);
+        setGroqModel(s.ai_engine_controls.groqModel || "qwen/qwen3.8-27b");
+        setAiMaxUploadMb(s.ai_engine_controls.maxUploadSizeMb || 10);
+        setEnableVision(s.ai_engine_controls.enableVisionFallback !== false);
       }
 
       if (s.maintenance_mode) {
@@ -323,13 +343,121 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* SECTION 3: EMERGENCY MAINTENANCE MODE */}
+          {/* SECTION 3: AI ENGINE CONTROLS (Groq) */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#0F766E]" />
+                3. AI Extraction Engine Controls
+              </h3>
+              <p className="text-xs text-slate-500">
+                Configure Groq AI daily quotas, model selection, and upload limits.
+                Deterministic Excel and digital PDF imports are always unlimited at $0.00 cost.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Daily AI Limit (per user)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={dailyAiLimit}
+                  onChange={(e) => setDailyAiLimit(Number(e.target.value))}
+                  className="h-10 text-xs font-mono rounded-xl"
+                />
+                <p className="text-[10px] text-slate-400">
+                  AI fallback requests per user per 24 hours. Does not affect deterministic parsing.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Groq Model</Label>
+                <select
+                  value={groqModel}
+                  onChange={(e) => setGroqModel(e.target.value)}
+                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                >
+                  <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Default — Free Tier)</option>
+                  <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
+                  <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
+                  <option value="allam-2-7b">Allam 2 7B</option>
+                </select>
+                <p className="text-[10px] text-slate-400">
+                  Active Groq model used for AI fallback extraction. Change requires server restart.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Max Upload Size (MB)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={aiMaxUploadMb}
+                  onChange={(e) => setAiMaxUploadMb(Number(e.target.value))}
+                  className="h-10 text-xs font-mono rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-bold text-slate-700">Image Vision Fallback</Label>
+                <div className="flex items-center gap-3 h-10">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={enableVision}
+                      onChange={(e) => setEnableVision(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F766E]" />
+                  </label>
+                  <span className="text-xs font-semibold text-slate-600">
+                    {enableVision ? "Enabled — accept image uploads" : "Disabled — text & files only"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Live quota info box */}
+            <div className="p-3 rounded-xl bg-teal-50/60 border border-teal-200/50 text-xs text-teal-800 space-y-1">
+              <p className="font-bold flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+                Current Engine: Groq AI — {groqModel}
+              </p>
+              <p className="text-[11px] text-teal-600">
+                Each user gets <span className="font-black">{dailyAiLimit}</span> AI-powered extraction{dailyAiLimit === 1 ? "" : "s"} per day.
+                Unlimited zero-cost deterministic imports for Excel (.xlsx) and digital PDFs remain unaffected.
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100">
+              <Button
+                size="sm"
+                disabled={isSaving}
+                onClick={() =>
+                  saveSetting("ai_engine_controls", {
+                    dailyAiLimitPerUser: dailyAiLimit,
+                    groqModel,
+                    maxUploadSizeMb: aiMaxUploadMb,
+                    enableVisionFallback: enableVision,
+                  })
+                }
+                className="bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold rounded-xl"
+              >
+                <Save className="w-3.5 h-3.5 mr-1.5" /> Save AI Engine Settings
+              </Button>
+            </div>
+          </div>
+
+          {/* SECTION 4: EMERGENCY MAINTENANCE MODE */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-rose-600" />
-                  3. Scheduled Maintenance Mode
+                  4. Scheduled Maintenance Mode
                 </h3>
                 <p className="text-xs text-slate-500">
                   When enabled, non-admin visitors see a maintenance window instead of the builder.
@@ -374,13 +502,13 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* SECTION 4: GLOBAL ANNOUNCEMENT BANNER */}
+          {/* SECTION 5: GLOBAL ANNOUNCEMENT BANNER */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
                   <Bell className="w-4 h-4 text-amber-500" />
-                  4. Top Announcement Broadcast
+                  5. Top Announcement Broadcast
                 </h3>
                 <p className="text-xs text-slate-500">
                   Broadcast a banner message to all logged-in suppliers in real-time.
