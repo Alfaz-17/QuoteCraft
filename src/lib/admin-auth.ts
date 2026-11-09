@@ -146,6 +146,56 @@ export async function trackPlatformEvent(data: {
 }
 
 /**
+ * Calculates estimated USD cost for model token consumption.
+ * Explicitly distinguishes between deterministic extractions ($0.00),
+ * Groq Free/Paid tiers, and legacy Gemini.
+ */
+export function calculateTokenCostUsd(params: {
+  method: "deterministic_excel" | "deterministic_pdf" | "ai_fallback" | "manual";
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+}): number {
+  if (
+    params.method === "deterministic_excel" ||
+    params.method === "deterministic_pdf" ||
+    params.method === "manual"
+  ) {
+    return 0.0;
+  }
+
+  const input = params.inputTokens || 0;
+  const output = params.outputTokens || 0;
+  const model = (params.model || "").toLowerCase();
+
+  // Explicit pricing overrides per 1M tokens from env
+  const envPromptRate = process.env.GROQ_PROMPT_PRICE_PER_M;
+  const envCompletionRate = process.env.GROQ_COMPLETION_PRICE_PER_M;
+
+  let promptRatePerM = envPromptRate ? parseFloat(envPromptRate) : 0.0;
+  let completionRatePerM = envCompletionRate ? parseFloat(envCompletionRate) : 0.0;
+
+  if (!envPromptRate && !envCompletionRate) {
+    if (model.includes("gemini")) {
+      promptRatePerM = 0.075;
+      completionRatePerM = 0.30;
+    } else if (process.env.GROQ_PRICING_PLAN === "paid") {
+      // Standard Groq Qwen 27b/32b paid tier: $0.59 / 1M prompt, $0.79 / 1M completion
+      promptRatePerM = 0.59;
+      completionRatePerM = 0.79;
+    } else {
+      // Groq Developer Free Tier ($0.00)
+      promptRatePerM = 0.0;
+      completionRatePerM = 0.0;
+    }
+  }
+
+  const inputCost = (input / 1_000_000) * promptRatePerM;
+  const outputCost = (output / 1_000_000) * completionRatePerM;
+  return +(inputCost + outputCost).toFixed(6);
+}
+
+/**
  * AI Usage & Cost Logger: Logs every document analysis attempt with token counts and calculated cost.
  */
 export async function logAiUsage(data: {
@@ -168,11 +218,14 @@ export async function logAiUsage(data: {
     const output = data.outputTokens || 0;
     const total = data.totalTokens || input + output;
 
-    // Gemini 2.5 Flash pricing: $0.075 / 1M prompt tokens, $0.30 / 1M completion tokens
-    // Deterministic Excel uses $0.00 LLM cost
-    const inputCost = (input / 1_000_000) * 0.075;
-    const outputCost = (output / 1_000_000) * 0.30;
-    const estimatedCostUsd = data.method === "deterministic_excel" ? 0.0 : +(inputCost + outputCost).toFixed(6);
+    const estimatedCostUsd = calculateTokenCostUsd({
+      method: data.method,
+      model: data.model,
+      inputTokens: input,
+      outputTokens: output,
+    });
+
+    const activeModel = data.model || process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
 
     await db.query(
       `INSERT INTO "AiUsageLog"
@@ -186,7 +239,7 @@ export async function logAiUsage(data: {
         data.fileName || null,
         data.mimeType || null,
         data.method,
-        data.model || "gemini-2.5-flash",
+        activeModel,
         input,
         output,
         total,

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/clerk-auth";
-import { findUserApiKey } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAiUsage, trackPlatformEvent } from "@/lib/admin-auth";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkDailyAiQuota } from "@/lib/ai-quota";
+import {
+  extractRfqWithGroq,
+  aiOutputSchema,
+  DEFAULT_GROQ_MODEL,
+} from "@/lib/groq";
 import {
   xlsxToText,
   parseExcelDeterministically,
@@ -11,30 +15,14 @@ import {
   extractPdfText,
   XLSX_MIME,
 } from "@/lib/rfq-parser";
-import { z } from "zod";
-
-const aiOutputSchema = z.object({
-  rfqDetails: z
-    .object({
-      vesselName: z.string().optional().default(""),
-      customerName: z.string().optional().default(""),
-      rfqNumber: z.string().optional().default(""),
-      date: z.string().optional().default(""),
-    })
-    .optional(),
-  columns: z.array(
-    z.object({
-      key: z.string(),
-      label: z.string(),
-      kind: z.string().optional(),
-    })
-  ),
-  rows: z.array(z.record(z.string(), z.any())),
-});
 
 export async function POST(req: NextRequest) {
+  let userId: string | null = null;
+  let fileName: string | null = null;
+  let mimeType: string | null = null;
+
   try {
-    const userId = await getAuthenticatedUserId();
+    userId = await getAuthenticatedUserId();
     if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in to import and process RFQs." },
@@ -46,22 +34,38 @@ export async function POST(req: NextRequest) {
     const rateLimit = checkRateLimit(`ai:import:${userId}`, 15, 60_000);
     if (!rateLimit.success) {
       return NextResponse.json(
-        { error: `Too many import requests. Please wait ${rateLimit.retryAfterSeconds} seconds before trying again.` },
+        {
+          error: `Too many import requests. Please wait ${rateLimit.retryAfterSeconds} seconds before trying again.`,
+        },
         { status: 429 }
       );
     }
 
-    let userApiKey = "";
-    userApiKey = (await findUserApiKey(userId)) ?? "";
-
     // 1. Parse input payload
-    const { fileData, fileName, mimeType, rawText } = await req.json();
+    const body = await req.json();
+    const { fileData, rawText } = body;
+    fileName = body.fileName || null;
+    mimeType = body.mimeType || null;
 
-    // Prevent handling excessively large files (approx 10MB raw file in base64 is ~13.5MB)
-    if (fileData && fileData.length > 14 * 1024 * 1024) {
+    // Security & payload size check: 10MB file limit (~14MB base64 encoded string)
+    if (fileData && typeof fileData === "string" && fileData.length > 14 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "The uploaded file exceeds 10MB. Please upload a smaller file, or copy-paste the raw RFQ text directly." },
-        { status: 400 }
+        {
+          error:
+            "The uploaded file exceeds the 10MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.",
+        },
+        { status: 413 }
+      );
+    }
+
+    // Check raw text length (cap at 60,000 characters)
+    if (rawText && typeof rawText === "string" && rawText.length > 60_000) {
+      return NextResponse.json(
+        {
+          error:
+            "The pasted text exceeds 60,000 characters. Please shorten the text or upload as an Excel/PDF file.",
+        },
+        { status: 413 }
       );
     }
 
@@ -73,7 +77,13 @@ export async function POST(req: NextRequest) {
       mimeType === "application/pdf" ||
       /\.pdf$/i.test(fileName || "");
 
-    // 2. LAYER A1: DETERMINISTIC EXCEL EXTRACTION (Zero LLM cost, instant, 100% deterministic)
+    const isCsv =
+      mimeType === "text/csv" ||
+      /\.csv$/i.test(fileName || "");
+
+    // -------------------------------------------------------------------------
+    // 2. LAYER A1: DETERMINISTIC EXCEL EXTRACTION (Zero LLM cost, instant)
+    // -------------------------------------------------------------------------
     if (fileData && isExcel) {
       try {
         const base64Data = fileData.split(",")[1] || fileData;
@@ -90,10 +100,14 @@ export async function POST(req: NextRequest) {
             durationMs: deterministicResult.durationMs,
             status: "SUCCESS",
           }).catch(() => {});
+
           trackPlatformEvent({
             userId,
             eventType: "EXTRACTION_SUCCESS",
-            metadata: { method: "deterministic_excel", items: deterministicResult.rows.length },
+            metadata: {
+              method: "deterministic_excel",
+              items: deterministicResult.rows.length,
+            },
           }).catch(() => {});
 
           return NextResponse.json({
@@ -111,8 +125,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2B. LAYER A2: DETERMINISTIC DIGITAL PDF EXTRACTION (Zero LLM cost, instant for digital PDFs)
+    // -------------------------------------------------------------------------
+    // 2B. LAYER A2: DETERMINISTIC DIGITAL PDF EXTRACTION (Zero LLM cost)
+    // -------------------------------------------------------------------------
     let extractedPdfTextContent: string | null = null;
+    let isScannedPdf = false;
+
     if (fileData && isPdf) {
       try {
         const base64Data = fileData.split(",")[1] || fileData;
@@ -135,7 +153,10 @@ export async function POST(req: NextRequest) {
           trackPlatformEvent({
             userId,
             eventType: "EXTRACTION_SUCCESS",
-            metadata: { method: "deterministic_pdf", items: pdfResult.rows.length },
+            metadata: {
+              method: "deterministic_pdf",
+              items: pdfResult.rows.length,
+            },
           }).catch(() => {});
 
           return NextResponse.json({
@@ -148,195 +169,199 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // 2. If table scraper needs assistance, check if digital text was extracted
+        // 2. If table scraper needs assistance, inspect digital text stream
         const textExtract = await extractPdfText(buffer);
         if (!textExtract.isScanned && textExtract.text && textExtract.text.length > 40) {
           extractedPdfTextContent = textExtract.text;
+        } else {
+          isScannedPdf = true;
         }
       } catch (pdfErr) {
         console.warn("Deterministic PDF parse skipped to fallback:", pdfErr);
       }
     }
 
-    // 3. LAYER B: AI FALLBACK (Requires Gemini API Key)
-    const apiKey = userApiKey || process.env.GEMINI_API_KEY || "";
-    if (!apiKey) {
+    // -------------------------------------------------------------------------
+    // 3. SCANNED PDF AUDIT & GUARD
+    // -------------------------------------------------------------------------
+    if (fileData && isPdf && isScannedPdf && !extractedPdfTextContent) {
       return NextResponse.json(
         {
           error:
-            "This document requires AI document intelligence. Please configure your Gemini API Key in Settings.",
+            "This PDF is a scanned document or photograph without selectable digital text. Please upload an original digital/searchable PDF, Excel/CSV spreadsheet, or an image file (JPG/PNG).",
         },
         { status: 400 }
       );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 32000 },
-    });
+    // -------------------------------------------------------------------------
+    // 4. LAYER B: GROQ AI FALLBACK EXTRACTION
+    // -------------------------------------------------------------------------
 
-    const systemPrompt = `
-      You are an expert B2B marine and industrial procurement assistant.
-      The input is a buyer's RFQ (PDF, image, spreadsheet text or pasted text).
-      
-      Extract:
-      1. RFQ Header Information (if present):
-         - vesselName: ship or vessel name (e.g. "M/V Oceanic Star")
-         - customerName: buying company or customer (e.g. "ABC Marine Ltd.")
-         - rfqNumber: buyer's enquiry or RFQ number (e.g. "RFQ-2026-081")
-         - date: inquiry date
-      2. Reproduce the buyer's OWN item table structure so a supplier can price it:
-         - Detect the item table and list its columns in the SAME order and with the SAME header wording.
-         - Give each column a short key: "c1", "c2", ...
-         - Classify each column with a "kind":
-           serial (Sr/S.No/#), name (short item title), description (specs, size, long text),
-           partNumber (part no / drawing no / article no / IMPA / ISSA code), qty (quantity requested),
-           unit (UOM), price (rate / unit price - only if the buyer provided a column for it),
-           total (line amount), number (any other numeric column), text (any other column).
-         - Return every item row as an object keyed by those column keys. Keep values exactly as written.
-           Use "" when a cell is empty. Do NOT invent prices, part numbers or quantities.
+    // A. Check Server-side Groq API Key
+    const groqApiKey = process.env.GROQ_API_KEY;
+    if (!groqApiKey) {
+      return NextResponse.json(
+        {
+          error:
+            "Groq AI extraction is not configured. Please set the GROQ_API_KEY environment variable on the server.",
+        },
+        { status: 401 }
+      );
+    }
 
-      Return ONLY JSON in this shape:
-      {
-        "rfqDetails": {"vesselName": "M/V Oceanic Star", "customerName": "ABC Marine Ltd.", "rfqNumber": "RFQ-102"},
-        "columns": [{"key":"c1","label":"Sr No","kind":"serial"}],
-        "rows": [{"c1":"1"}]
-      }
-    `;
+    // B. Check Daily AI Quota (5 AI requests/day per user during pilot)
+    const quota = await checkDailyAiQuota(userId);
+    if (!quota.allowed) {
+      return NextResponse.json(
+        {
+          error: `Daily AI fallback extraction limit reached (${quota.used}/${quota.limit} requests today). You can still import Excel and digital PDFs with unlimited zero-cost deterministic imports, or try again tomorrow.`,
+        },
+        { status: 429 }
+      );
+    }
 
-    const startTime = Date.now();
-    let result;
-    const isCsv = mimeType === "text/csv" || /\.csv$/i.test(fileName || "");
+    let extractionResult;
 
     if (fileData && isExcel) {
+      // Excel AI fallback using extracted text
       const base64Data = fileData.split(",")[1] || fileData;
       const sheetText = await xlsxToText(Buffer.from(base64Data, "base64"));
       if (!sheetText.trim()) {
-        return NextResponse.json({ error: "The Excel file looks empty." }, { status: 400 });
+        return NextResponse.json(
+          { error: "The Excel file looks empty." },
+          { status: 400 }
+        );
       }
-      result = await model.generateContent(`${systemPrompt}\n\nInput RFQ spreadsheet (first number on each line is the Excel row):\n${sheetText}`);
+      extractionResult = await extractRfqWithGroq({
+        textInput: sheetText,
+      });
     } else if (fileData && isCsv) {
+      // CSV AI fallback using decoded text
       const base64Data = fileData.split(",")[1] || fileData;
       const csvText = Buffer.from(base64Data, "base64").toString("utf-8");
-      result = await model.generateContent(`${systemPrompt}\n\nInput RFQ (CSV):\n${csvText}`);
-    } else if (fileData && isPdf && extractedPdfTextContent) {
-      // High-performance Hybrid: Send extracted digital text instead of heavy PDF image
-      result = await model.generateContent(
-        `${systemPrompt}\n\nInput RFQ Document (Text extracted directly from Digital PDF):\n${extractedPdfTextContent}`
-      );
-    } else if (fileData && mimeType) {
-      // Multimodal import (file)
-      const base64Data = fileData.split(",")[1] || fileData;
-      result = await model.generateContent([
-        systemPrompt,
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: mimeType,
-          },
-        },
-      ]);
-    } else if (rawText) {
-      // Text paste import
-      result = await model.generateContent(`${systemPrompt}\n\nInput RFQ text:\n${rawText}`);
-    } else {
-      return NextResponse.json({ error: "No input file or text provided" }, { status: 400 });
-    }
-
-    const responseText = await result.response.text();
-
-    // Clean potential markdown wrapped blocks
-    let cleanedJson = responseText.trim();
-    if (cleanedJson.startsWith("```")) {
-      cleanedJson = cleanedJson.replace(/^```(json)?/, "").replace(/```$/, "").trim();
-    }
-
-    try {
-      const parsed = JSON.parse(cleanedJson);
-      const validated = aiOutputSchema.parse(parsed);
-
-      const usage = (result as { response?: { usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number } } })?.response?.usageMetadata;
-      const inputTokens = usage?.promptTokenCount || 0;
-      const outputTokens = usage?.candidatesTokenCount || 0;
-      const totalTokens = usage?.totalTokenCount || (inputTokens + outputTokens);
-
-      logAiUsage({
-        userId,
-        fileName,
-        mimeType,
-        method: "ai_fallback",
-        model: "gemini-2.5-flash",
-        inputTokens,
-        outputTokens,
-        totalTokens,
-        itemCount: validated.rows.length,
-        durationMs: Date.now() - startTime,
-        status: "SUCCESS",
-      }).catch(() => {});
-
-      trackPlatformEvent({
-        userId,
-        eventType: "EXTRACTION_SUCCESS",
-        metadata: { method: "ai_fallback", tokens: totalTokens, items: validated.rows.length },
-      }).catch(() => {});
-
-      return NextResponse.json({
-        rfqDetails: validated.rfqDetails,
-        columns: validated.columns,
-        rows: validated.rows,
-        method: "ai_fallback",
-        durationMs: Date.now() - startTime,
+      if (!csvText.trim()) {
+        return NextResponse.json(
+          { error: "The CSV file is empty." },
+          { status: 400 }
+        );
+      }
+      extractionResult = await extractRfqWithGroq({
+        textInput: csvText,
       });
-    } catch {
-      console.error("AI returned malformed JSON or invalid schema:", responseText);
+    } else if (fileData && isPdf && extractedPdfTextContent) {
+      // Digital PDF fallback using extracted text
+      extractionResult = await extractRfqWithGroq({
+        textInput: extractedPdfTextContent,
+      });
+    } else if (fileData && mimeType && mimeType.startsWith("image/")) {
+      // Supported image import using Groq vision
+      const base64Data = fileData.split(",")[1] || fileData;
+      extractionResult = await extractRfqWithGroq({
+        imageInput: {
+          mimeType,
+          base64Data,
+        },
+      });
+    } else if (rawText && typeof rawText === "string" && rawText.trim().length > 0) {
+      // Raw text paste fallback
+      extractionResult = await extractRfqWithGroq({
+        textInput: rawText.trim(),
+      });
+    } else {
       return NextResponse.json(
-        { error: "AI failed to extract line items in a structured format. Please try copy-pasting the raw text." },
-        { status: 500 }
+        {
+          error:
+            "No supported input provided. Please upload an Excel, PDF, CSV, image file, or paste raw RFQ text.",
+        },
+        { status: 400 }
       );
     }
+
+    const { data: validated, usage, model, durationMs } = extractionResult;
+
+    // Log successful AI extraction
+    logAiUsage({
+      userId,
+      fileName,
+      mimeType,
+      method: "ai_fallback",
+      model: model || DEFAULT_GROQ_MODEL,
+      inputTokens: usage.promptTokens,
+      outputTokens: usage.completionTokens,
+      totalTokens: usage.totalTokens,
+      itemCount: validated.rows.length,
+      durationMs,
+      status: "SUCCESS",
+    }).catch(() => {});
+
+    trackPlatformEvent({
+      userId,
+      eventType: "EXTRACTION_SUCCESS",
+      metadata: {
+        method: "ai_fallback",
+        model,
+        tokens: usage.totalTokens,
+        items: validated.rows.length,
+      },
+    }).catch(() => {});
+
+    // Return identical response contract expected by frontend
+    return NextResponse.json({
+      rfqDetails: validated.rfqDetails,
+      columns: validated.columns,
+      rows: validated.rows,
+      method: "ai_fallback",
+      durationMs,
+    });
   } catch (error: unknown) {
     console.error("Import RFQ Error:", error);
 
     const errMsg = (error as Error)?.message || String(error);
 
-    logAiUsage({
-      method: "ai_fallback",
-      status: "FAILED",
-      errorMessage: errMsg,
-    }).catch(() => {});
+    if (userId) {
+      logAiUsage({
+        userId,
+        fileName,
+        mimeType,
+        method: "ai_fallback",
+        status: "FAILED",
+        errorMessage: errMsg.substring(0, 500),
+      }).catch(() => {});
 
-    trackPlatformEvent({
-      eventType: "EXTRACTION_FAIL",
-      metadata: { error: errMsg },
-    }).catch(() => {});
-
-    let friendlyMessage = "An unexpected error occurred during document analysis. Please try again.";
-
-    if (
-      errMsg.includes("API key not valid") || 
-      errMsg.includes("API_KEY_INVALID") || 
-      errMsg.includes("key is invalid") ||
-      errMsg.includes("invalid key")
-    ) {
-      friendlyMessage = "Your Gemini API Key is invalid or expired. Please check your key in Settings.";
-    } else if (
-      errMsg.includes("quota") || 
-      errMsg.includes("quota exceeded") || 
-      errMsg.includes("RESOURCE_EXHAUSTED") || 
-      errMsg.includes("429")
-    ) {
-      friendlyMessage = "Gemini AI API rate limit exceeded. Please wait a minute before trying again.";
-    } else if (
-      errMsg.includes("fetch failed") || 
-      errMsg.includes("network") || 
-      errMsg.includes("ENOTFOUND") || 
-      errMsg.includes("connect") ||
-      errMsg.includes("offline")
-    ) {
-      friendlyMessage = "Network error: Unable to connect to Gemini API. Please check your connection.";
+      trackPlatformEvent({
+        userId,
+        eventType: "EXTRACTION_FAIL",
+        metadata: { error: errMsg.substring(0, 300) },
+      }).catch(() => {});
     }
 
-    return NextResponse.json({ error: friendlyMessage }, { status: 500 });
+    // Determine status code and user-friendly error messages without leaking internals
+    let statusCode = 500;
+    let friendlyMessage =
+      "An unexpected error occurred during document analysis. Please try again or copy-paste the text.";
+
+    if (errMsg.includes("GROQ_API_KEY_MISSING") || errMsg.includes("Invalid API Key")) {
+      statusCode = 401;
+      friendlyMessage =
+        "Groq API key is invalid or not configured on the server. Please check your environment variables.";
+    } else if (errMsg.includes("rate_limit_exceeded") || errMsg.includes("429")) {
+      statusCode = 429;
+      friendlyMessage =
+        "Groq AI rate limit exceeded. Please wait a few seconds and try again, or use deterministic Excel/PDF import.";
+    } else if (errMsg.includes("UNSUPPORTED_IMAGE_MIME")) {
+      statusCode = 400;
+      friendlyMessage =
+        "Unsupported image format. Please upload JPG, PNG, WEBP, or GIF files.";
+    } else if (errMsg.includes("INVALID_JSON_RESPONSE") || errMsg.includes("SCHEMA_VALIDATION_FAILED")) {
+      statusCode = 500;
+      friendlyMessage =
+        "The AI model failed to produce a valid structured table. Please verify the document layout or paste the text directly.";
+    } else if (errMsg.includes("EMPTY_AI_RESPONSE")) {
+      statusCode = 500;
+      friendlyMessage = "The AI returned an empty response. Please try again.";
+    }
+
+    return NextResponse.json({ error: friendlyMessage }, { status: statusCode });
   }
 }
