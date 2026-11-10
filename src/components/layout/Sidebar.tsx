@@ -69,7 +69,19 @@ export function Sidebar() {
   const { signOut } = useClerk();
 
   // Don't render sidebar if not authenticated
-  if (pathname?.startsWith("/admin")) return null;
+  // Pages where Sidebar and Mobile Bottom Navigation must NEVER be rendered:
+  // Onboarding (Company Setup) requires a focused, full-screen distraction-free wizard.
+  // Marketing landing, auth pages, and admin areas must never show application sidebar navigation.
+  const isExcludedPath =
+    pathname?.startsWith("/admin") ||
+    pathname === "/onboarding" ||
+    pathname === "/landing" ||
+    pathname?.startsWith("/sign-in") ||
+    pathname?.startsWith("/sign-up") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/register");
+
+  if (isExcludedPath) return null;
   if (!isLoaded || !isSignedIn) return null;
 
   const displayName = user?.fullName || user?.firstName || user?.username || "Marine Supplier";

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { QuotationState, LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -34,6 +36,8 @@ export function Step1Upload({
   onImportComplete,
   onSkipUpload,
 }: Step1UploadProps) {
+  const router = useRouter();
+  const { isSignedIn } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +114,12 @@ export function Step1Upload({
       return;
     }
 
+    if (!isSignedIn) {
+      toastError("Please sign in to extract and import RFQs.");
+      router.push("/sign-in?redirect_url=/");
+      return;
+    }
+
     setIsProcessing(true);
     setProcessStep("Reading file...");
 
@@ -124,6 +134,12 @@ export function Step1Upload({
           mimeType: selectedFile.type,
         }),
       });
+
+      if (res.status === 401) {
+        toastError("Session expired. Please sign in to import RFQs.");
+        router.push("/sign-in?redirect_url=/");
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) {
@@ -173,6 +189,12 @@ export function Step1Upload({
       return;
     }
 
+    if (!isSignedIn) {
+      toastError("Please sign in to extract and import RFQs.");
+      router.push("/sign-in?redirect_url=/");
+      return;
+    }
+
     setIsProcessing(true);
     setProcessStep("Reading pasted text...");
 
@@ -184,6 +206,12 @@ export function Step1Upload({
           rawText: pastedText.trim(),
         }),
       });
+
+      if (res.status === 401) {
+        toastError("Session expired. Please sign in to import RFQs.");
+        router.push("/sign-in?redirect_url=/");
+        return;
+      }
 
       const data = await res.json();
       if (!res.ok) {

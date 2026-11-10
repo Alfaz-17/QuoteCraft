@@ -23,6 +23,54 @@ import { HeroSailingLoader } from "@/components/ui/Loaders";
 
 export default function Home() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const router = useRouter();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!authLoaded || !isSignedIn) return;
+
+    // Fast-path: check if onboarding was already completed in this browser
+    const localCompleted = typeof window !== "undefined" && localStorage.getItem("onboardingCompleted") === "true";
+    const localCompany = typeof window !== "undefined" && localStorage.getItem("companyProfile");
+    if (localCompleted && localCompany) {
+      try {
+        const parsed = JSON.parse(localCompany);
+        if (parsed?.name && parsed.name.trim().length > 0) {
+          setOnboardingChecked(true);
+          return;
+        }
+      } catch {
+        // Fallback to server verification
+      }
+    }
+
+    // Verify company profile exists on server
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (!data?.profile?.company?.name || !data.profile.company.name.trim()) {
+            setNeedsOnboarding(true);
+            router.replace("/onboarding");
+            return;
+          }
+        }
+      } catch {
+        // Continue gracefully on transient network glitch
+      }
+      if (!cancelled) {
+        setOnboardingChecked(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoaded, isSignedIn, router]);
 
   // While auth is initializing, render clean branded loading screen
   if (!authLoaded) {
@@ -36,6 +84,15 @@ export default function Home() {
   // If user is not logged in, render the official brand landing page
   if (!isSignedIn) {
     return <LandingPage />;
+  }
+
+  // While verifying company onboarding status, prevent builder flash and redirect cleanly
+  if (needsOnboarding || !onboardingChecked) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F5] flex flex-col items-center justify-center p-4">
+        <HeroSailingLoader statusMessage="Preparing your company workspace..." />
+      </div>
+    );
   }
 
   return <QuotationBuilder />;
