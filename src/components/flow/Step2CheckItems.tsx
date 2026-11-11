@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { QuotationState, LineItem, TableColumn, Currency } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/Toast";
 import { EditItemModal } from "./EditItemModal";
 import { StepHeader } from "./StepHeader";
 import { categorize, CATEGORY_META, ItemCategory } from "@/lib/itemCategory";
@@ -90,14 +91,15 @@ export function Step2CheckItems({
   onAddItem,
   onUpdateClient,
   onUpdateDocInfo,
+  onClearExtraction,
   onNext,
   onBack,
 }: Step2CheckItemsProps) {
+  const { info: toastInfo } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<"all" | "review" | "verified">("all");
   const [viewMode, setViewMode] = useState<"compact" | "cards">("compact");
   const [editingItem, setEditingItem] = useState<LineItem | null>(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Review status calculation
   const getItemReviewReason = (item: LineItem): string | null => {
@@ -170,13 +172,11 @@ export function Step2CheckItems({
     }
     if (selectedCount === 0) {
       handleToggleSelectAll();
-      return;
     }
     if (reviewCount > 0) {
-      setShowConfirmModal(true);
-    } else {
-      onNext();
+      toastInfo(`${reviewCount} item(s) have unverified quantities from the RFQ. You can edit them in Step 3.`);
     }
+    onNext();
   };
 
   return (
@@ -213,9 +213,20 @@ export function Step2CheckItems({
                 </div>
               )}
             </div>
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              RFQ Details Detected
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                RFQ Details Detected
+              </span>
+              {onClearExtraction && (
+                <button
+                  type="button"
+                  onClick={onClearExtraction}
+                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded transition-colors"
+                >
+                  Discard &amp; Re-Upload
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -710,15 +721,29 @@ export function Step2CheckItems({
       {/* ── STICKY BOTTOM ACTION BAR (Ultra Compact Mobile Friendly) ── */}
       <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
-          <button
-            type="button"
-            onClick={onBack}
-            className="h-11 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
-            title="Back to Step 1 (Upload RFQ)"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden min-[380px]:inline">Upload</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={onBack}
+              className="h-11 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
+              title="Back to Step 1 (Upload RFQ)"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden min-[380px]:inline">Upload</span>
+            </button>
+
+            {onClearExtraction && (
+              <button
+                type="button"
+                onClick={onClearExtraction}
+                className="h-11 px-3 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
+                title="Discard extracted items and start fresh"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Discard</span>
+              </button>
+            )}
+          </div>
 
           <div className="min-w-0 flex-1 px-1">
             <p className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
@@ -742,54 +767,6 @@ export function Step2CheckItems({
           </Button>
         </div>
       </footer>
-
-      {/* ── CONFIRMATION MODAL (If items still need review) ── */}
-      {showConfirmModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150"
-        >
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 p-6 max-w-sm w-full space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900">
-                {reviewCount} {reviewCount === 1 ? "Item Still Needs" : "Items Still Need"} Review
-              </h3>
-              <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                Some extracted items have missing or unclear quantities from the RFQ. Unchecked items might result in inaccurate quotation pricing.
-              </p>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowConfirmModal(false);
-                  setFilterMode("review");
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-colors"
-              >
-                Review Items Now
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowConfirmModal(false);
-                  onNext();
-                }}
-                className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors"
-              >
-                Continue Anyway
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── EDIT ITEM MODAL ── */}
       <EditItemModal

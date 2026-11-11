@@ -84,10 +84,11 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
     setIsHydrated(true);
   }, []);
 
-  // ── 2. Load profile from DB on login (once per session) ───────────────────
+  // ── 2. Load profile from DB on login ─────────────────────────────────────
   useEffect(() => {
     if (!isSignedIn || !authLoaded || !isHydrated) return;
-    if (profileLoadedRef.current) return;
+    // If profile was already loaded AND we have a valid company name, don't re-fetch
+    if (profileLoadedRef.current && state.company?.name && state.company.name.trim().length > 0) return;
 
     let cancelled = false;
     (async () => {
@@ -123,6 +124,19 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
             builderConfig: profile.builderConfig ?? state.builderConfig,
           } as QuotationState,
         });
+
+        // Also ensure companyProfile in localStorage is updated
+        if (dbCompany.name) {
+          try {
+            localStorage.setItem(COMPANY_KEY, JSON.stringify(dbCompany));
+          } catch {}
+        }
+        if (dbBranding.primaryColor) {
+          try {
+            localStorage.setItem(BRANDING_KEY, JSON.stringify(dbBranding));
+          } catch {}
+        }
+
         profileLoadedRef.current = true;
       } catch (e) {
         console.error("Failed to load user profile from DB", e);
@@ -130,7 +144,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
     })();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, authLoaded, isHydrated]);
+  }, [isSignedIn, authLoaded, isHydrated, state.company.name]);
 
   // ── 3. Debounced localStorage save ────────────────────────────────────────
   const saveLocal = useCallback((s: QuotationState) => {
@@ -142,15 +156,31 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...s, branding: { ...s.branding, logo: null } }));
         } else throw e;
       }
-      try { localStorage.setItem(COMPANY_KEY, JSON.stringify(s.company)); } catch {}
-      try {
-        localStorage.setItem(BRANDING_KEY, JSON.stringify(s.branding));
-      } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-        if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
-          localStorage.setItem(BRANDING_KEY, JSON.stringify({ ...s.branding, logo: null }));
+
+      // CRITICAL: ONLY update permanent COMPANY_KEY if company has a valid name! Never overwrite with empty!
+      if (s.company?.name && s.company.name.trim().length > 0) {
+        try { localStorage.setItem(COMPANY_KEY, JSON.stringify(s.company)); } catch {}
+      }
+
+      // Update branding only if valid
+      if (s.branding?.primaryColor) {
+        try {
+          localStorage.setItem(BRANDING_KEY, JSON.stringify(s.branding));
+        } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+          if (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+            localStorage.setItem(BRANDING_KEY, JSON.stringify({ ...s.branding, logo: null }));
+          }
         }
       }
-      if (s.terms) { try { localStorage.setItem(TERMS_KEY, s.terms); } catch {} }
+
+      if (s.branding?.logo) {
+        try { localStorage.setItem("companyLogo", s.branding.logo); } catch {}
+      }
+
+      if (s.terms && s.terms.trim().length > 0) {
+        try { localStorage.setItem(TERMS_KEY, s.terms); } catch {}
+      }
+
       setIsSaved(true);
       setLastSavedAt(new Date());
     } catch (e) {

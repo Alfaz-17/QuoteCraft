@@ -312,6 +312,22 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* Plan Status Pill (Mobile) */}
+              <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
+                    Professional Supplier
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                    RC Preview
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium leading-tight">
+                  All Pro features complimentary during release candidate. Billing in private preview.
+                </p>
+              </div>
+
               {/* Owner Command Center Pill (Mobile) */}
               {isOwner && (
                 <Link
@@ -690,6 +706,29 @@ export default function SettingsPage() {
 
         {/* ── DESKTOP SETTINGS TABS (hidden md:block) ── */}
         <div className="hidden md:block space-y-6">
+          {/* Account Plan Banner (Desktop) */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200/70 flex items-center justify-center text-[#0F766E] shrink-0">
+                <Sparkles className="w-5 h-5 text-[#0F766E]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-slate-900">Professional Supplier</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                    Release Candidate Preview
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Full tier active: Unlimited AI RFQ parsing, 4 corporate PDF templates, custom branding &amp; multi-currency calculation.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg shrink-0">
+              Commercial billing in preview • 100% Complimentary
+            </div>
+          </div>
+
           <div className="border-b border-slate-200 flex items-center gap-6 text-xs sm:text-sm font-bold">
             <button
               type="button"

@@ -916,12 +916,17 @@ export function LandingPage() {
       <section id="pricing" className="py-20 bg-[#FAF9F5] border-t border-[#ECE7DE]">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-12">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Release Candidate: Full Professional Access Unlocked
+            </div>
+
             <h2 className="text-3xl sm:text-4xl font-black text-[#0F172A] tracking-tight">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-sm sm:text-base text-[#475569] font-medium">
-              Start free with no credit card required. Upgrade as your marine quotation volume grows.
+            <p className="text-sm sm:text-base text-[#475569] font-medium max-w-2xl mx-auto">
+              QuoteCraft is currently in open Release Candidate. All professional capabilities—including unlimited AI RFQ extractions, all 4 corporate templates, and custom branding—are 100% complimentary with no credit card required.
             </p>
 
             {/* Monthly / Annual Toggle */}
@@ -935,7 +940,7 @@ export function LandingPage() {
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Monthly Billing
+                Monthly Reference
               </button>
               <button
                 type="button"
@@ -946,7 +951,7 @@ export function LandingPage() {
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Annual Billing
+                Annual Reference
                 <span className="text-xs bg-[#F59E0B] text-slate-900 px-2 py-0.5 rounded-full font-extrabold">
                   Save 20%
                 </span>
@@ -968,7 +973,7 @@ export function LandingPage() {
 
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black font-mono text-slate-900">$0</span>
-                  <span className="text-xs text-slate-400 font-semibold">/ 14-day trial</span>
+                  <span className="text-xs text-emerald-700 font-bold ml-1">Free Forever</span>
                 </div>
 
                 <ul className="space-y-3 text-xs font-medium text-slate-700 pt-2 border-t border-slate-100">
@@ -988,17 +993,17 @@ export function LandingPage() {
               </div>
 
               <Link
-                href={isSignedIn ? "/settings" : "/sign-up"}
+                href={isSignedIn ? "/?new=true" : "/sign-up"}
                 className="w-full py-3 rounded-lg text-center font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
               >
-                {isSignedIn ? "Current Plan" : "Start Free 14-Day Trial"}
+                {isSignedIn ? "Start Quotation →" : "Get Started Free"}
               </Link>
             </div>
 
             {/* Plan 2: Pro Supplier (Featured / Most Popular) */}
             <div className="bg-white rounded-lg border-2 border-[#0F766E] p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl relative lg:scale-[1.02]">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#F59E0B] text-slate-900 text-xs font-black uppercase tracking-wider shadow-sm">
-                Most Popular
+                Unlocked in Release Candidate
               </div>
 
               <div className="space-y-4">
@@ -1009,11 +1014,14 @@ export function LandingPage() {
                   </p>
                 </div>
 
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black font-mono text-slate-900">
-                    {billingCycle === "annual" ? "$64" : "$79"}
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black font-mono text-slate-900">$0</span>
+                  <span className="text-xs line-through text-slate-400 font-bold">
+                    ${billingCycle === "annual" ? "64" : "79"}/mo
                   </span>
-                  <span className="text-xs text-slate-400 font-semibold">/ month</span>
+                  <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-extrabold">
+                    Free during RC
+                  </span>
                 </div>
 
                 <ul className="space-y-3 text-xs font-bold text-slate-800 pt-2 border-t border-slate-100">
@@ -1036,10 +1044,10 @@ export function LandingPage() {
               </div>
 
               <Link
-                href={isSignedIn ? "/settings" : "/sign-up"}
+                href={isSignedIn ? "/?new=true" : "/sign-up"}
                 className="w-full py-3.5 rounded-lg text-center font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-lg shadow-[#0F766E]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                {isSignedIn ? "Manage Subscription →" : "Get Started with Pro →"}
+                {isSignedIn ? "Create Quotation (Full Access) →" : "Get Started Free (No Card Needed) →"}
               </Link>
             </div>
 
@@ -1054,10 +1062,8 @@ export function LandingPage() {
                 </div>
 
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black font-mono text-slate-900">
-                    {billingCycle === "annual" ? "$159" : "$199"}
-                  </span>
-                  <span className="text-xs text-slate-400 font-semibold">/ month</span>
+                  <span className="text-3xl font-black font-mono text-slate-900">Custom</span>
+                  <span className="text-xs text-slate-400 font-semibold">/ high-volume</span>
                 </div>
 
                 <ul className="space-y-3 text-xs font-medium text-slate-700 pt-2 border-t border-slate-100">
@@ -1084,6 +1090,11 @@ export function LandingPage() {
               </a>
             </div>
 
+          </div>
+
+          {/* Billing Preview & RC Footnote */}
+          <div className="text-center max-w-2xl mx-auto pt-2 text-xs text-slate-500 font-medium bg-slate-50/80 border border-slate-200/70 rounded-xl p-3.5">
+            ⚓ <strong>Commercial Billing Notice:</strong> Payment gateway and subscription checkout are currently in private preview. Every registered supplier account enjoys full, complimentary access to our complete feature suite during this Release Candidate phase. Commercial billing will be announced with 30-day advance notice.
           </div>
 
         </div>

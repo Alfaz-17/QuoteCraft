@@ -37,7 +37,9 @@ export default function Home() {
       try {
         const parsed = JSON.parse(localCompany);
         if (parsed?.name && parsed.name.trim().length > 0) {
-          setOnboardingChecked(true);
+          setTimeout(() => {
+            setOnboardingChecked(true);
+          }, 0);
           return;
         }
       } catch {
@@ -146,9 +148,12 @@ function QuotationBuilder() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("new") === "true") {
+        try { localStorage.removeItem("quoteDraft"); } catch {}
         dispatch({ type: "NEW_QUOTATION" });
-        setCurrentStep(1);
         window.history.replaceState({}, "", "/");
+        setTimeout(() => {
+          setCurrentStep(1);
+        }, 0);
       }
     }
   }, [dispatch]);
@@ -162,7 +167,22 @@ function QuotationBuilder() {
           const res = await fetch("/api/user/profile");
           if (res.ok) {
             const data = await res.json();
-            if (!data?.profile?.company?.name) {
+            if (data?.profile?.company?.name) {
+              dispatch({ type: "SET_COMPANY", payload: data.profile.company });
+              if (data.profile.branding) {
+                const savedLogo = typeof window !== "undefined" ? localStorage.getItem("companyLogo") : null;
+                dispatch({
+                  type: "SET_BRANDING",
+                  payload: {
+                    ...data.profile.branding,
+                    ...(savedLogo ? { logo: savedLogo } : {}),
+                  },
+                });
+              }
+              if (data.profile.terms) {
+                dispatch({ type: "SET_TERMS", payload: data.profile.terms });
+              }
+            } else {
               router.replace("/onboarding");
             }
           }
@@ -171,18 +191,7 @@ function QuotationBuilder() {
         }
       })();
     }
-  }, [isHydrated, state.company.name, router]);
-
-  useEffect(() => {
-    // If draft already has items, start at Step 3 (Prices) or Step 2 (Check items)
-    if (state.items.length > 0 && state.items.some(i => i.itemName || i.partNumber)) {
-      const hasAnyPrice = state.items.some(i => (i.unitPrice && i.unitPrice > 0));
-      const frame = requestAnimationFrame(() => {
-        setCurrentStep(hasAnyPrice ? 3 : 2);
-      });
-      return () => cancelAnimationFrame(frame);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isHydrated, state.company.name, router, dispatch]);
 
   // Push previous items state before updating
   const pushUndo = useCallback((itemsToSave: LineItem[]) => {
@@ -287,15 +296,29 @@ function QuotationBuilder() {
       type: "SET_ITEMS",
       payload: [],
     });
+    dispatch({
+      type: "SET_DOCUMENT_INFO",
+      payload: { vessel: "", reference: "", scope: "", make: "", model: "" },
+    });
+    dispatch({
+      type: "SET_CLIENT",
+      payload: { name: "", companyName: "", address: "", phone: "", attn: "" },
+    });
+    try {
+      localStorage.removeItem("quoteDraft");
+    } catch {}
     goToStep(1);
-    toastSuccess("Cleared extracted items. You can now upload a new RFQ file or start fresh.");
+    toastSuccess("Cleared extracted document. Ready for a new RFQ file.");
   }, [dispatch, state.items, pushUndo, toastSuccess, goToStep]);
 
   const handleNewQuote = useCallback(() => {
     pushUndo(state.items);
+    try {
+      localStorage.removeItem("quoteDraft");
+    } catch {}
     dispatch({ type: "NEW_QUOTATION" });
     goToStep(1);
-    toastSuccess("Started a new quote! Company profile was preserved.");
+    toastSuccess("Started a fresh quotation. Company profile preserved.");
   }, [dispatch, state.items, pushUndo, toastSuccess, goToStep]);
 
   const handleUpdateDocInfo = useCallback((u: Partial<QuotationState["documentInfo"]>) => {

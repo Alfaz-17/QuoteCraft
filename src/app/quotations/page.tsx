@@ -270,7 +270,7 @@ export default function QuotationsPage() {
             asChild
             className="h-10 px-4 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs min-h-[44px]"
           >
-            <Link href="/">
+            <Link href="/?new=true">
               <FilePlus className="w-4 h-4 mr-1.5" /> New Quote
             </Link>
           </Button>
@@ -333,7 +333,7 @@ export default function QuotationsPage() {
                 <p className="text-xs text-[#475569]">Try a different search query or filter</p>
               </div>
               <Button asChild className="h-10 px-5 rounded-xl text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white">
-                <Link href="/">Create Quotation</Link>
+                <Link href="/?new=true">Create Quotation</Link>
               </Button>
             </div>
           ) : (

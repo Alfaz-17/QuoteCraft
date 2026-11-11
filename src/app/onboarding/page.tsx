@@ -125,10 +125,15 @@ export default function OnboardingPage() {
       } finally {
         // Load saved logo from localStorage if available
         try {
-          const savedBranding = localStorage.getItem("brandingProfile");
-          if (savedBranding) {
-            const parsed = JSON.parse(savedBranding);
-            if (parsed.logo) setLogo(parsed.logo);
+          const directLogo = localStorage.getItem("companyLogo");
+          if (directLogo) {
+            setLogo(directLogo);
+          } else {
+            const savedBranding = localStorage.getItem("brandingProfile");
+            if (savedBranding) {
+              const parsed = JSON.parse(savedBranding);
+              if (parsed.logo) setLogo(parsed.logo);
+            }
           }
         } catch {
           // ignore
@@ -244,6 +249,9 @@ export default function OnboardingPage() {
           "brandingProfile",
           JSON.stringify({ ...brandingPayload, logo })
         );
+        if (logo) {
+          localStorage.setItem("companyLogo", logo);
+        }
         localStorage.setItem("defaultTerms", terms.trim());
         localStorage.setItem("onboardingCompleted", "true");
         localStorage.setItem("userCurrency", currency);
@@ -252,8 +260,8 @@ export default function OnboardingPage() {
       }
 
       toastSuccess("🎉 Welcome aboard! Your company profile is ready.");
-      // Redirect to dashboard or quote builder
-      router.replace("/dashboard");
+      // Hard reload to dashboard so root QuotationProvider cleanly initializes with new profile
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       console.error("Onboarding submission error", err);
       toastError(err instanceof Error ? err.message : "Failed to finish onboarding. Please try again.");

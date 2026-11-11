@@ -286,7 +286,7 @@ export default function DashboardPage() {
         {/* Primary CTA Button: + New Quotation (48px height, Deep Teal, Active scale) */}
         <div>
           <Link
-            href="/"
+            href="/?new=true"
             className="flex items-center justify-center gap-2 w-full h-12 px-6 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-[#0F766E]/20 transition-all min-h-[48px]"
           >
             <Plus className="w-5 h-5 stroke-[2.5]" />
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <Button asChild className="h-10 px-5 rounded-xl text-xs font-bold bg-[#0F766E] hover:bg-[#0D6B63] text-white">
-                <Link href="/">
+                <Link href="/?new=true">
                   <Plus className="w-4 h-4 mr-1.5" /> Create Your First Quotation
                 </Link>
               </Button>

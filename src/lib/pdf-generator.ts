@@ -612,4 +612,5 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   // Save the professional PDF document
   const fileName = `${data.documentInfo.number || "Quotation"}_${data.documentInfo.date || "Quote"}.pdf`;
   doc.save(fileName);
+  return doc;
 };

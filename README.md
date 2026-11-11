@@ -10,7 +10,7 @@
 In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all formats: multi-sheet Excel files, scanned PDFs, equipment photographs, or raw emails. Re-typing hundreds of lines with IMPA/ISSA codes, part numbers, and quantities into a quote is the single biggest bottleneck for suppliers.
 
 **QuoteCraft automates this entire front-office workflow:**
-1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets (instant, 0% hallucination) with multimodal Gemini 2.5 Flash fallback for scanned documents and images.
+1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets (instant, 0% hallucination) with ultra-fast Groq AI (`qwen/qwen3.8-27b` & `llama-3.3-70b-versatile`) fallback for scanned documents and unstructured text.
 2. **Structure Preservation:** Replicates the buyer's exact column headers and line items so quotes match the customer's purchase order specifications.
 3. **Marine-Grade Calculation Engine:** Deterministic per-line rounding, subtotal integrity, discount protections (capped against negative totals), and multi-currency formatting (USD, EUR, GBP, AED, INR, SGD, JPY).
 4. **Branded Maritime PDF Export:** Generates high-density, professional quotations complete with company logos, vessel metadata, terms & conditions, and bank payment instructions.
@@ -24,7 +24,7 @@ In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all fo
 - **Styling:** Tailwind CSS + Radix UI Primitives + Lucide Icons
 - **Authentication:** [Clerk](https://clerk.com/)
 - **Database:** Serverless PostgreSQL ([Neon](https://neon.tech/)) + Connection Pooling
-- **AI Intelligence:** Google Gemini (`gemini-2.5-flash`) via `@google/generative-ai`
+- **AI Intelligence:** [Groq Cloud SDK](https://groq.com/) (`qwen/qwen3.8-27b` with automatic `llama-3.3-70b-versatile` failover) for ultra-low latency RFQ document extraction; Google Gemini (`gemini-2.5-flash`) for logo color palette extraction
 - **PDF Generation:** `jspdf` + `jspdf-autotable` & `@react-pdf/renderer`
 - **Testing:** Node.js native test runner + `tsx`
 
@@ -36,7 +36,8 @@ In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all fo
 - Node.js 20+ installed
 - PostgreSQL database (or Neon serverless account)
 - Clerk application account (for user authentication)
-- Google AI Studio API key (for document intelligence)
+- Groq Cloud API key (for fast RFQ document intelligence)
+- (Optional) Google AI Studio API key (for logo palette analysis)
 
 ### 2. Installation & Setup
 
@@ -62,7 +63,11 @@ NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard"
 
-# AI Document Intelligence
+# Primary AI RFQ Intelligence (Groq Cloud SDK)
+GROQ_API_KEY="gsk_..."
+GROQ_MODEL="qwen/qwen3.8-27b"
+
+# Optional: Google Gemini API Key (logo extraction & terms)
 GEMINI_API_KEY="AIzaSy..."
 ```
 
