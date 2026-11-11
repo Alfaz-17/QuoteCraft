@@ -379,13 +379,12 @@ export default function AdminSettingsPage() {
                   onChange={(e) => setGroqModel(e.target.value)}
                   className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 >
-                  <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Default — Free Tier)</option>
-                  <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
-                  <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
-                  <option value="allam-2-7b">Allam 2 7B</option>
+                  <option value="qwen/qwen3.8-27b">Qwen 3.8-27B (Default — High Accuracy Marine Table)</option>
+                  <option value="llama-3.3-70b-versatile">Llama 3.3-70B Versatile (Large Context)</option>
+                  <option value="llama-3.1-8b-instant">Llama 3.1-8B Instant (Ultra-fast)</option>
                 </select>
                 <p className="text-[10px] text-slate-400">
-                  Active Groq model used for AI fallback extraction. Change requires server restart.
+                  Active Groq model used for AI fallback extraction. Changes take effect immediately at runtime.
                 </p>
               </div>
 

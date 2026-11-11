@@ -1,5 +1,6 @@
 import React from "react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminTopBar } from "@/components/admin/AdminTopBar";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,10 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col lg:flex-row antialiased">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {children}
+        <AdminTopBar />
+        <main className="flex-1 flex flex-col min-w-0">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -190,7 +190,7 @@ export default function AdminAiUsagePage() {
                   {data.metrics.totalRequests}
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  {data.metrics.deterministicCount} zero-cost • {data.metrics.geminiCount} AI LLM
+                  {data.metrics.deterministicCount} zero-cost • {data.metrics.geminiCount} Groq AI LLM
                 </p>
               </div>
 

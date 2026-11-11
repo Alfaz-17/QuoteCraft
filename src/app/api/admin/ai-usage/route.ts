@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
           count(*) as total_requests,
           count(*) FILTER (WHERE status = 'SUCCESS') as successful_requests,
           count(*) FILTER (WHERE status = 'FAILED') as failed_requests,
-          count(*) FILTER (WHERE method = 'deterministic_excel') as deterministic_count,
+          count(*) FILTER (WHERE method IN ('deterministic_excel', 'deterministic_pdf')) as deterministic_count,
           count(*) FILTER (WHERE method = 'ai_fallback') as gemini_count,
           COALESCE(SUM("inputTokens"), 0) as total_input_tokens,
           COALESCE(SUM("outputTokens"), 0) as total_output_tokens,
