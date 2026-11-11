@@ -62,6 +62,11 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
       const savedBranding = localStorage.getItem(BRANDING_KEY);
       const savedTerms   = localStorage.getItem(TERMS_KEY);
       const savedLogo    = localStorage.getItem("companyLogo");
+      const savedPrefs   = localStorage.getItem("quotationPreferences");
+      let parsedPrefs: any = null; // eslint-disable-line @typescript-eslint/no-explicit-any
+      if (savedPrefs) {
+        try { parsedPrefs = JSON.parse(savedPrefs); } catch {}
+      }
 
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -69,13 +74,19 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
         if (savedBranding) parsed.branding = { ...parsed.branding, ...JSON.parse(savedBranding) };
         if (savedLogo)     parsed.branding = { ...parsed.branding, logo: savedLogo };
         if (savedTerms)    parsed.terms    = savedTerms;
+        if (parsedPrefs?.pdfShowSignatureBlock !== undefined) {
+          parsed.pdfShowSignatureBlock = parsedPrefs.pdfShowSignatureBlock;
+        }
         dispatch({ type: "RESET", payload: parsed });
-      } else if (savedCompany || savedBranding || savedTerms || savedLogo) {
+      } else if (savedCompany || savedBranding || savedTerms || savedLogo || parsedPrefs) {
         const updates: Partial<QuotationState> = {};
         if (savedCompany)  updates.company  = JSON.parse(savedCompany);
         if (savedBranding) updates.branding = JSON.parse(savedBranding);
         if (savedLogo)     updates.branding = { ...(updates.branding || initialState.branding), logo: savedLogo };
         if (savedTerms)    updates.terms    = savedTerms;
+        if (parsedPrefs?.pdfShowSignatureBlock !== undefined) {
+          updates.pdfShowSignatureBlock = parsedPrefs.pdfShowSignatureBlock;
+        }
         dispatch({ type: "RESET", payload: { ...initialState, ...updates } as QuotationState });
       }
     } catch (e) {
@@ -122,6 +133,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
             currency:     (profile.builderConfig?.currency as Currency) || state.currency,
             tableColumns: profile.tableColumns?.length ? profile.tableColumns : state.tableColumns,
             builderConfig: profile.builderConfig ?? state.builderConfig,
+            pdfShowSignatureBlock: profile.builderConfig?.pdfShowSignatureBlock !== undefined
+              ? Boolean(profile.builderConfig.pdfShowSignatureBlock)
+              : state.pdfShowSignatureBlock,
           } as QuotationState,
         });
 
@@ -179,6 +193,12 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
 
       if (s.terms && s.terms.trim().length > 0) {
         try { localStorage.setItem(TERMS_KEY, s.terms); } catch {}
+      }
+
+      if (s.pdfShowSignatureBlock !== undefined) {
+        try {
+          localStorage.setItem("quotationPreferences", JSON.stringify({ pdfShowSignatureBlock: s.pdfShowSignatureBlock }));
+        } catch {}
       }
 
       setIsSaved(true);

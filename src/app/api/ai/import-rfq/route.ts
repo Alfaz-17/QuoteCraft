@@ -51,13 +51,14 @@ export async function POST(req: NextRequest) {
     const aiControls = await getAiEngineControls();
 
     // Security & payload size check: configurable MB file limit (base64 ~1.37x)
-    const maxBytes = aiControls.maxUploadSizeMb * 1024 * 1024;
+    const effectiveLimitMb = Math.max(aiControls.maxUploadSizeMb || 10, 25);
+    const maxBytes = effectiveLimitMb * 1024 * 1024;
     const maxBase64Length = Math.ceil(maxBytes * 1.37);
     if (fileData && typeof fileData === "string" && fileData.length > maxBase64Length) {
       return NextResponse.json(
         {
           error:
-            `The uploaded file exceeds the ${aiControls.maxUploadSizeMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
+            `The uploaded file exceeds the ${effectiveLimitMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
         },
         { status: 413 }
       );

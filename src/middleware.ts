@@ -48,7 +48,8 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/icon.png") ||
     pathname.startsWith("/manifest") ||
-    pathname.startsWith("/robots.txt")
+    pathname.startsWith("/robots.txt") ||
+    pathname.startsWith("/api/")
   ) {
     return NextResponse.next();
   }

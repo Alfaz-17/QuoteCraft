@@ -187,10 +187,27 @@ export function ItemsTable({
         body: JSON.stringify(bodyData),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to process RFQ with AI.");
+        let errorMsg = "Failed to process RFQ with AI.";
+        try {
+          const rawText = await res.text();
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed?.error) errorMsg = parsed.error;
+          } catch {
+            if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
+              errorMsg = "The file or text exceeds the upload size limit (up to 20MB). Please use a smaller file or paste fewer items.";
+            } else if (rawText) {
+              errorMsg = rawText.slice(0, 150);
+            }
+          }
+        } catch {
+          // ignore stream read error
+        }
+        throw new Error(errorMsg);
       }
+
+      const data = await res.json();
 
       if (!Array.isArray(data.columns) || !Array.isArray(data.rows)) {
         throw new Error("The AI failed to format the extracted line items correctly.");

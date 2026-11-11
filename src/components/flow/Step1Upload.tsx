@@ -94,8 +94,8 @@ export function Step1Upload({
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toastError("File size exceeds 10MB. Please upload a smaller file or paste text.");
+    if (file.size > 20 * 1024 * 1024) {
+      toastError("File size exceeds 20MB. Please upload a smaller file or paste text.");
       return;
     }
 
@@ -143,10 +143,27 @@ export function Step1Upload({
         return;
       }
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "We couldn't read this file. Try pasting the text instead.");
+        let errorMsg = "We couldn't read this file. Try pasting the text instead.";
+        try {
+          const rawText = await res.text();
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed?.error) errorMsg = parsed.error;
+          } catch {
+            if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
+              errorMsg = "The file payload exceeds the allowed upload limit (up to 20MB). Please upload a smaller file or copy-paste the line items directly.";
+            } else if (rawText) {
+              errorMsg = rawText.slice(0, 150);
+            }
+          }
+        } catch {
+          // ignore stream read error
+        }
+        throw new Error(errorMsg);
       }
+
+      const data = await res.json();
 
       if (!Array.isArray(data.columns) || !Array.isArray(data.rows)) {
         throw new Error("Unable to identify table items. You can paste the raw text or start with a blank quote.");
@@ -221,10 +238,27 @@ export function Step1Upload({
         return;
       }
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Could not extract items from the pasted text.");
+        let errorMsg = "Could not extract items from the pasted text.";
+        try {
+          const rawText = await res.text();
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed?.error) errorMsg = parsed.error;
+          } catch {
+            if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
+              errorMsg = "The pasted text exceeds the allowed payload limit. Please shorten the text or upload an Excel/PDF file.";
+            } else if (rawText) {
+              errorMsg = rawText.slice(0, 150);
+            }
+          }
+        } catch {
+          // ignore stream read error
+        }
+        throw new Error(errorMsg);
       }
+
+      const data = await res.json();
 
       if (data.rfqDetails) {
         if (data.rfqDetails.customerName) {

@@ -206,12 +206,13 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
     case "SET_COLUMNS":
       return { ...state, tableColumns: action.payload };
     case "NEW_QUOTATION":
-      // Keep company, branding, builderConfig, and terms — reset everything else
+      // Keep company, branding, builderConfig, terms, and signature setting — reset everything else
       return {
         ...createFreshQuotation(state.company, state.branding),
         terms: state.terms,
         tableColumns: [...DEFAULT_COLUMNS], // columns now follow each uploaded RFQ
         builderConfig: state.builderConfig,
+        pdfShowSignatureBlock: state.pdfShowSignatureBlock,
       };
     case "RESET":
       return { 

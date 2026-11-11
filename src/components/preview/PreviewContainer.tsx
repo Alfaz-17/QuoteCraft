@@ -3,7 +3,7 @@
 import { QuotationState } from "@/types/quotation.types";
 import { MarineTemplate } from "./MarineTemplate";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ZoomIn, Maximize2, Layout, FileText, Check } from "lucide-react";
+import { ZoomIn, Maximize2, Layout, FileText, Check, PenLine } from "lucide-react";
 
 interface PreviewContainerProps {
   data: QuotationState;
@@ -15,9 +15,11 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
   const containerRef = useRef<HTMLDivElement>(null);
   const [localOrientation, setLocalOrientation] = useState<"portrait" | "landscape">(data.pdfOrientation || "portrait");
   const [localLayoutMode, setLocalLayoutMode] = useState<"clean" | "detailed">(data.pdfLayoutMode || "clean");
+  const [localShowSignature, setLocalShowSignature] = useState<boolean>(data.pdfShowSignatureBlock !== false);
 
   const effectiveOrientation = onUpdateState ? (data.pdfOrientation || "portrait") : localOrientation;
   const effectiveLayoutMode = onUpdateState ? (data.pdfLayoutMode || "clean") : localLayoutMode;
+  const effectiveShowSignature = onUpdateState ? (data.pdfShowSignatureBlock !== false) : localShowSignature;
   const isLandscape = effectiveOrientation === "landscape";
   const isCleanMode = effectiveLayoutMode !== "detailed";
   const targetWidth = isLandscape ? 1123 : 794; // A4 96dpi
@@ -63,6 +65,13 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
     setLocalLayoutMode(mode);
     if (onUpdateState) {
       onUpdateState({ pdfLayoutMode: mode });
+    }
+  };
+
+  const handleToggleSignature = (enabled: boolean) => {
+    setLocalShowSignature(enabled);
+    if (onUpdateState) {
+      onUpdateState({ pdfShowSignatureBlock: enabled });
     }
   };
 
@@ -129,6 +138,26 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
               <span>All Columns</span>
             </button>
           </div>
+
+          {/* Signature Block Toggle */}
+          <button
+            type="button"
+            onClick={() => handleToggleSignature(!effectiveShowSignature)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs transition-all min-h-[44px] ${
+              effectiveShowSignature
+                ? "bg-white border-teal-300 text-[#0F766E] shadow-2xs"
+                : "bg-slate-100 border-slate-200/80 text-slate-500 hover:text-slate-800"
+            }`}
+            title="Toggle formal Authorized Signature & Stamp seal on quotation and exported PDF"
+          >
+            <PenLine className="w-4 h-4 text-[#0F766E]" />
+            <span>Signature:</span>
+            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase ${
+              effectiveShowSignature ? "bg-[#E0F2F1] text-[#0F766E]" : "bg-slate-200 text-slate-600"
+            }`}>
+              {effectiveShowSignature ? "ON" : "OFF"}
+            </span>
+          </button>
         </div>
 
         {/* Right: Scale Indicator & Zoom Mode */}
@@ -170,7 +199,7 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
             marginBottom: scale < 1 ? `-${Math.round(targetHeight * (1 - scale))}px` : "0px",
           }}
         >
-          <MarineTemplate data={{ ...data, pdfOrientation: effectiveOrientation, pdfLayoutMode: effectiveLayoutMode }} />
+          <MarineTemplate data={{ ...data, pdfOrientation: effectiveOrientation, pdfLayoutMode: effectiveLayoutMode, pdfShowSignatureBlock: effectiveShowSignature }} />
         </div>
       </div>
     </div>

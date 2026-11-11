@@ -572,6 +572,13 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     doc.setTextColor(30, 41, 59);
     doc.text(`For ${(data.company.name || "OUR COMPANY").toUpperCase()}`, signLeft + 4, finalY + 4);
 
+    if (data.company.signatoryTitle) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      doc.setTextColor(71, 85, 105);
+      doc.text(data.company.signatoryTitle, signLeft + (signWidth / 2), finalY + 22, { align: "center" });
+    }
+
     doc.setFont("helvetica", "italic");
     doc.setFontSize(7);
     doc.setTextColor(148, 163, 184);

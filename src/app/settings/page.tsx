@@ -11,6 +11,7 @@ import { HeroSailingLoader } from "@/components/ui/Loaders";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { 
   Upload, 
   Save, 
@@ -30,7 +31,8 @@ import {
   FileText,
   Sliders,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  PenLine
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
@@ -68,6 +70,8 @@ export default function SettingsPage() {
   const [companyPhone, setCompanyPhone] = useState(state.company.phone || "");
   const [companyAddress, setCompanyAddress] = useState(state.company.address || "");
   const [companyTaxNo, setCompanyTaxNo] = useState(state.company.taxId || "");
+  const [signatoryTitle, setSignatoryTitle] = useState(state.company.signatoryTitle || "");
+  const [showSignatureBlock, setShowSignatureBlock] = useState(state.pdfShowSignatureBlock !== false);
 
   // Branding & Template fields
   const [selectedLayout, setSelectedLayout] = useState<TemplateLayoutId>(state.branding.layout || "marine");
@@ -113,7 +117,9 @@ export default function SettingsPage() {
     if (state.company.phone) setCompanyPhone(state.company.phone);
     if (state.company.address) setCompanyAddress(state.company.address);
     if (state.company.taxId) setCompanyTaxNo(state.company.taxId);
-  }, [state.company]);
+    if (state.company.signatoryTitle !== undefined) setSignatoryTitle(state.company.signatoryTitle);
+    if (state.pdfShowSignatureBlock !== undefined) setShowSignatureBlock(state.pdfShowSignatureBlock);
+  }, [state.company, state.pdfShowSignatureBlock]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -138,13 +144,19 @@ export default function SettingsPage() {
       phone: companyPhone,
       address: companyAddress,
       taxId: companyTaxNo,
+      signatoryTitle: signatoryTitle.trim() || undefined,
     };
     dispatch({
       type: "SET_COMPANY",
       payload: updatedCompany,
     });
+    dispatch({
+      type: "SET_PDF_SHOW_SIGNATURE",
+      payload: showSignatureBlock,
+    });
     try {
       localStorage.setItem("companyProfile", JSON.stringify(updatedCompany));
+      localStorage.setItem("quotationPreferences", JSON.stringify({ pdfShowSignatureBlock: showSignatureBlock }));
     } catch (e) {
       console.error(e);
     }
@@ -196,8 +208,24 @@ export default function SettingsPage() {
   };
 
   const handleSaveBusinessInfo = async () => {
+    const updatedCompany = {
+      ...state.company,
+      name: companyName || state.company.name,
+      signatoryTitle: signatoryTitle.trim() || undefined,
+    };
+
+    dispatch({
+      type: "SET_COMPANY",
+      payload: updatedCompany,
+    });
+    dispatch({
+      type: "SET_PDF_SHOW_SIGNATURE",
+      payload: showSignatureBlock,
+    });
+
     try {
-      localStorage.setItem("companyProfile", JSON.stringify(state.company));
+      localStorage.setItem("companyProfile", JSON.stringify(updatedCompany));
+      localStorage.setItem("quotationPreferences", JSON.stringify({ pdfShowSignatureBlock: showSignatureBlock }));
       if (state.terms) {
         localStorage.setItem("defaultTerms", state.terms);
       }
@@ -210,15 +238,19 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          company: state.company,
+          company: updatedCompany,
           terms: state.terms,
+          builderConfig: {
+            ...state.builderConfig,
+            pdfShowSignatureBlock: showSignatureBlock,
+          },
         }),
       });
     } catch (e) {
       console.warn("Could not sync business info to database:", e);
     }
 
-    toastSuccess("Business details, bank info, and commercial terms saved permanently!");
+    toastSuccess("Business settings & signature preferences saved permanently!");
   };
 
   const handleLogout = async () => {
@@ -573,6 +605,44 @@ export default function SettingsPage() {
                 >
                   Back
                 </button>
+              </div>
+
+              {/* Authorized Signature Block Card (Mobile) */}
+              <div className="p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/90 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PenLine className="w-4 h-4 text-[#0F766E]" />
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Authorized Signature &amp; Stamp</p>
+                      <p className="text-[10px] text-slate-500">Show formal signature block on quotations</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={showSignatureBlock}
+                    onCheckedChange={setShowSignatureBlock}
+                  />
+                </div>
+
+                {showSignatureBlock && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200/70">
+                    <Label className="text-xs font-bold text-slate-700">Signatory Title / Name (Optional)</Label>
+                    <Input
+                      value={signatoryTitle}
+                      onChange={(e) => setSignatoryTitle(e.target.value)}
+                      placeholder="e.g. Capt. Tariq Al-Mansoor • Marine Superintendent"
+                      className="h-10 text-xs rounded-lg"
+                    />
+                    <div className="p-3 bg-white rounded-lg border-2 border-dashed border-slate-300 text-center space-y-1">
+                      <p className="text-[10px] font-bold text-slate-800 uppercase">
+                        For {companyName || state.company.name || "OUR COMPANY"}
+                      </p>
+                      {signatoryTitle && (
+                        <p className="text-[9px] font-semibold text-slate-700">{signatoryTitle}</p>
+                      )}
+                      <p className="text-[9px] text-slate-400 italic">(Authorized Signature &amp; Stamp)</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -1155,6 +1225,65 @@ export default function SettingsPage() {
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   Configure default payment, delivery terms, and bank coordinates.
                 </p>
+              </div>
+
+              {/* Authorized Signature & Stamp Setting Card */}
+              <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-200/90 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <PenLine className="w-4 h-4 text-[#0F766E]" />
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        Authorized Signature &amp; Stamp Block
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Include a formal commercial signature, seal box, and designated company signatory title on all generated quotations and PDF exports.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-600">
+                      {showSignatureBlock ? "Enabled (ON)" : "Disabled (OFF)"}
+                    </span>
+                    <Switch
+                      checked={showSignatureBlock}
+                      onCheckedChange={setShowSignatureBlock}
+                    />
+                  </div>
+                </div>
+
+                {showSignatureBlock && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold text-slate-700">
+                        Signatory Name &amp; Title (Optional)
+                      </Label>
+                      <Input
+                        value={signatoryTitle}
+                        onChange={(e) => setSignatoryTitle(e.target.value)}
+                        placeholder="e.g. Capt. Tariq Al-Mansoor • Marine Superintendent"
+                        className="h-10 text-xs rounded-lg"
+                      />
+                      <p className="text-[11px] text-slate-500">
+                        Appears directly above the authorized seal on printed PDF documentation.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 bg-white rounded-lg border-2 border-dashed border-slate-300 flex flex-col justify-center items-center text-center space-y-1">
+                      <span className="text-[10px] font-bold text-slate-700 uppercase">
+                        For {companyName || state.company.name || "OUR COMPANY"}
+                      </span>
+                      {signatoryTitle && (
+                        <span className="text-[10px] font-semibold text-slate-700">
+                          {signatoryTitle}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400 italic">
+                        (Authorized Signature &amp; Stamp)
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

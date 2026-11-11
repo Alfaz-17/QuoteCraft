@@ -525,11 +525,16 @@ export function MarineTemplate({ data }: TemplateProps) {
 
         {/* Right: Signature & Stamp Box */}
         {data.pdfShowSignatureBlock !== false && (
-          <div className="w-56 shrink-0 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center space-y-6 bg-slate-50/50">
+          <div className="w-56 shrink-0 border-2 border-dashed border-slate-300 rounded-lg p-3 text-center space-y-3 bg-slate-50/50">
             <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">
               For {company.name || "OUR COMPANY"}
             </p>
-            <p className="text-xs font-semibold text-slate-400 italic">
+            {company.signatoryTitle && (
+              <p className="text-[11px] font-semibold text-slate-700 tracking-tight">
+                {company.signatoryTitle}
+              </p>
+            )}
+            <p className="text-[11px] font-semibold text-slate-400 italic pt-2">
               (Authorized Signature & Stamp)
             </p>
           </div>

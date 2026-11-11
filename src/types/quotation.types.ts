@@ -122,6 +122,8 @@ export interface CompanyInfo {
   website?: string;
   taxId?: string;
   bankDetails?: string;
+  signatoryTitle?: string;
+  contactPerson?: string;
 }
 
 export interface ClientInfo {
