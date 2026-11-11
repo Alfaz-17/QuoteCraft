@@ -27,7 +27,7 @@ const menuItems = [
   },
   {
     name: "New Quotation",
-    href: "/",
+    href: "/?new=true",
     icon: PlusCircle,
     mobileLabel: "New Quote",
   },
@@ -130,20 +130,6 @@ export function Sidebar() {
               </Component>
             );
           })}
-          {isOwner && (
-            <div className="pt-3 mt-2 border-t border-[#0D3845]/70">
-              <Link
-                href="/admin"
-                className="group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-[#F59E0B] border border-amber-500/30 transition-all min-h-[42px]"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#F59E0B] shrink-0" />
-                <span className="flex-1 truncate">Admin Command Center</span>
-                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-500/20 font-black">
-                  Owner
-                </span>
-              </Link>
-            </div>
-          )}
         </nav>
 
         {/* User Profile & Sign Out Footer */}
@@ -218,22 +204,6 @@ export function Sidebar() {
                 </Link>
               );
             })}
-          {isOwner && (
-            <Link
-              href="/admin"
-              className={cn(
-                "flex flex-col items-center justify-center py-1.5 px-3 rounded-lg transition-all duration-150 min-w-[60px] min-h-[48px]",
-                pathname.startsWith("/admin")
-                  ? "text-[#F59E0B] font-bold"
-                  : "text-amber-600 hover:text-amber-700"
-              )}
-            >
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors mb-0.5 bg-amber-500/15 text-[#F59E0B]">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <span className="text-[12px] font-semibold leading-none">Admin</span>
-            </Link>
-          )}
         </nav>
       )}
     </>

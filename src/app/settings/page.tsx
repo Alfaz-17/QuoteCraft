@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useQuotationState } from "@/hooks/useQuotationState";
@@ -50,6 +51,7 @@ export default function SettingsPage() {
   const userName = user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Alfaz Bilakhiya";
   const userEmail = user?.primaryEmailAddress?.emailAddress || "alfazbilakhiya17@gmail.com";
   const userInitial = (user?.firstName?.[0] || userName[0] || "A").toUpperCase();
+  const isOwner = userEmail.toLowerCase() === "alfazbilakhiya17@gmail.com";
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -129,7 +131,7 @@ export default function SettingsPage() {
     );
   }
 
-  const handleSaveCompany = () => {
+  const handleSaveCompany = async () => {
     const updatedCompany = {
       name: companyName,
       email: companyEmail,
@@ -146,10 +148,22 @@ export default function SettingsPage() {
     } catch (e) {
       console.error(e);
     }
-    toastSuccess("Company details updated successfully!");
+
+    // Persist permanently into PostgreSQL user profile
+    try {
+      await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company: updatedCompany }),
+      });
+    } catch (e) {
+      console.warn("Could not sync company profile to database:", e);
+    }
+
+    toastSuccess("Company details updated and saved to your profile!");
   };
 
-  const handleSaveBranding = () => {
+  const handleSaveBranding = async () => {
     const updatedBranding = {
       ...state.branding,
       layout: selectedLayout,
@@ -166,7 +180,45 @@ export default function SettingsPage() {
     } catch (e) {
       console.error(e);
     }
+
+    // Persist permanently into PostgreSQL user profile
+    try {
+      await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branding: updatedBranding }),
+      });
+    } catch (e) {
+      console.warn("Could not sync branding to database:", e);
+    }
+
     toastSuccess("Template format and color branding updated successfully!");
+  };
+
+  const handleSaveBusinessInfo = async () => {
+    try {
+      localStorage.setItem("companyProfile", JSON.stringify(state.company));
+      if (state.terms) {
+        localStorage.setItem("defaultTerms", state.terms);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company: state.company,
+          terms: state.terms,
+        }),
+      });
+    } catch (e) {
+      console.warn("Could not sync business info to database:", e);
+    }
+
+    toastSuccess("Business details, bank info, and commercial terms saved permanently!");
   };
 
   const handleLogout = async () => {
@@ -192,6 +244,7 @@ export default function SettingsPage() {
       });
       try {
         localStorage.setItem("brandingProfile", JSON.stringify(updatedBranding));
+        localStorage.setItem("companyLogo", base64);
       } catch (e) {
         console.error(e);
       }
@@ -221,6 +274,16 @@ export default function SettingsPage() {
               Settings
             </h1>
           </div>
+
+          {isOwner && (
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-500/30 text-xs font-bold transition-all shadow-2xs"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <span>Admin Center</span>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -248,6 +311,20 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Owner Command Center Pill (Mobile) */}
+              {isOwner && (
+                <Link
+                  href="/admin"
+                  className="flex items-center justify-between p-3.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl border border-amber-500/30 text-amber-900 transition-all shadow-2xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-extrabold">Admin Command Center</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-amber-500" />
+                </Link>
+              )}
 
               {/* Grouped Settings Navigation Card */}
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs divide-y divide-slate-100 overflow-hidden">
@@ -510,8 +587,8 @@ export default function SettingsPage() {
               </div>
 
               <Button
-                onClick={() => {
-                  toastSuccess("Business settings updated successfully!");
+                onClick={async () => {
+                  await handleSaveBusinessInfo();
                   setMobileSection("menu");
                 }}
                 className="w-full h-12 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white mt-2"
@@ -1072,7 +1149,7 @@ export default function SettingsPage() {
 
               <div className="pt-4 border-t border-slate-100 flex justify-end">
                 <Button
-                  onClick={() => toastSuccess("Business details and commercial terms saved!")}
+                  onClick={handleSaveBusinessInfo}
                   className="h-11 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-xs"
                 >
                   <Save className="w-4 h-4 mr-2" /> Save Business Info

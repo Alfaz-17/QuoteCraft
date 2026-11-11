@@ -27,6 +27,7 @@ interface Step1UploadProps {
   onUpdateClient: (client: Partial<QuotationState["client"]>) => void;
   onImportComplete: (items: LineItem[], columns: TableColumn[]) => void;
   onSkipUpload: () => void;
+  onClearDraft?: () => void;
 }
 
 export function Step1Upload({
@@ -35,6 +36,7 @@ export function Step1Upload({
   onUpdateClient,
   onImportComplete,
   onSkipUpload,
+  onClearDraft,
 }: Step1UploadProps) {
   const router = useRouter();
   const { isSignedIn } = useAuth();
@@ -162,9 +164,15 @@ export function Step1Upload({
             vessel: data.rfqDetails.vesselName,
           });
         }
-        if (data.rfqDetails.rfqReference) {
+        const rfqRef = data.rfqDetails.rfqNumber || data.rfqDetails.rfqReference;
+        if (rfqRef) {
           onUpdateDocInfo({
-            reference: data.rfqDetails.rfqReference,
+            reference: rfqRef,
+          });
+        }
+        if (data.rfqDetails.date) {
+          onUpdateDocInfo({
+            date: data.rfqDetails.date,
           });
         }
       }
@@ -218,6 +226,31 @@ export function Step1Upload({
         throw new Error(data.error || "Could not extract items from the pasted text.");
       }
 
+      if (data.rfqDetails) {
+        if (data.rfqDetails.customerName) {
+          onUpdateClient({
+            companyName: data.rfqDetails.customerName,
+            name: data.rfqDetails.customerName,
+          });
+        }
+        if (data.rfqDetails.vesselName) {
+          onUpdateDocInfo({
+            vessel: data.rfqDetails.vesselName,
+          });
+        }
+        const rfqRef = data.rfqDetails.rfqNumber || data.rfqDetails.rfqReference;
+        if (rfqRef) {
+          onUpdateDocInfo({
+            reference: rfqRef,
+          });
+        }
+        if (data.rfqDetails.date) {
+          onUpdateDocInfo({
+            date: data.rfqDetails.date,
+          });
+        }
+      }
+
       const mapped = mapImport({ columns: data.columns, rows: data.rows });
       if (mapped.items.length === 0) {
         throw new Error("No line items recognized. You can enter items manually.");
@@ -240,14 +273,47 @@ export function Step1Upload({
     : "";
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 max-w-lg mx-auto w-full space-y-5 pb-12">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 max-w-2xl mx-auto w-full space-y-5 pb-12">
         {/* Step Progress & Screen Title */}
         <StepHeader
           step={1}
           title="Upload RFQ"
           subtitle="Extract products from customer enquiries."
         />
+
+        {/* Existing Draft Notification (Prevents confusion when previous items exist) */}
+        {state.items.length > 0 && (
+          <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs shadow-2xs">
+            <div className="min-w-0">
+              <p className="font-extrabold text-amber-900 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                Draft In Progress ({state.items.length} items)
+              </p>
+              <p className="text-amber-700 font-medium truncate mt-0.5">
+                {state.documentInfo.vessel ? `Vessel: ${state.documentInfo.vessel}` : state.documentInfo.number || "Unsaved quotation draft"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={onSkipUpload}
+                className="px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white font-bold text-xs shadow-xs transition-colors min-h-[34px]"
+              >
+                Resume
+              </button>
+              {onClearDraft && (
+                <button
+                  type="button"
+                  onClick={onClearDraft}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-300 hover:bg-white text-slate-700 font-bold text-xs transition-colors min-h-[34px]"
+                >
+                  Start Fresh
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Input Mode Selector: Upload File vs Paste Text */}
         <div className="flex justify-center">
@@ -281,7 +347,7 @@ export function Step1Upload({
         </div>
 
         {/* Functional Upload Card (Single Clean Card) */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
           {inputMode === "file" ? (
             <div>
               <input
@@ -369,7 +435,7 @@ export function Step1Upload({
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer text-center space-y-4 ${
+                  className={`border border-dashed rounded-lg p-8 transition-colors cursor-pointer text-center space-y-4 ${
                     isDragOver
                       ? "border-[#0F766E] bg-teal-50/50"
                       : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/40 hover:bg-slate-50/80"

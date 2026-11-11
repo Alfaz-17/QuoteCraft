@@ -131,7 +131,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     data.company.phone ? `Tel: ${data.company.phone}` : "",
     data.company.email ? `Email: ${data.company.email}` : "",
     data.company.website ? data.company.website.toLowerCase() : "",
-  ].filter(Boolean).join("  •  ");
+  ].filter(Boolean).join("  |  ");
 
   if (contactLine) {
     companyY += 4;
@@ -315,7 +315,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     }
 
     if (subDetails.length > 0) {
-      lines.push(subDetails.join("   •   "));
+      lines.push(subDetails.join("   |   "));
     }
 
     if (item.description && item.description.trim()) {
@@ -547,10 +547,10 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   doc.setTextColor(51, 65, 85);
 
   const defaultTermsList = [
-    `• Delivery Terms: As agreed / CIF / FOB`,
-    `• Payment Terms: As agreed / 30 Days from invoice date`,
-    `• Quotation Validity: 30 days from date of issue`,
-    `• Warranty: Standard manufacturer warranty against manufacturing defects`,
+    `- Delivery Terms: As agreed / CIF / FOB`,
+    `- Payment Terms: As agreed / 30 Days from invoice date`,
+    `- Quotation Validity: 30 days from date of issue`,
+    `- Warranty: Standard manufacturer warranty against manufacturing defects`,
   ];
 
   const termsToRender = data.terms ? data.terms.split("\n").filter(Boolean) : defaultTermsList;
@@ -595,7 +595,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      `${(data.company.name || "QuoteCraft").toUpperCase()}  •  ${data.documentInfo.number || "QUOTATION"}`,
+      `${(data.company.name || "QuoteCraft").toUpperCase()}  |  ${data.documentInfo.number || "QUOTATION"}`,
       margin,
       pageHeight - 6.5
     );

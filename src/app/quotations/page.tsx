@@ -115,7 +115,7 @@ export default function QuotationsPage() {
 
   if (!isLoaded || !isSignedIn) {
     return (
-      <div className="min-h-screen bg-[#FAF9F5] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <HeroSailingLoader statusMessage="Verifying authorization..." />
       </div>
     );
@@ -249,7 +249,7 @@ export default function QuotationsPage() {
   );
 
   return (
-    <div className="flex-1 flex flex-col bg-[#FAF9F5] min-h-screen text-[#0F172A] pb-24 md:pb-12">
+    <div className="flex-1 flex flex-col bg-background min-h-screen text-[#0F172A] pb-24 md:pb-12">
       {/* ===== SCREEN 7: NATIVE APP HEADER ===== */}
       <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3 sticky top-0 z-20 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="max-w-4xl mx-auto flex items-center justify-between">

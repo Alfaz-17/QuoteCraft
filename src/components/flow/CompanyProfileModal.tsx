@@ -78,18 +78,33 @@ export function CompanyProfileModal({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     onUpdateCompany(company);
     onUpdateBranding({ logo });
     onUpdateTerms(terms);
 
-    // Persist permanently in localStorage
+    // Persist in localStorage
     try {
       localStorage.setItem("companyProfile", JSON.stringify(company));
       localStorage.setItem("brandingProfile", JSON.stringify({ ...state.branding, logo }));
       localStorage.setItem("defaultTerms", terms);
     } catch (e) {
       console.error("Local storage save error", e);
+    }
+
+    // Persist permanently into PostgreSQL user profile
+    try {
+      await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          company,
+          terms,
+          branding: { ...state.branding, logo: null },
+        }),
+      });
+    } catch (e) {
+      console.warn("Could not sync profile modal to database:", e);
     }
 
     setSavedSuccess(true);

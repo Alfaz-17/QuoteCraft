@@ -20,7 +20,9 @@ import {
   ChevronDown,
   Mail,
   X,
-  Plus
+  Plus,
+  AlertTriangle,
+  Package
 } from "lucide-react";
 import { 
   calculateSubtotal, 
@@ -200,7 +202,7 @@ export function Step3AddPricesAndSend({
   // ══════════════════════════════════════════════════
   if (stage === "preview") {
     return (
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
         {/* Preview Sub-Header */}
         <div className="bg-white border-b border-[#E2E8F0] px-4 py-3 flex items-center justify-between shrink-0">
           <button
@@ -357,9 +359,9 @@ export function Step3AddPricesAndSend({
   // SECTION A: PRICING SCREEN
   // ══════════════════════════════════════════════════
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#F8FAFC]">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
       {/* Scrollable Pricing Form */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 max-w-2xl mx-auto w-full space-y-4 pb-28">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-6 max-w-5xl mx-auto w-full space-y-4 pb-28">
         {/* Step Progress & Title */}
         <StepHeader
           step={3}
@@ -383,8 +385,40 @@ export function Step3AddPricesAndSend({
           </select>
         </div>
 
-        {/* Pricing Items List */}
-        <div className="space-y-3">
+        {/* Unpriced items warning banner */}
+        {unpricedItems.length > 0 && items.length > 0 && (
+          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/90 flex items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2 text-amber-900 min-w-0">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="truncate">
+                <strong className="font-bold">{unpricedItems.length} item(s)</strong> are currently priced at 0. Enter unit prices or mark as TBA.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Items List or Empty State */}
+        {items.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
+              <Package className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-slate-800">No items available for pricing</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Please return to Step 2 to add or review quotation line items.</p>
+            </div>
+            <div className="pt-1">
+              <Button
+                type="button"
+                onClick={onBack}
+                className="h-10 px-4 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold shadow-sm"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" /> Return to Review Items
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
           {items.map((item, idx) => {
             const qty = toNumber(item[qtyKey] ?? item.quantity) || 1;
             const price = toNumber(item[priceKey] ?? item.unitPrice) || 0;
@@ -474,7 +508,8 @@ export function Step3AddPricesAndSend({
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {/* Collapsible Section 1: Additional Charges (Discount, Tax, Shipping) */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden shadow-xs">
@@ -671,7 +706,7 @@ export function Step3AddPricesAndSend({
 
       {/* ── STICKY BOTTOM ACTION BAR (Exact User Architecture) ── */}
       <footer className="shrink-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2.5">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={onBack}

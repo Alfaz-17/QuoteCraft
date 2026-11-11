@@ -20,22 +20,23 @@ export interface DeterministicParseResult extends ImportResult {
 
 /** Header matching patterns */
 const PATTERNS: Record<ImportKind, RegExp[]> = {
-  serial: [/^(s\.?\s*no|sr\.?\s*no|#|item\s*no|sl\s*no)$/i],
+  serial: [/^(s\.?\s*no|sr\.?\s*no|#|item\s*no|sl\s*no|pos(\.?|\s*no)?|no\.?|line(\s*no)?)$/i],
   name: [
-    /^(item(\s*name)?|description|item\s*desc|particulars|material|scope(\s*of\s*supply)?)$/i,
+    /^(item(\s*name)?|description|item\s*desc(ription)?|particulars|material|scope(\s*of\s*supply)?|product(\s*name)?)$/i,
     /description/i,
     /item/i,
   ],
-  description: [/^(specification|spec|detailed\s*desc|remarks|dimension|size)$/i],
+  description: [/^(specification|spec(s)?|detailed\s*desc(ription)?|remarks|dimension(s)?|size)$/i],
   partNumber: [
-    /^(part\s*(no|number|#)?|drawing\s*(no|#)?|dwg\s*no|article\s*no|impa(\s*code)?|issa(\s*code)?|pos(\s*no)?)$/i,
+    /^(part\s*(no|number|#)?|drawing\s*(no|#)?|dwg\s*no|article\s*no|cat(alogue)?\s*no|impa(\s*code)?|issa(\s*code)?)$/i,
     /part\s*no/i,
     /drawing/i,
+    /impa/i,
   ],
-  qty: [/^(qty|quantity|qnty|req(\.|\s*qty)?|required\s*qty)$/i, /qty/i, /quantity/i],
-  unit: [/^(uom|unit|unit\s*of\s*(measure|measurement)|pkg)$/i, /unit/i],
-  price: [/^(rate|unit\s*price|price|cost|unit\s*rate)$/i, /price/i, /rate/i],
-  total: [/^(total|line\s*total|amount|ext\s*price)$/i, /total/i],
+  qty: [/^(qty|quantity|qnty|req(\.|\s*qty)?|required\s*qty|qty\s*\([^)]+\))$/i, /qty/i, /quantity/i],
+  unit: [/^(uom|unit|unit\s*of\s*(measure|measurement)|pkg|pack)$/i, /unit/i, /uom/i],
+  price: [/^(rate|unit\s*price|price|cost|unit\s*rate|unit\s*cost)$/i, /price/i, /rate/i],
+  total: [/^(total|line\s*total|amount|ext\s*price|total\s*price|subtotal)$/i, /total/i, /amount/i],
   text: [],
   number: [],
 };
@@ -108,11 +109,11 @@ export async function parseExcelDeterministically(
 
     const ws = bestSheet as ExcelJS.Worksheet;
 
-    // Scan the first 15 rows to find the table header row
+    // Scan the first 25 rows to find the table header row
     let headerRowNumber = -1;
     let detectedColumns: { colIndex: number; label: string; kind: ImportKind }[] = [];
 
-    for (let r = 1; r <= Math.min(15, ws.rowCount); r++) {
+    for (let r = 1; r <= Math.min(25, ws.rowCount); r++) {
       const row = ws.getRow(r);
       const candidates: { colIndex: number; label: string; kind: ImportKind }[] = [];
 
@@ -160,6 +161,11 @@ export async function parseExcelDeterministically(
         const rfqMatch = val.match(/(?:rfq|enquiry|inquiry|requisition|req)\s*(?:no|number|#)?\s*[:\-]\s*(.+)/i);
         if (rfqMatch && !rfqDetails.rfqNumber) {
           rfqDetails.rfqNumber = rfqMatch[1].trim();
+        }
+
+        const dateMatch = val.match(/(?:date)\s*[:\-]\s*(\d{1,4}[-/\.]\d{1,2}[-/\.]\d{1,4}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})/i);
+        if (dateMatch && !rfqDetails.date) {
+          rfqDetails.date = dateMatch[1].trim();
         }
       }
     }

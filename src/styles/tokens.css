@@ -1,12 +1,11 @@
 /**
- * QuoteCraft Mobile Design & Motion Tokens
- * Built for high-frequency marine suppliers operating on mid-range devices.
+ * QuoteCraft design tokens: shared foundations for every screen and workflow.
  */
 
 :root {
-  /* ── Color Palette (Maritime Prestige) ── */
-  --color-primary: #347A72;
-  --color-primary-dark: #28645E;
+  /* ── Brand and neutral palette ── */
+  --color-primary: #0F766E;
+  --color-primary-dark: #0D6B63;
   --color-primary-light: #E0F2F1;
   --color-accent-gold: #F59E0B;
   --color-background: #F8FAFC;
@@ -15,7 +14,7 @@
   --color-text-secondary: #64748B;
   --color-text-muted: #94A3B8;
   --color-border: #E2E8F0;
-  --color-border-active: #347A72;
+  --color-border-active: #0F766E;
   --color-success: #16A36A;
   --color-success-bg: #ECFDF5;
   --color-warning: #E99A2E;
@@ -25,6 +24,17 @@
 
   /* ── Highlight Flash (Pricing Updates) ── */
   --color-highlight-flash: #D1FAE5; /* Mint green */
+
+  /* ── Spacing scale: 4px base ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
 
   /* ── Motion Durations ── */
   --motion-instant: 80ms;
@@ -36,7 +46,7 @@
   /* ── Motion Easings (Hardware Accelerated) ── */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.2, 0.64, 1);
   --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
 
   /* ── Ergonomic Dimensions ── */
@@ -53,10 +63,10 @@
   --shadow-sheet: 0 -4px 16px -2px rgba(0, 0, 0, 0.12);
 
   /* ── Radii ── */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
 /* ── Interactive Press Feedback (.pressable) ── */

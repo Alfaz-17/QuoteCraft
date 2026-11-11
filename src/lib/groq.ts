@@ -37,7 +37,8 @@ export function getGroqClient(customApiKey?: string): Groq {
   if (!apiKey) {
     throw new Error("GROQ_API_KEY_MISSING");
   }
-  return new Groq({ apiKey, timeout: 35_000, maxRetries: 1 });
+  // Fast 18s timeout and maxRetries: 0 prevents the SDK from waiting 50+ seconds on rate-limited models
+  return new Groq({ apiKey, timeout: 18_000, maxRetries: 0 });
 }
 
 /**
@@ -177,13 +178,43 @@ export async function extractRfqWithGroq(params: {
     throw new Error("NO_INPUT_PROVIDED");
   }
 
-  const response = await groq.chat.completions.create({
-    model,
-    messages,
-    response_format: { type: "json_object" },
-    temperature: 0.1,
-    max_completion_tokens: 4096,
-  });
+  let response;
+  let activeModel = model;
+
+  try {
+    response = await groq.chat.completions.create({
+      model: activeModel,
+      messages,
+      response_format: { type: "json_object" },
+      temperature: 0.1,
+      max_completion_tokens: 3072,
+    });
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; message?: string };
+    const errMsg = errorObj?.message || String(err);
+    const isRateOrTimeout =
+      errorObj?.status === 429 ||
+      errMsg.includes("429") ||
+      errMsg.includes("rate_limit") ||
+      errMsg.includes("ITPM") ||
+      errMsg.includes("Request too large") ||
+      errMsg.includes("timeout");
+
+    // If primary model hit Groq TPM/ITPM limit or timed out, attempt immediate failover to high-capacity Llama-3.3-70b
+    if (isRateOrTimeout && activeModel !== "llama-3.3-70b-versatile") {
+      console.warn(`Groq primary model ${activeModel} hit rate limit. Auto-failing over to llama-3.3-70b-versatile for fast recovery...`);
+      activeModel = "llama-3.3-70b-versatile";
+      response = await groq.chat.completions.create({
+        model: activeModel,
+        messages,
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+        max_completion_tokens: 3072,
+      });
+    } else {
+      throw err;
+    }
+  }
 
   const choice = response.choices?.[0];
   if (!choice || !choice.message?.content) {
@@ -212,7 +243,7 @@ export async function extractRfqWithGroq(params: {
 
   return {
     data: parseResult.data,
-    model,
+    model: activeModel,
     usage,
     durationMs,
   };

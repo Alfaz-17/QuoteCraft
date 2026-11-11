@@ -44,10 +44,10 @@ export function StepNavigation({
   ];
 
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border-b border-slate-200/80 relative shrink-0 z-20 px-3 sm:px-6 py-1.5">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full bg-white border-b border-slate-200 relative shrink-0 z-20 px-3 sm:px-6 py-2">
+      <div className="max-w-6xl mx-auto">
         {/* Segmented Pill Bar */}
-        <nav className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/70 shadow-inner">
+        <nav className="flex items-center gap-1 p-1 bg-slate-50 rounded-lg border border-slate-200">
           {steps.map((step) => {
             const isActive = currentStep === step.num;
             const isCompleted = currentStep > step.num;
@@ -58,7 +58,7 @@ export function StepNavigation({
                 type="button"
                 onClick={() => step.available && onStepChange(step.num)}
                 disabled={!step.available}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all min-h-[42px] select-none ${
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[42px] select-none ${
                   isActive
                     ? "bg-white text-brand-600 shadow-xs"
                     : isCompleted

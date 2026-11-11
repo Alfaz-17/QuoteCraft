@@ -141,6 +141,18 @@ function QuotationBuilder() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // Reset quotation if navigated via "New Quotation" link (?new=true)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("new") === "true") {
+        dispatch({ type: "NEW_QUOTATION" });
+        setCurrentStep(1);
+        window.history.replaceState({}, "", "/");
+      }
+    }
+  }, [dispatch]);
+
   // Check if authenticated user has completed company onboarding
   useEffect(() => {
     if (!isHydrated) return;
@@ -464,6 +476,7 @@ function QuotationBuilder() {
             onUpdateClient={handleUpdateClient}
             onImportComplete={handleImportComplete}
             onSkipUpload={handleSkipUpload}
+            onClearDraft={handleNewQuote}
           />
         )}
 

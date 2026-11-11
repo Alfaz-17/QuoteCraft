@@ -164,6 +164,14 @@ export function Step2CheckItems({
   };
 
   const handleProceed = () => {
+    if (items.length === 0) {
+      onAddItem();
+      return;
+    }
+    if (selectedCount === 0) {
+      handleToggleSelectAll();
+      return;
+    }
     if (reviewCount > 0) {
       setShowConfirmModal(true);
     } else {
@@ -172,9 +180,9 @@ export function Step2CheckItems({
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#F8FAFC]">
+    <div className="flex-1 flex flex-col min-h-0 bg-background">
       {/* ── TOP SCROLLABLE CONTAINER ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-6 py-4 max-w-2xl mx-auto w-full space-y-3 pb-28">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto w-full space-y-4 pb-28">
         {/* Step Header */}
         <StepHeader
           step={2}
@@ -253,7 +261,7 @@ export function Step2CheckItems({
         </div>
 
         {/* ── SEARCH & FILTER CONTROLS ── */}
-        <div className="space-y-2 sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-xs pt-1 pb-2">
+        <div className="space-y-2 sticky top-0 z-10 bg-background/95 backdrop-blur-xs pt-1 pb-2">
           {/* Search Bar */}
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -374,7 +382,35 @@ export function Step2CheckItems({
         )}
 
         {/* ── PRODUCT LIST (SUPER COMPACT FOR 100 PRODUCTS) ── */}
-        {filteredItems.length === 0 ? (
+        {items.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
+              <Package className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-slate-800">No items in this quotation yet</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Add your first line item manually or return to upload an RFQ document.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-2">
+              <Button
+                type="button"
+                onClick={onAddItem}
+                className="h-10 px-4 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+              >
+                <Plus className="w-4 h-4" /> Add First Item
+              </Button>
+              <button
+                type="button"
+                onClick={onBack}
+                className="h-10 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Upload RFQ
+              </button>
+            </div>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
             <Package className="w-8 h-8 text-slate-300 mx-auto" />
             <p className="text-sm font-bold text-slate-700">No items match your filter.</p>
@@ -673,7 +709,7 @@ export function Step2CheckItems({
 
       {/* ── STICKY BOTTOM ACTION BAR (Ultra Compact Mobile Friendly) ── */}
       <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2.5">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={onBack}

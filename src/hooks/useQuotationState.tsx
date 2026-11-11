@@ -61,17 +61,20 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
       const savedCompany = localStorage.getItem(COMPANY_KEY);
       const savedBranding = localStorage.getItem(BRANDING_KEY);
       const savedTerms   = localStorage.getItem(TERMS_KEY);
+      const savedLogo    = localStorage.getItem("companyLogo");
 
       if (saved) {
         const parsed = JSON.parse(saved);
         if (savedCompany)  parsed.company  = { ...parsed.company,  ...JSON.parse(savedCompany) };
         if (savedBranding) parsed.branding = { ...parsed.branding, ...JSON.parse(savedBranding) };
+        if (savedLogo)     parsed.branding = { ...parsed.branding, logo: savedLogo };
         if (savedTerms)    parsed.terms    = savedTerms;
         dispatch({ type: "RESET", payload: parsed });
-      } else if (savedCompany || savedBranding || savedTerms) {
+      } else if (savedCompany || savedBranding || savedTerms || savedLogo) {
         const updates: Partial<QuotationState> = {};
         if (savedCompany)  updates.company  = JSON.parse(savedCompany);
         if (savedBranding) updates.branding = JSON.parse(savedBranding);
+        if (savedLogo)     updates.branding = { ...(updates.branding || initialState.branding), logo: savedLogo };
         if (savedTerms)    updates.terms    = savedTerms;
         dispatch({ type: "RESET", payload: { ...initialState, ...updates } as QuotationState });
       }
@@ -94,13 +97,27 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
         const { profile } = await res.json();
         if (!profile || cancelled) return;
 
+        const dbCompany = (profile.company && typeof profile.company === "object" && profile.company.name)
+          ? { ...state.company, ...profile.company }
+          : state.company;
+
+        const currentLogo = state.branding.logo || (typeof window !== "undefined" ? localStorage.getItem("companyLogo") : null);
+
+        const dbBranding = (profile.branding && typeof profile.branding === "object" && profile.branding.primaryColor)
+          ? { ...state.branding, ...profile.branding, logo: currentLogo }
+          : { ...state.branding, logo: currentLogo };
+
+        const dbTerms = (typeof profile.terms === "string" && profile.terms.trim())
+          ? profile.terms
+          : state.terms;
+
         dispatch({
           type: "RESET",
           payload: {
             ...state,
-            company:      profile.company      ?? state.company,
-            branding:     { ...(profile.branding ?? {}), logo: state.branding.logo },
-            terms:        profile.terms         ?? state.terms,
+            company:      dbCompany,
+            branding:     dbBranding,
+            terms:        dbTerms,
             currency:     (profile.builderConfig?.currency as Currency) || state.currency,
             tableColumns: profile.tableColumns?.length ? profile.tableColumns : state.tableColumns,
             builderConfig: profile.builderConfig ?? state.builderConfig,
