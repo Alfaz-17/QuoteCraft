@@ -236,7 +236,7 @@ export function Step3AddPricesAndSend({
           <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
             <div className="min-w-0">
               <span className="text-xs text-[#64748B] block">Total:</span>
-              <span className="font-mono font-black text-base sm:text-lg text-[#347A72]">
+              <span className="font-mono font-black text-base sm:text-lg text-[#0F766E]">
                 {formattedTotal}
               </span>
             </div>
@@ -253,7 +253,7 @@ export function Step3AddPricesAndSend({
               <Button
                 disabled={isDownloading}
                 onClick={handleDownloadPDF}
-                className="h-12 px-5 sm:px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#347A72] hover:bg-[#28645E] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
+                className="h-12 px-5 sm:px-6 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-sm flex items-center justify-center gap-2 min-h-[48px]"
               >
                 {isDownloading ? (
                   <>
@@ -373,7 +373,7 @@ export function Step3AddPricesAndSend({
           <select
             value={currency}
             onChange={(e) => onSetCurrency(e.target.value as Currency)}
-            className="h-8 px-2.5 rounded-lg border border-slate-300 font-bold text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#347A72]"
+            className="h-8 px-2.5 rounded-lg border border-slate-300 font-bold text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0F766E]"
           >
             {Object.keys(CURRENCY_SYMBOLS).map((c) => (
               <option key={c} value={c}>
@@ -416,7 +416,7 @@ export function Step3AddPricesAndSend({
                           isTba: e.target.checked,
                         })
                       }
-                      className="rounded border-slate-300 text-[#347A72] focus:ring-[#347A72]"
+                      className="rounded border-slate-300 text-[#0F766E] focus:ring-[#0F766E]"
                     />
                     <span>TBA</span>
                   </label>
@@ -456,7 +456,7 @@ export function Step3AddPricesAndSend({
                             });
                           }}
                           onKeyDown={(e) => handleKeyDown(e, idx)}
-                          className="w-full h-11 pl-8 pr-3 rounded-xl border border-slate-300 font-mono font-bold text-base text-[#172033] bg-white focus:outline-none focus:ring-2 focus:ring-[#347A72]"
+                          className="w-full h-11 pl-8 pr-3 rounded-xl border border-slate-300 font-mono font-bold text-base text-[#172033] bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
                         />
                       </div>
                     </div>
@@ -504,15 +504,16 @@ export function Step3AddPricesAndSend({
                     type="number"
                     min="0"
                     step="any"
+                    inputMode="decimal"
                     value={discount || ""}
                     placeholder="0"
                     onChange={(e) => onSetDiscount(parseFloat(e.target.value) || 0, discountType)}
-                    className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
+                    className="h-10 text-base sm:text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                   />
                   <select
                     value={discountType}
                     onChange={(e) => onSetDiscount(discount, e.target.value as "flat" | "percent")}
-                    className="h-10 px-3 rounded-xl border border-slate-300 text-xs font-bold bg-white text-slate-700"
+                    className="h-10 px-3 rounded-xl border border-slate-300 text-base sm:text-xs font-bold bg-white text-slate-700"
                   >
                     <option value="flat">{currencySymbol} Flat</option>
                     <option value="percent">% Off</option>
@@ -528,10 +529,11 @@ export function Step3AddPricesAndSend({
                   min="0"
                   max="100"
                   step="any"
+                  inputMode="decimal"
                   value={taxPercent || ""}
                   placeholder="0 %"
                   onChange={(e) => onSetTaxPercent(parseFloat(e.target.value) || 0)}
-                  className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                 />
               </div>
 
@@ -542,10 +544,11 @@ export function Step3AddPricesAndSend({
                   type="number"
                   min="0"
                   step="any"
+                  inputMode="decimal"
                   value={shippingCharge || ""}
                   placeholder="0.00"
                   onChange={(e) => onSetShipping(parseFloat(e.target.value) || 0)}
-                  className="h-10 text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm font-mono font-bold rounded-xl border-slate-300 bg-white"
                 />
               </div>
             </div>
@@ -580,7 +583,7 @@ export function Step3AddPricesAndSend({
                   value={state.client.companyName || ""}
                   onChange={(e) => onUpdateClient({ companyName: e.target.value })}
                   placeholder="e.g. Ocean Marine Ltd."
-                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
                 />
               </div>
 
@@ -590,7 +593,7 @@ export function Step3AddPricesAndSend({
                   value={state.client.name || ""}
                   onChange={(e) => onUpdateClient({ name: e.target.value })}
                   placeholder="e.g. Capt. Smith"
-                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
                 />
               </div>
 
@@ -598,19 +601,21 @@ export function Step3AddPricesAndSend({
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Email</Label>
                   <Input
+                    type="email"
                     value={state.client.email || ""}
                     onChange={(e) => onUpdateClient({ email: e.target.value })}
                     placeholder="purchasing@vessel.com"
-                    className="h-10 text-xs rounded-xl border-slate-300 bg-white"
+                    className="h-10 text-base sm:text-xs rounded-xl border-slate-300 bg-white"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Phone</Label>
                   <Input
+                    type="tel"
                     value={state.client.phone || ""}
                     onChange={(e) => onUpdateClient({ phone: e.target.value })}
                     placeholder="+91..."
-                    className="h-10 text-xs rounded-xl border-slate-300 bg-white"
+                    className="h-10 text-base sm:text-xs rounded-xl border-slate-300 bg-white"
                   />
                 </div>
               </div>
@@ -646,7 +651,7 @@ export function Step3AddPricesAndSend({
                   value={state.documentInfo.vessel || ""}
                   onChange={(e) => onUpdateDocInfo({ vessel: e.target.value })}
                   placeholder="e.g. M/V Oceanic Star"
-                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
                 />
               </div>
 
@@ -656,7 +661,7 @@ export function Step3AddPricesAndSend({
                   value={state.documentInfo.reference || ""}
                   onChange={(e) => onUpdateDocInfo({ reference: e.target.value })}
                   placeholder="e.g. RFQ-2026-ENG-09"
-                  className="h-10 text-sm rounded-xl border-slate-300 bg-white"
+                  className="h-10 text-base sm:text-sm rounded-xl border-slate-300 bg-white"
                 />
               </div>
             </div>

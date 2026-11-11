@@ -101,12 +101,12 @@ export function CompanyProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-lg shadow-2xl border border-slate-200/80 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200/80 w-full max-w-2xl max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200/80 text-[#0F766E] flex items-center justify-center shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
@@ -120,18 +120,19 @@ export function CompanyProfileModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+            className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Native Segmented Sub-tabs */}
-        <div className="px-4 sm:px-6 pt-3 pb-1 border-b border-slate-100 bg-white">
+        <div className="px-4 sm:px-6 pt-3 pb-1 border-b border-slate-100 bg-white shrink-0">
           <div className="flex p-1 bg-slate-100 rounded-xl gap-1">
             <button
               onClick={() => setActiveTab("business")}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all min-h-[40px] flex items-center justify-center ${
                 activeTab === "business"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -141,7 +142,7 @@ export function CompanyProfileModal({
             </button>
             <button
               onClick={() => setActiveTab("bank")}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all min-h-[40px] flex items-center justify-center ${
                 activeTab === "bank"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -151,7 +152,7 @@ export function CompanyProfileModal({
             </button>
             <button
               onClick={() => setActiveTab("terms")}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all min-h-[40px] flex items-center justify-center ${
                 activeTab === "terms"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -242,7 +243,7 @@ export function CompanyProfileModal({
                     value={company.name || ""}
                     onChange={(e) => setCompany({ ...company, name: e.target.value })}
                     placeholder="e.g. Apex Marine & Industrial Spares"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
 
@@ -252,27 +253,29 @@ export function CompanyProfileModal({
                     value={company.address || ""}
                     onChange={(e) => setCompany({ ...company, address: e.target.value })}
                     placeholder="e.g. Plot 42, Port Road, Gandhidham, Gujarat 370201"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Phone / WhatsApp</Label>
                   <Input
+                    type="tel"
                     value={company.phone || ""}
                     onChange={(e) => setCompany({ ...company, phone: e.target.value })}
                     placeholder="+91 98765 43210"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Email Address</Label>
                   <Input
+                    type="email"
                     value={company.email || ""}
                     onChange={(e) => setCompany({ ...company, email: e.target.value })}
                     placeholder="sales@apexmarine.com"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
 
@@ -282,17 +285,18 @@ export function CompanyProfileModal({
                     value={company.taxId || ""}
                     onChange={(e) => setCompany({ ...company, taxId: e.target.value })}
                     placeholder="e.g. 24AAAAA0000A1Z5"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Website</Label>
                   <Input
+                    type="url"
                     value={company.website || ""}
                     onChange={(e) => setCompany({ ...company, website: e.target.value })}
                     placeholder="www.apexmarine.com"
-                    className="h-9 text-xs sm:text-sm font-semibold rounded-xl"
+                    className="h-10 text-base sm:text-sm font-semibold rounded-xl"
                   />
                 </div>
               </div>
@@ -308,7 +312,7 @@ export function CompanyProfileModal({
                 value={company.bankDetails || ""}
                 onChange={(e) => setCompany({ ...company, bankDetails: e.target.value })}
                 placeholder="Bank: HDFC Bank&#10;A/C Name: Apex Marine Spares&#10;A/C No: 50200012345678&#10;IFSC: HDFC0001234&#10;Branch: Gandhidham"
-                className="w-full h-36 p-3 text-xs sm:text-sm font-mono border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
+                className="w-full h-36 p-3 text-base sm:text-sm font-mono border rounded-xl focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E] outline-none resize-none bg-slate-50/50"
               />
               <p className="text-xs text-slate-400">
                 Printed on the PDF quotation so buyers can pay directly to your bank account.
@@ -325,7 +329,7 @@ export function CompanyProfileModal({
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 placeholder="1. Delivery: Ex-Stock / 3-5 working days.&#10;2. Payment: 100% against proforma invoice.&#10;3. Quote Validity: 30 days from date of issue.&#10;4. Taxes: GST as applicable."
-                className="w-full h-36 p-3 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none resize-none bg-slate-50/50"
+                className="w-full h-36 p-3 text-base sm:text-sm border rounded-xl focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E] outline-none resize-none bg-slate-50/50"
               />
               <p className="text-xs text-slate-400">
                 Automatically included in every quote. You can edit this anytime.
@@ -335,17 +339,17 @@ export function CompanyProfileModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
+        <div className="p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3 shrink-0">
           <Button
             variant="outline"
             onClick={onClose}
-            className="h-10 px-5 rounded-xl font-semibold text-xs border-slate-200"
+            className="h-11 px-5 rounded-xl font-semibold text-xs border-slate-200"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
-            className="h-10 px-6 rounded-xl font-bold text-xs bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 min-w-[130px] active:scale-[0.98]"
+            className="h-11 px-6 rounded-xl font-bold text-xs bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 min-w-[130px] active:scale-[0.98]"
           >
             {savedSuccess ? (
               <>

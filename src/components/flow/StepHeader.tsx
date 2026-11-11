@@ -17,7 +17,7 @@ export function StepHeader({ step, title, subtitle, badge }: StepHeaderProps) {
           Step {step} of 3
         </span>
         {badge && (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-[#347A72] border border-slate-200">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-[#0F766E] border border-slate-200">
             {badge}
           </span>
         )}
@@ -27,17 +27,17 @@ export function StepHeader({ step, title, subtitle, badge }: StepHeaderProps) {
       <div className="flex gap-1.5 w-full py-1">
         <div
           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-            step >= 1 ? "bg-[#347A72]" : "bg-[#E2E8F0]"
+            step >= 1 ? "bg-[#0F766E]" : "bg-[#E2E8F0]"
           }`}
         />
         <div
           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-            step >= 2 ? "bg-[#347A72]" : "bg-[#E2E8F0]"
+            step >= 2 ? "bg-[#0F766E]" : "bg-[#E2E8F0]"
           }`}
         />
         <div
           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-            step >= 3 ? "bg-[#347A72]" : "bg-[#E2E8F0]"
+            step >= 3 ? "bg-[#0F766E]" : "bg-[#E2E8F0]"
           }`}
         />
       </div>

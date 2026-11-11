@@ -365,10 +365,15 @@ export async function POST(req: NextRequest) {
       statusCode = 401;
       friendlyMessage =
         "Groq API key is invalid or not configured on the server. Please check your environment variables.";
-    } else if (errMsg.includes("rate_limit_exceeded") || errMsg.includes("429")) {
+    } else if (
+      errMsg.includes("rate_limit_exceeded") ||
+      errMsg.includes("429") ||
+      errMsg.includes("ITPM") ||
+      errMsg.includes("Request too large")
+    ) {
       statusCode = 429;
       friendlyMessage =
-        "Groq AI rate limit exceeded. Please wait a few seconds and try again, or use deterministic Excel/PDF import.";
+        "The uploaded document is too large for the current AI token limit. Please upload a spreadsheet with fewer rows (under 80 items) or paste the requisition items directly.";
     } else if (errMsg.includes("UNSUPPORTED_IMAGE_MIME")) {
       statusCode = 400;
       friendlyMessage =

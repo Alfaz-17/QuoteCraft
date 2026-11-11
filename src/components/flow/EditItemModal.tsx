@@ -117,13 +117,12 @@ export function EditItemModal({
             />
           </div>
 
-          {/* Part Number * */}
+          {/* Part Number (Optional) */}
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-[#0F172A]">
-              Part Number <span className="text-rose-500">*</span>
+              Part Number <span className="text-slate-400 font-normal">(Optional)</span>
             </Label>
             <Input
-              required
               value={partNumber}
               onChange={(e) => setPartNumber(e.target.value)}
               placeholder="e.g. PN-MB-001"

@@ -37,7 +37,7 @@ export function getGroqClient(customApiKey?: string): Groq {
   if (!apiKey) {
     throw new Error("GROQ_API_KEY_MISSING");
   }
-  return new Groq({ apiKey });
+  return new Groq({ apiKey, timeout: 35_000, maxRetries: 1 });
 }
 
 /**
@@ -160,9 +160,10 @@ export async function extractRfqWithGroq(params: {
       },
     ];
   } else if (params.textInput) {
-    // Guard against excessively massive text (cap at 60,000 characters)
-    const sanitizedText = params.textInput.length > 60_000
-      ? params.textInput.substring(0, 60_000)
+    // Guard against excessively massive text: cap to 18,000 characters (~4,500 tokens)
+    // to keep comfortably within Groq's 7,000 ITPM free tier rate limit
+    const sanitizedText = params.textInput.length > 18_000
+      ? params.textInput.substring(0, 18_000)
       : params.textInput;
 
     messages = [
@@ -181,7 +182,7 @@ export async function extractRfqWithGroq(params: {
     messages,
     response_format: { type: "json_object" },
     temperature: 0.1,
-    max_completion_tokens: 8192,
+    max_completion_tokens: 4096,
   });
 
   const choice = response.choices?.[0];

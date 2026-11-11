@@ -261,7 +261,7 @@ export function Step1Upload({
                   : "text-[#64748B] hover:text-[#172033]"
               }`}
             >
-              <UploadCloud className="w-4 h-4 text-[#347A72]" />
+              <UploadCloud className="w-4 h-4 text-[#0F766E]" />
               <span>Upload</span>
             </button>
 
@@ -274,7 +274,7 @@ export function Step1Upload({
                   : "text-[#64748B] hover:text-[#172033]"
               }`}
             >
-              <ClipboardList className="w-4 h-4 text-[#347A72]" />
+              <ClipboardList className="w-4 h-4 text-[#0F766E]" />
               <span>Paste Text</span>
             </button>
           </div>
@@ -338,7 +338,7 @@ export function Step1Upload({
                         setSelectedFile(null);
                         if (fileInputRef.current) fileInputRef.current.value = "";
                       }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/80 transition-colors shrink-0"
+                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200/80 transition-colors shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -354,7 +354,7 @@ export function Step1Upload({
                   <Button
                     type="button"
                     onClick={handleProcessFile}
-                    className="w-full h-12 rounded-xl text-sm font-bold bg-[#347A72] hover:bg-[#28645E] active:scale-[0.98] text-white shadow-sm transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                    className="w-full h-12 rounded-xl text-sm font-bold bg-[#0F766E] hover:bg-[#0D6B63] active:scale-[0.98] text-white shadow-sm transition-all flex items-center justify-center gap-2 min-h-[48px]"
                   >
                     <span>Extract Products</span>
                     <ArrowRight className="w-4 h-4" />
@@ -371,17 +371,17 @@ export function Step1Upload({
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer text-center space-y-4 ${
                     isDragOver
-                      ? "border-[#347A72] bg-teal-50/50"
-                      : "border-slate-300 hover:border-[#347A72]/60 bg-slate-50/40 hover:bg-slate-50/80"
+                      ? "border-[#0F766E] bg-teal-50/50"
+                      : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/40 hover:bg-slate-50/80"
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-xl bg-teal-50 text-[#347A72] mx-auto flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
                     <UploadCloud className="w-6 h-6 stroke-[2]" />
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-sm font-bold text-[#172033]">
-                      Upload your file
+                      Upload your RFQ document
                     </p>
                     <div>
                       <button
@@ -390,14 +390,14 @@ export function Step1Upload({
                           e.stopPropagation();
                           fileInputRef.current?.click();
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#347A72] hover:bg-[#28645E] text-white text-xs font-bold transition-transform active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-transform active:scale-95"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         <span>Browse Files</span>
                       </button>
                     </div>
                     <p className="text-[11px] text-[#64748B] pt-1">
-                      PDF, Excel, DOCX • Max 10MB
+                      Excel (.xlsx, .xls, .csv), PDF, or Images • Max 10MB
                     </p>
                   </div>
                 </div>
@@ -412,13 +412,13 @@ export function Step1Upload({
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="e.g. Please quote urgently:&#10;1. 4 pcs Centrifugal pump MP-102&#10;2. 8 pcs Exhaust valve spindle&#10;3. 2 pcs Injector nozzle"
-                className="w-full h-40 p-3.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#347A72] focus:border-transparent resize-y"
+                className="w-full h-40 p-3.5 rounded-xl border border-slate-300 text-base sm:text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E] focus:border-transparent resize-y"
               />
               <div className="flex justify-end">
                 <Button
                   disabled={isProcessing || !pastedText.trim()}
                   onClick={handleProcessPastedText}
-                  className="h-11 px-5 rounded-xl font-bold text-xs sm:text-sm bg-[#347A72] hover:bg-[#28645E] text-white min-h-[44px]"
+                  className="h-11 px-5 rounded-xl font-bold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white min-h-[44px]"
                 >
                   {isProcessing ? (
                     <>
@@ -440,7 +440,7 @@ export function Step1Upload({
           <button
             type="button"
             onClick={onSkipUpload}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#347A72] hover:text-[#28645E] py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] py-2 px-3 rounded-lg hover:bg-slate-100 transition-colors min-h-[44px]"
           >
             <Plus className="w-4 h-4" />
             <span>Enter items manually</span>

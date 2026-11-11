@@ -356,8 +356,8 @@ function QuotationBuilder() {
 
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" title="QuoteCraft Dashboard">
             <QuoteCraftLogo size={26} showText={false} />
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-[#172033] leading-none group-hover:text-[#347A72] transition-colors truncate">
-              Quote<span className="text-[#347A72]">Craft</span>
+            <span className="font-extrabold text-sm sm:text-base tracking-tight text-[#172033] leading-none group-hover:text-[#0F766E] transition-colors truncate">
+              Quote<span className="text-[#0F766E]">Craft</span>
             </span>
             {currentStep > 1 && (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#0F766E] border border-teal-200 shrink-0">
@@ -410,7 +410,7 @@ function QuotationBuilder() {
                   }}
                   className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
                 >
-                  <FilePlus className="w-4 h-4 text-[#347A72]" />
+                  <FilePlus className="w-4 h-4 text-[#0F766E]" />
                   <span>Start New Quote</span>
                 </button>
 
@@ -422,7 +422,7 @@ function QuotationBuilder() {
                   }}
                   className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
                 >
-                  <Building2 className="w-4 h-4 text-[#347A72]" />
+                  <Building2 className="w-4 h-4 text-[#0F766E]" />
                   <span>Company Profile</span>
                 </button>
 

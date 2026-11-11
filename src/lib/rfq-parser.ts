@@ -54,6 +54,31 @@ function classifyHeader(text: string): ImportKind {
 }
 
 /**
+ * Safely extracts plain text from an ExcelJS cell without throwing null / formula errors.
+ */
+export function getCellSafeText(cell: ExcelJS.Cell | undefined): string {
+  if (!cell) return "";
+  try {
+    if (cell.value === null || cell.value === undefined) return "";
+    if (typeof cell.value === "string") return cell.value.trim();
+    if (typeof cell.value === "number") return String(cell.value);
+    if (typeof cell.value === "boolean") return String(cell.value);
+    if (cell.value instanceof Date) return cell.value.toISOString().split("T")[0];
+    if (typeof cell.value === "object") {
+      const v = cell.value as unknown as Record<string, unknown>;
+      if (v.result !== undefined && v.result !== null) return String(v.result).trim();
+      if (Array.isArray(v.richText)) {
+        return (v.richText as Array<{ text?: string }>).map((r) => r.text || "").join("").trim();
+      }
+      if (v.text) return String(v.text).trim();
+    }
+    return cell.text ? String(cell.text).trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Deterministically parses an Excel workbook buffer into columns and rows without calling an LLM.
  * Returns null if no suitable header row or items could be identified with confidence.
  */
@@ -92,10 +117,10 @@ export async function parseExcelDeterministically(
       const candidates: { colIndex: number; label: string; kind: ImportKind }[] = [];
 
       for (let c = 1; c <= Math.min(row.cellCount, 25); c++) {
-        const val = row.getCell(c).text;
-        if (val && typeof val === "string" && val.trim().length > 0) {
-          const kind = classifyHeader(val.trim());
-          candidates.push({ colIndex: c, label: val.trim(), kind });
+        const val = getCellSafeText(row.getCell(c));
+        if (val && val.length > 0) {
+          const kind = classifyHeader(val);
+          candidates.push({ colIndex: c, label: val, kind });
         }
       }
 
@@ -119,7 +144,7 @@ export async function parseExcelDeterministically(
     for (let r = 1; r < headerRowNumber; r++) {
       const row = ws.getRow(r);
       for (let c = 1; c <= Math.min(row.cellCount, 15); c++) {
-        const val = row.getCell(c).text?.trim();
+        const val = getCellSafeText(row.getCell(c));
         if (!val) continue;
 
         const vesselMatch = val.match(/(?:vessel(?:\s*name)?|ship)\s*[:\-]\s*(.+)/i) || val.match(/^(?:m\/?v|mt|mv)\s+([a-z0-9\s\.\-_]+)/i);
@@ -160,10 +185,10 @@ export async function parseExcelDeterministically(
         const cell = row.getCell(col.colIndex);
         let cellVal: string | number = "";
 
-        if (cell.type === ExcelJS.ValueType.Number) {
+        if (cell.type === ExcelJS.ValueType.Number && typeof cell.value === "number") {
           cellVal = Number(cell.value);
-        } else if (cell.text !== undefined && cell.text !== null) {
-          cellVal = cell.text.trim();
+        } else {
+          cellVal = getCellSafeText(cell);
         }
 
         rowObj[`c${idx + 1}`] = cellVal;
@@ -202,7 +227,7 @@ export async function parseExcelDeterministically(
       method: "deterministic_excel",
       durationMs: Date.now() - startTime,
       uncertainCount,
-      sheetName: ws.name,
+      sheetName: ws.name || "Sheet1",
       rfqDetails,
     };
   } catch (err) {
@@ -217,18 +242,38 @@ export async function xlsxToText(buffer: Buffer): Promise<string> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await wb.xlsx.load(buffer as any);
   const parts: string[] = [];
+  let totalChars = 0;
+  const MAX_TEXT_CHARS = 18_000;
+
+  const sheets: ExcelJS.Worksheet[] = [];
   wb.eachSheet((ws) => {
-    const lines: string[] = [];
-    ws.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-      const cells: string[] = [];
-      for (let c = 1; c <= row.cellCount; c++) {
-        const t = row.getCell(c).text ?? "";
-        cells.push(String(t).replace(/\s+/g, " ").trim());
-      }
-      if (cells.some(Boolean)) lines.push(`${rowNumber}\t${cells.join("\t")}`);
-    });
-    if (lines.length) parts.push(`## Sheet: ${ws.name}\n${lines.join("\n")}`);
+    if (ws && ws.rowCount > 0) sheets.push(ws);
   });
+  sheets.sort((a, b) => (b.rowCount || 0) - (a.rowCount || 0));
+
+  for (const ws of sheets) {
+    if (totalChars >= MAX_TEXT_CHARS) break;
+    const lines: string[] = [];
+    const sheetName = ws.name || "Sheet";
+    const maxRow = Math.min(ws.rowCount || 0, 80);
+
+    for (let r = 1; r <= maxRow; r++) {
+      if (totalChars >= MAX_TEXT_CHARS) break;
+      const row = ws.getRow(r);
+      const cells: string[] = [];
+      const maxCol = Math.min(row.cellCount || 0, 20);
+      for (let c = 1; c <= maxCol; c++) {
+        const t = getCellSafeText(row.getCell(c));
+        cells.push(t.replace(/\s+/g, " "));
+      }
+      if (cells.some(Boolean)) {
+        const line = `${r}\t${cells.join("\t")}`;
+        lines.push(line);
+        totalChars += line.length + 1;
+      }
+    }
+    if (lines.length) parts.push(`## Sheet: ${sheetName}\n${lines.join("\n")}`);
+  }
   return parts.join("\n\n");
 }
 

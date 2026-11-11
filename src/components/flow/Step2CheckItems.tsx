@@ -83,10 +83,13 @@ function CategoryIcon({ category }: { category: ItemCategory }) {
 }
 
 export function Step2CheckItems({
+  state,
   items,
   onUpdateItem,
   onDeleteItem,
   onAddItem,
+  onUpdateClient,
+  onUpdateDocInfo,
   onNext,
   onBack,
 }: Step2CheckItemsProps) {
@@ -179,6 +182,35 @@ export function Step2CheckItems({
           subtitle="Quickly verify items from your RFQ before adding commercial prices."
         />
 
+        {/* RFQ Header Summary (Vessel, Customer, Ref, Date) */}
+        {(state?.documentInfo?.vessel || state?.client?.companyName || state?.documentInfo?.reference) && (
+          <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {state?.documentInfo?.vessel && (
+                <div className="flex items-center gap-1.5 text-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Vessel:</span>
+                  <span className="font-bold text-slate-900">{state.documentInfo.vessel}</span>
+                </div>
+              )}
+              {state?.client?.companyName && (
+                <div className="flex items-center gap-1.5 text-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Buyer:</span>
+                  <span className="font-bold text-slate-900">{state.client.companyName}</span>
+                </div>
+              )}
+              {state?.documentInfo?.reference && (
+                <div className="flex items-center gap-1.5 text-slate-700">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Ref:</span>
+                  <span className="font-mono font-bold text-[#0F766E]">{state.documentInfo.reference}</span>
+                </div>
+              )}
+            </div>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              RFQ Details Detected
+            </span>
+          </div>
+        )}
+
         {/* ── OVERVIEW SUMMARY BAR (Compact Metric Tiles) ── */}
         <div className="grid grid-cols-2 gap-2 bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-2xs">
           <div className="flex items-center gap-2.5 px-2">
@@ -230,13 +262,13 @@ export function Step2CheckItems({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Search ${items.length} items by name, PN, or spec...`}
-              className="w-full h-10 pl-9 pr-8 rounded-xl border border-slate-300/80 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E]"
+              className="w-full h-10 pl-9 pr-8 rounded-xl border border-slate-300/80 bg-white text-base sm:text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 min-h-[36px] min-w-[36px] flex items-center justify-center"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -375,7 +407,7 @@ export function Step2CheckItems({
                   }`}
                 >
                   {/* Inclusion Checkbox */}
-                  <label className="grid w-8 h-8 shrink-0 place-items-center cursor-pointer">
+                  <label className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 flex items-center justify-center cursor-pointer -ml-1">
                     <input
                       type="checkbox"
                       checked={isIncluded}
@@ -450,8 +482,9 @@ export function Step2CheckItems({
                     <button
                       type="button"
                       onClick={() => setEditingItem(item)}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                       title="Edit Item"
+                      aria-label="Edit Item"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -460,8 +493,9 @@ export function Step2CheckItems({
                     <button
                       type="button"
                       onClick={() => onDeleteItem(item.id)}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Delete Item"
+                      aria-label="Delete Item"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -492,12 +526,14 @@ export function Step2CheckItems({
                 >
                   <div className="flex items-start justify-between gap-2.5">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <input
-                        type="checkbox"
-                        checked={isIncluded}
-                        onChange={() => handleToggleInclude(item.id, isIncluded)}
-                        className="w-4 h-4 rounded text-[#0F766E] focus:ring-[#0F766E] cursor-pointer"
-                      />
+                      <label className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer shrink-0 -ml-1">
+                        <input
+                          type="checkbox"
+                          checked={isIncluded}
+                          onChange={() => handleToggleInclude(item.id, isIncluded)}
+                          className="w-4 h-4 rounded text-[#0F766E] focus:ring-[#0F766E] cursor-pointer"
+                        />
+                      </label>
                       <div
                         className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${meta.badgeBg} ${meta.badgeText}`}
                       >
@@ -516,7 +552,7 @@ export function Step2CheckItems({
                           })
                         }
                         placeholder="Product Name"
-                        className="w-full font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none"
+                        className="w-full font-bold text-base sm:text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none"
                       />
                     </div>
 
@@ -533,7 +569,8 @@ export function Step2CheckItems({
                       <button
                         type="button"
                         onClick={() => onDeleteItem(item.id)}
-                        className="p-1.5 text-slate-300 hover:text-rose-600 rounded"
+                        className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-300 hover:text-rose-600 rounded transition-colors"
+                        aria-label="Delete Item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -549,7 +586,7 @@ export function Step2CheckItems({
                         value={item.partNumber || ""}
                         onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
                         placeholder="e.g. MP-102"
-                        className="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[140px] focus:outline-none focus:border-[#0F766E]"
+                        className="font-mono text-base sm:text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[140px] focus:outline-none focus:border-[#0F766E]"
                       />
                     </div>
 
@@ -563,7 +600,8 @@ export function Step2CheckItems({
                               onUpdateItem(item.id, { quantity: cur - 1, isMissingQty: false });
                             }
                           }}
-                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -571,12 +609,13 @@ export function Step2CheckItems({
                           type="number"
                           min="1"
                           step="any"
+                          inputMode="decimal"
                           value={item.quantity || ""}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value) || 0;
                             onUpdateItem(item.id, { quantity: val, isMissingQty: false });
                           }}
-                          className="w-10 h-7 text-center font-bold text-xs text-slate-800 focus:outline-none border-x border-slate-200"
+                          className="w-12 h-9 text-center font-bold text-base sm:text-xs text-slate-800 focus:outline-none border-x border-slate-200"
                         />
                         <button
                           type="button"
@@ -584,7 +623,8 @@ export function Step2CheckItems({
                             const cur = Number(item.quantity) || 1;
                             onUpdateItem(item.id, { quantity: cur + 1, isMissingQty: false });
                           }}
-                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -593,7 +633,7 @@ export function Step2CheckItems({
                       <select
                         value={item.unit ? item.unit.toUpperCase() : "PCS"}
                         onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="h-7 px-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white"
+                        className="h-9 px-2 rounded-lg border border-slate-300 text-base sm:text-xs font-bold text-slate-700 bg-white"
                       >
                         {COMMON_UNITS.map((u) => (
                           <option key={u} value={u}>{u}</option>
@@ -603,8 +643,9 @@ export function Step2CheckItems({
                       <button
                         type="button"
                         onClick={() => setEditingItem(item)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+                        className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                         title="Edit Full Specs"
+                        aria-label="Edit Full Specs"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
