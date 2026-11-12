@@ -293,89 +293,40 @@ export function Step2CheckItems({
           subtitle="Quickly verify items from your RFQ before adding commercial prices."
         />
 
-        {/* RFQ Header Summary (Vessel, Customer, Ref, Date) */}
+        {/* Subtle RFQ Metadata Strip (Integrated & Minimal) */}
         {(state?.documentInfo?.vessel || state?.client?.companyName || state?.documentInfo?.reference) && (
-          <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 text-xs">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100/80 border border-slate-200 text-xs">
+            <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-slate-600 min-w-0">
               {state?.documentInfo?.vessel && (
-                <div className="flex items-center gap-1 text-slate-700 min-w-0">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Vessel:</span>
-                  <span className="font-bold text-slate-900 truncate max-w-[130px] sm:max-w-[200px]">{state.documentInfo.vessel}</span>
-                </div>
+                <span className="font-semibold text-slate-900 truncate max-w-[180px]">
+                  <span className="text-slate-400 font-normal">Vessel:</span> {state.documentInfo.vessel}
+                </span>
               )}
               {state?.client?.companyName && (
-                <div className="flex items-center gap-1 text-slate-700 min-w-0">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Buyer:</span>
-                  <span className="font-bold text-slate-900 truncate max-w-[130px] sm:max-w-[200px]">{state.client.companyName}</span>
-                </div>
+                <span className="font-semibold text-slate-900 truncate max-w-[180px]">
+                  <span className="text-slate-400 font-normal">Buyer:</span> {state.client.companyName}
+                </span>
               )}
               {state?.documentInfo?.reference && (
-                <div className="flex items-center gap-1 text-slate-700 min-w-0">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Ref:</span>
-                  <span className="font-mono font-bold text-[#0F766E] truncate max-w-[100px] sm:max-w-[160px]">{state.documentInfo.reference}</span>
-                </div>
+                <span className="font-mono font-bold text-[#0F766E] truncate max-w-[140px]">
+                  Ref: {state.documentInfo.reference}
+                </span>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
-                RFQ Detected
-              </span>
-              {onClearExtraction && (
-                <button
-                  type="button"
-                  onClick={onClearExtraction}
-                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-1.5 py-0.5 rounded transition-colors shrink-0"
-                >
-                  Discard
-                </button>
-              )}
-            </div>
+            {onClearExtraction && (
+              <button
+                type="button"
+                onClick={onClearExtraction}
+                className="text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors shrink-0"
+              >
+                Discard RFQ
+              </button>
+            )}
           </div>
         )}
 
-        {/* ── OVERVIEW SUMMARY BAR (Compact Metric Tiles) ── */}
-        <div className="grid grid-cols-2 gap-2 bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-2xs">
-          <div className="flex items-center gap-2 px-1 sm:px-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200/80 flex items-center justify-center text-[#0F766E] shrink-0 font-bold text-xs sm:text-sm">
-              {items.length}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-slate-800 leading-tight truncate">Total Products</p>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Extracted from RFQ</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setFilterMode(reviewCount > 0 ? "review" : "all")}
-            className={`flex items-center gap-2 px-1.5 sm:px-2 py-1 rounded-lg border transition-all text-left min-w-0 ${
-              reviewCount > 0
-                ? "bg-amber-50/70 border-amber-200 hover:bg-amber-100/60"
-                : "bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/60"
-            }`}
-          >
-            <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold ${
-                reviewCount > 0
-                  ? "bg-amber-500 text-white shadow-xs"
-                  : "bg-emerald-600 text-white shadow-xs"
-              }`}
-            >
-              {reviewCount > 0 ? <AlertTriangle className="w-4 h-4" /> : <Check className="w-4 h-4 stroke-[3]" />}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className={`text-xs font-bold leading-tight truncate ${reviewCount > 0 ? "text-amber-900" : "text-emerald-900"}`}>
-                {reviewCount > 0 ? `${reviewCount} Need Review` : "All Verified"}
-              </p>
-              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
-                {reviewCount > 0 ? "Tap to filter warnings" : "Ready for pricing"}
-              </p>
-            </div>
-          </button>
-        </div>
-
         {/* ── SEARCH & FILTER CONTROLS ── */}
-        <div className="space-y-2 sticky top-0 z-10 bg-background/95 backdrop-blur-xs pt-1 pb-2">
+        <div className="space-y-2 sticky top-0 z-10 bg-slate-50/98 backdrop-blur-md pt-1 pb-2">
           {/* Top Bar: Search Input + Columns Button + Add Item */}
           <div className="flex items-center gap-2">
             <div className="relative flex-1 min-w-0">
@@ -408,7 +359,7 @@ export function Step2CheckItems({
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#0F766E]" />
               <span className="hidden sm:inline">Columns</span>
-              <span className="px-1.5 py-0.2 rounded-full bg-teal-50 text-[#0F766E] text-[10px] font-mono font-bold border border-teal-200">
+              <span className="px-1.5 py-0.2 rounded-full bg-teal-50 text-[#0F766E] text-xs font-mono font-bold border border-teal-200">
                 {tableColumns.filter((c) => c.visible).length}
               </span>
             </button>
@@ -426,61 +377,65 @@ export function Step2CheckItems({
             </button>
           </div>
 
-          {/* Filter Pills Strip (Dedicated Row - Zero Collisions on iPhone!) */}
+          {/* Filter Segmented Strip (Dedicated Row - Zero Collisions on Any Screen) */}
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5 -mx-1 px-1">
-            <button
-              type="button"
-              onClick={() => setFilterMode("all")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                filterMode === "all"
-                  ? "bg-[#0F766E] text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              All ({items.length})
-            </button>
+            <div className="inline-flex p-1 rounded-xl bg-slate-200/70 border border-slate-200/90 text-xs font-semibold shrink-0">
+              <button
+                type="button"
+                onClick={() => setFilterMode("all")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterMode === "all"
+                    ? "bg-white text-slate-900 shadow-xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                All ({items.length})
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setFilterMode("review")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                filterMode === "review"
-                  ? "bg-amber-600 text-white shadow-xs"
-                  : reviewCount > 0
-                  ? "bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/70"
-                  : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
-              }`}
-            >
-              {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
-              <span className="hidden sm:inline">Needs Review</span>
-              <span className="sm:hidden inline">Review</span> ({reviewCount})
-            </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode("review")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  filterMode === "review"
+                    ? "bg-amber-500 text-white shadow-xs font-bold"
+                    : reviewCount > 0
+                    ? "text-amber-800 font-bold hover:bg-amber-100/60"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {reviewCount > 0 && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                <span className="hidden sm:inline">Needs Review</span>
+                <span className="sm:hidden inline">Review</span>
+                <span className="font-mono">({reviewCount})</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setFilterMode("verified")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                filterMode === "verified"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              Verified ({verifiedCount})
-            </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode("verified")}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterMode === "verified"
+                    ? "bg-emerald-700 text-white shadow-xs font-bold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Verified ({verifiedCount})
+              </button>
+            </div>
           </div>
 
-          {/* Sub-Bar: Quick Selection & View Density Toggle (Dedicated Row - Never Overlaps!) */}
+          {/* Sub-Bar: Quick Selection & View Density Toggle (Dedicated Row) */}
           <div className="flex items-center justify-between gap-2 pt-0.5 text-xs">
-            <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
               <button
                 type="button"
                 onClick={handleToggleSelectAll}
-                className="text-xs font-bold text-[#0F766E] hover:underline px-1 py-0.5 shrink-0"
+                className="text-xs font-bold text-[#0F766E] hover:text-[#0D6B63] hover:underline px-1 py-0.5 shrink-0"
               >
                 {selectedCount === items.length ? "Deselect All" : "Select All"}
               </button>
-              <span className="text-[11px] font-medium text-slate-400 truncate">
-                • {selectedCount} of {items.length} included
+              <span className="text-slate-400 font-medium">|</span>
+              <span className="text-xs font-medium text-slate-500 truncate">
+                {selectedCount} of {items.length} included
               </span>
             </div>
 
@@ -620,12 +575,12 @@ export function Step2CheckItems({
                     className="flex-1 min-w-0 cursor-pointer pr-1"
                   >
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs sm:text-sm font-bold text-slate-900 truncate leading-snug">
+                      <p className="text-sm font-bold text-slate-900 truncate leading-snug">
                         {item.itemName || item.description || "Unnamed Item"}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 font-medium pt-0.5">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 font-medium pt-0.5">
                       <span className="font-mono font-semibold text-slate-700">
                         {item.partNumber ? `PN: ${item.partNumber}` : "No PN"}
                       </span>
@@ -636,7 +591,7 @@ export function Step2CheckItems({
                       {item.technicalSpecification && (
                         <>
                           <span>•</span>
-                          <span className="truncate max-w-[110px] sm:max-w-[180px] text-slate-400">
+                          <span className="truncate max-w-[130px] sm:max-w-[200px] text-slate-400">
                             {item.technicalSpecification}
                           </span>
                         </>
@@ -647,10 +602,10 @@ export function Step2CheckItems({
                         return (
                           <span
                             key={col.id || col.key}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium"
                           >
-                            <span className="text-teal-700/70 font-normal">{col.label}:</span>
-                            <span className="font-bold">{String(val)}</span>
+                            <span className="text-slate-400 font-normal">{col.label}:</span>
+                            <span className="font-semibold">{String(val)}</span>
                           </span>
                         );
                       })}
@@ -663,14 +618,14 @@ export function Step2CheckItems({
                       <button
                         type="button"
                         onClick={() => setEditingItem(item)}
-                        className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"
                         title={reason || "Needs review"}
                       >
                         <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
                         <span className="hidden min-[420px]:inline">Check</span>
                       </button>
                     ) : (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                         <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
                         <span className="hidden min-[420px]:inline">OK</span>
                       </span>
@@ -751,17 +706,17 @@ export function Step2CheckItems({
                           })
                         }
                         placeholder="Product Name"
-                        className="w-full font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none min-w-0"
+                        className="w-full font-bold text-base sm:text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none min-w-0"
                       />
                     </div>
 
                     <div className="shrink-0 flex items-center gap-1">
                       {needsReview ? (
-                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
                           Review
                         </span>
                       ) : (
-                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           OK
                         </span>
                       )}
@@ -778,13 +733,13 @@ export function Step2CheckItems({
 
                   {/* Middle Line: Part Number & Custom Column Badges */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100 text-xs">
-                    <span className="text-slate-400 font-semibold text-[11px]">PN:</span>
+                    <span className="text-slate-400 font-semibold text-xs">PN:</span>
                     <input
                       type="text"
                       value={item.partNumber || ""}
                       onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
                       placeholder="e.g. MP-102"
-                      className="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[120px] focus:outline-none focus:border-[#0F766E]"
+                      className="font-mono text-base sm:text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[130px] focus:outline-none focus:border-[#0F766E]"
                     />
                     {activeCustomCols.map((col) => {
                       const val = item[col.key];
@@ -792,10 +747,10 @@ export function Step2CheckItems({
                       return (
                         <span
                           key={col.id || col.key}
-                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium"
                         >
-                          <span className="text-teal-700/70 font-normal">{col.label}:</span>
-                          <span className="font-bold">{String(val)}</span>
+                          <span className="text-slate-400 font-normal">{col.label}:</span>
+                          <span className="font-semibold">{String(val)}</span>
                         </span>
                       );
                     })}
@@ -828,7 +783,7 @@ export function Step2CheckItems({
                             const val = parseFloat(e.target.value) || 0;
                             onUpdateItem(item.id, { quantity: val, isMissingQty: false });
                           }}
-                          className="w-10 sm:w-12 h-8 sm:h-9 text-center font-bold text-xs text-slate-800 focus:outline-none border-x border-slate-200"
+                          className="w-12 sm:w-14 h-8 sm:h-9 text-center font-bold text-base sm:text-xs text-slate-800 focus:outline-none border-x border-slate-200"
                         />
                         <button
                           type="button"
@@ -846,7 +801,7 @@ export function Step2CheckItems({
                       <select
                         value={item.unit ? item.unit.toUpperCase() : "PCS"}
                         onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="h-8 sm:h-9 px-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white"
+                        className="h-8 sm:h-9 px-2 rounded-lg border border-slate-300 text-base sm:text-xs font-bold text-slate-700 bg-white"
                       >
                         {COMMON_UNITS.map((u) => (
                           <option key={u} value={u}>{u}</option>
@@ -885,51 +840,37 @@ export function Step2CheckItems({
         </div>
       </div>
 
-      {/* ── STICKY BOTTOM ACTION BAR (Ultra Compact Mobile Friendly) ── */}
+      {/* ── STICKY BOTTOM ACTION BAR (Ultra Clean & Responsive) ── */}
       <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={onBack}
-              className="h-11 px-3 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
-              title="Back to Step 1 (Upload RFQ)"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden min-[380px]:inline">Upload</span>
-            </button>
-
-            {onClearExtraction && (
-              <button
-                type="button"
-                onClick={onClearExtraction}
-                className="h-11 px-3 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors"
-                title="Discard extracted items and start fresh"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Discard</span>
-              </button>
-            )}
-          </div>
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-11 px-3.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+            title="Back to Step 1 (Upload RFQ)"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Upload</span>
+          </button>
 
           <div className="min-w-0 flex-1 px-1">
-            <p className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
-              {selectedCount} of {items.length} Selected
+            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {selectedCount} of {items.length} Included
             </p>
-            <p className="text-[11px] text-slate-500 font-medium truncate">
+            <p className="text-xs text-slate-500 font-medium truncate">
               {reviewCount > 0 ? (
-                <span className="text-amber-700 font-bold">{reviewCount} need review</span>
+                <span className="text-amber-700 font-semibold">{reviewCount} need review</span>
               ) : (
-                <span className="text-emerald-700 font-bold">All verified</span>
+                <span className="text-emerald-700 font-semibold">Ready for pricing</span>
               )}
             </p>
           </div>
 
           <Button
             onClick={handleProceed}
-            className="h-11 px-4 sm:px-6 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
+            className="h-11 px-5 sm:px-7 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
           >
-            <span>Continue</span>
+            <span>Proceed to Pricing</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

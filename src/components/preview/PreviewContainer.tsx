@@ -78,64 +78,66 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
   return (
     <div className="w-full flex flex-col bg-slate-100/80 rounded-lg overflow-hidden border border-slate-200/90 shadow-sm">
       {/* Document Layout & Zoom Control Toolbar */}
-      <div className="flex flex-wrap items-center justify-between px-3.5 py-2.5 bg-white border-b border-slate-200 gap-2 text-xs">
+      <div className="flex flex-wrap items-center justify-between px-3 py-2 bg-white border-b border-slate-200 gap-2 text-xs">
         {/* Left: Orientation & Layout Mode Selectors */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Orientation Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+          <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => handleToggleOrientation("portrait")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs transition-all min-h-[44px] ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs transition-all min-h-[38px] ${
                 !isLandscape
                   ? "bg-white text-[#0F766E] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
+              title="Portrait Orientation"
             >
-              <FileText className="w-4 h-4" />
-              <span>Portrait</span>
+              <FileText className="w-3.5 h-3.5" />
+              <span className="hidden min-[400px]:inline">Portrait</span>
             </button>
             <button
               type="button"
               onClick={() => handleToggleOrientation("landscape")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs transition-all min-h-[44px] ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs transition-all min-h-[38px] ${
                 isLandscape
                   ? "bg-white text-[#0F766E] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
+              title="Landscape Orientation"
             >
-              <Layout className="w-4 h-4 rotate-90" />
-              <span>Landscape</span>
+              <Layout className="w-3.5 h-3.5 rotate-90" />
+              <span className="hidden min-[400px]:inline">Landscape</span>
             </button>
           </div>
 
           {/* Layout Mode Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+          <div className="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => handleToggleLayoutMode("clean")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs transition-all min-h-[44px] ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs transition-all min-h-[38px] ${
                 isCleanMode
                   ? "bg-white text-[#0F766E] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
               title="Clean marine format: Technical specifications rendered underneath item names"
             >
-              {isCleanMode && <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />}
-              <span>Standard Marine</span>
+              {isCleanMode && <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />}
+              <span>Standard</span>
             </button>
             <button
               type="button"
               onClick={() => handleToggleLayoutMode("detailed")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs transition-all min-h-[44px] ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs transition-all min-h-[38px] ${
                 !isCleanMode
                   ? "bg-white text-[#0F766E] shadow-xs"
-                  : "text-[#475569] hover:text-[#0F172A]"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
               title="Detailed grid format: All enabled table columns shown side-by-side"
             >
-              {!isCleanMode && <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />}
-              <span>All Columns</span>
+              {!isCleanMode && <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />}
+              <span>Columns</span>
             </button>
           </div>
 
@@ -143,17 +145,17 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
           <button
             type="button"
             onClick={() => handleToggleSignature(!effectiveShowSignature)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs transition-all min-h-[44px] ${
+            className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border font-bold text-xs transition-all min-h-[38px] ${
               effectiveShowSignature
                 ? "bg-white border-teal-300 text-[#0F766E] shadow-2xs"
-                : "bg-slate-100 border-slate-200/80 text-slate-500 hover:text-slate-800"
+                : "bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-800"
             }`}
             title="Toggle formal Authorized Signature & Stamp seal on quotation and exported PDF"
           >
-            <PenLine className="w-4 h-4 text-[#0F766E]" />
-            <span>Signature:</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black uppercase ${
-              effectiveShowSignature ? "bg-[#E0F2F1] text-[#0F766E]" : "bg-slate-200 text-slate-600"
+            <PenLine className="w-3.5 h-3.5 text-[#0F766E]" />
+            <span className="hidden sm:inline">Sign:</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+              effectiveShowSignature ? "bg-teal-50 text-[#0F766E]" : "bg-slate-200 text-slate-600"
             }`}>
               {effectiveShowSignature ? "ON" : "OFF"}
             </span>
@@ -162,24 +164,26 @@ export function PreviewContainer({ data, onUpdateState }: PreviewContainerProps)
 
         {/* Right: Scale Indicator & Zoom Mode */}
         <div className="flex items-center gap-2">
-          <span className="font-mono font-semibold text-[#475569] text-xs hidden sm:inline">
+          <span className="font-mono font-semibold text-slate-500 text-xs hidden sm:inline">
             A4 ({Math.round(scale * 100)}%)
           </span>
 
           <button
             type="button"
             onClick={() => setZoomMode(zoomMode === "fit" ? "actual" : "fit")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold text-xs transition-colors min-h-[44px]"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors min-h-[38px]"
           >
             {zoomMode === "fit" ? (
               <>
-                <ZoomIn className="w-4 h-4 text-[#0F766E]" />
-                <span>100% Zoom</span>
+                <ZoomIn className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span className="hidden sm:inline">100% Zoom</span>
+                <span className="sm:hidden">100%</span>
               </>
             ) : (
               <>
-                <Maximize2 className="w-4 h-4 text-[#0F766E]" />
-                <span>Fit Screen</span>
+                <Maximize2 className="w-3.5 h-3.5 text-[#0F766E]" />
+                <span className="hidden sm:inline">Fit Screen</span>
+                <span className="sm:hidden">Fit</span>
               </>
             )}
           </button>

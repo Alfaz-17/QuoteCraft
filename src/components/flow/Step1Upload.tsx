@@ -85,8 +85,8 @@ export function Step1Upload({
       return;
     }
 
-    if (file.size > 4 * 1024 * 1024) {
-      toastError("File is larger than 4MB. Please upload a smaller file or paste the items as text.");
+    if (file.size > 50 * 1024 * 1024) {
+      toastError("File is larger than 50MB. Please upload a smaller file or paste the items as text.");
       return;
     }
 
@@ -140,7 +140,7 @@ export function Step1Upload({
             if (parsed?.error) errorMsg = parsed.error;
           } catch {
             if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
-              errorMsg = "The file is larger than the 4MB upload limit. Please upload a smaller file or copy-paste the line items directly.";
+              errorMsg = "The file exceeds the 50MB upload limit. Please upload a smaller file or copy-paste the line items directly.";
             } else if (rawText) {
               errorMsg = rawText.slice(0, 150);
             }
@@ -339,18 +339,18 @@ export function Step1Upload({
 
         {/* Input Mode Selector: Upload File vs Paste Text */}
         <div className="flex justify-center">
-          <div className="inline-flex p-1 bg-slate-200/80 rounded-xl border border-slate-300/70">
+          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setInputMode("file")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "file"
-                  ? "bg-white text-[#172033] shadow-xs"
-                  : "text-[#64748B] hover:text-[#172033]"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               <UploadCloud className="w-4 h-4 text-[#0F766E]" />
-              <span>Upload</span>
+              <span>Upload Document</span>
             </button>
 
             <button
@@ -358,8 +358,8 @@ export function Step1Upload({
               onClick={() => setInputMode("paste")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "paste"
-                  ? "bg-white text-[#172033] shadow-xs"
-                  : "text-[#64748B] hover:text-[#172033]"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
               }`}
             >
               <ClipboardList className="w-4 h-4 text-[#0F766E]" />
@@ -369,7 +369,7 @@ export function Step1Upload({
         </div>
 
         {/* Functional Upload Card (Single Clean Card) */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
           {inputMode === "file" ? (
             <div>
               <input
@@ -388,15 +388,15 @@ export function Step1Upload({
                 <div className="py-10 flex flex-col items-center justify-center space-y-3 text-center">
                   <DualOrbitalSpinner size="lg" />
                   <div className="space-y-1">
-                    <p className="text-sm font-bold text-[#172033]">{processStep}</p>
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-sm font-bold text-slate-900">{processStep}</p>
+                    <p className="text-xs text-slate-500">
                       Extracting products and quantities ({elapsedSeconds}s)
                     </p>
                   </div>
                 </div>
               ) : selectedFile ? (
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 flex items-center justify-between gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <div
                         className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
@@ -410,10 +410,10 @@ export function Step1Upload({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#172033] truncate">
+                        <p className="text-sm font-bold text-slate-900 truncate">
                           {selectedFile.name}
                         </p>
-                        <p className="text-xs text-[#64748B] font-medium">
+                        <p className="text-xs text-slate-500 font-medium">
                           {formattedFileSize}
                         </p>
                       </div>
@@ -433,7 +433,7 @@ export function Step1Upload({
                   </div>
 
                   <div className="flex items-center justify-center gap-1.5">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       File ready to extract
                     </span>
@@ -457,10 +457,10 @@ export function Step1Upload({
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border border-dashed rounded-lg p-8 transition-colors cursor-pointer text-center space-y-4 ${
+                  className={`border border-dashed rounded-xl p-8 transition-colors cursor-pointer text-center space-y-4 ${
                     isDragOver
                       ? "border-[#0F766E] bg-teal-50/50"
-                      : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/40 hover:bg-slate-50/80"
+                      : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/50 hover:bg-slate-50"
                   }`}
                 >
                   <div className="w-12 h-12 rounded-xl bg-teal-50 text-[#0F766E] mx-auto flex items-center justify-center">
@@ -468,7 +468,7 @@ export function Step1Upload({
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-bold text-[#172033]">
+                    <p className="text-sm font-bold text-slate-900">
                       Upload your RFQ document
                     </p>
                     <div>
@@ -478,14 +478,14 @@ export function Step1Upload({
                           e.stopPropagation();
                           fileInputRef.current?.click();
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-transform active:scale-95"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold transition-transform active:scale-95 shadow-xs"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         <span>Browse Files</span>
                       </button>
                     </div>
-                    <p className="text-[11px] text-[#64748B] pt-1">
-                      Excel (.xlsx, .xls, .csv), PDF, or Images • Max 4MB
+                    <p className="text-xs text-slate-500 pt-1">
+                      Excel (.xlsx, .xls, .csv), PDF, or Images • Up to 50MB
                     </p>
                   </div>
                 </div>

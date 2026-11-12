@@ -1,0 +1,274 @@
+From 2cd3d1d2dc55d9927ce47df649a63f3e8b63a27e Mon Sep 17 00:00:00 2001
+From: Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 06:37:46 +0000
+Subject: [PATCH 1/2] Remove empty item description: rename edit field to Item
+ Name, hide 'No description provided' and duplicate Spec lines
+
+Co-Authored-By: Alfaz Bilakhiya <alfazbilakhiya17@gmail.com>
+---
+ src/components/builder/ItemsTable.tsx     | 12 +++++++-----
+ src/components/flow/EditItemModal.tsx     |  7 +++----
+ src/components/preview/MarineTemplate.tsx |  9 +++++++--
+ src/lib/pdf-generator.ts                  |  4 +++-
+ 4 files changed, 20 insertions(+), 12 deletions(-)
+
+diff --git a/src/components/builder/ItemsTable.tsx b/src/components/builder/ItemsTable.tsx
+index 8c21c04..664942e 100644
+--- a/src/components/builder/ItemsTable.tsx
++++ b/src/components/builder/ItemsTable.tsx
+@@ -394,11 +394,13 @@ export function ItemsTable({
+                     <p className="text-xs text-slate-500 font-medium sm:hidden truncate mt-0.5">
+                       {item.partNumber && `${item.partNumber} • `} {qtyVal || 0} {item.unit || "pcs"}
+                     </p>
+-                    {/* Desktop description snippet */}
+-                    <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
+-                      {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
+-                      {item.itemName ? (item.description || "No description provided") : ""}
+-                    </p>
++                    {/* Desktop part number / spec snippet */}
++                    {(item.partNumber || (item.description && item.description !== item.itemName)) && (
++                      <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
++                        {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
++                        {item.description !== item.itemName ? item.description : ""}
++                      </p>
++                    )}
+                   </div>
+ 
+                   <div className="hidden sm:flex items-center gap-6 px-4 text-right">
+diff --git a/src/components/flow/EditItemModal.tsx b/src/components/flow/EditItemModal.tsx
+index 72e5866..5ce5fca 100644
+--- a/src/components/flow/EditItemModal.tsx
++++ b/src/components/flow/EditItemModal.tsx
+@@ -31,7 +31,7 @@ export function EditItemModal({
+   useEffect(() => {
+     if (item) {
+       // eslint-disable-next-line react-hooks/set-state-in-effect
+-      setDescription(item.itemName || item.description || "");
++      setDescription(item.itemName || "");
+       setPartNumber(item.partNumber || "");
+       setQuantity(String(item.quantity ?? 1));
+       setUnit(item.unit || "PCS");
+@@ -48,7 +48,6 @@ export function EditItemModal({
+ 
+     onSave(item.id, {
+       itemName: description.trim() || item.itemName,
+-      description: description.trim(),
+       partNumber: partNumber.trim(),
+       quantity: qtyNum,
+       unit: unit.trim().toUpperCase() || "PCS",
+@@ -103,10 +102,10 @@ export function EditItemModal({
+             </div>
+           </div>
+ 
+-          {/* Description * */}
++          {/* Item Name * */}
+           <div className="space-y-1.5">
+             <Label className="text-xs font-bold text-[#0F172A]">
+-              Description <span className="text-rose-500">*</span>
++              Item Name <span className="text-rose-500">*</span>
+             </Label>
+             <Input
+               required
+diff --git a/src/components/preview/MarineTemplate.tsx b/src/components/preview/MarineTemplate.tsx
+index 6a1bb23..a5a8313 100644
+--- a/src/components/preview/MarineTemplate.tsx
++++ b/src/components/preview/MarineTemplate.tsx
+@@ -59,6 +59,11 @@ export function MarineTemplate({ data }: TemplateProps) {
+     }
+ 
+     const standardKeys = new Set(["id", "itemName", "partNumber", "quantity", "unit", "condition", "unitPrice", "total", "needsReview", "isMissingQty", "description"]);
++    // Only print a spec line when the RFQ actually had a description/spec column
++    const showSpec = (it: LineItem) =>
++      !!it.description?.trim() &&
++      it.description.trim() !== it.itemName?.trim() &&
++      data.tableColumns.some(c => c.key === "description" && c.visible !== false);
+     for (const [key, val] of Object.entries(item)) {
+       if (!standardKeys.has(key) && val !== undefined && val !== null && String(val).trim()) {
+         const colDef = data.tableColumns.find(c => c.key === key);
+@@ -74,9 +79,9 @@ export function MarineTemplate({ data }: TemplateProps) {
+             {details.join("  •  ")}
+           </p>
+         )}
+-        {item.description && item.description.trim() && (
++        {showSpec(item) && (
+           <p className="text-xs text-slate-600 font-normal italic tracking-normal normal-case">
+-            Spec: {item.description.trim()}
++            Spec: {item.description?.trim()}
+           </p>
+         )}
+       </div>
+diff --git a/src/lib/pdf-generator.ts b/src/lib/pdf-generator.ts
+index 8d00fa7..82ba907 100644
+--- a/src/lib/pdf-generator.ts
++++ b/src/lib/pdf-generator.ts
+@@ -318,7 +318,9 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
+       lines.push(subDetails.join("   |   "));
+     }
+ 
+-    if (item.description && item.description.trim()) {
++    // Only print a spec line when the RFQ actually had a description/spec column
++    const hasSpecColumn = data.tableColumns.some(c => c.key === "description" && c.visible !== false);
++    if (hasSpecColumn && item.description?.trim() && item.description.trim() !== item.itemName?.trim()) {
+       lines.push(`Spec: ${item.description.trim()}`);
+     }
+ 
+-- 
+2.56.0
+
+
+From 23b85b77defdb31f28545205a0da622523db0d42 Mon Sep 17 00:00:00 2001
+From: Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 06:40:59 +0000
+Subject: [PATCH 2/2] Item flow: description-only RFQs become item names, open
+ editor for new items, block Continue on missing qty, fix Step 3 qty fallback
+
+Co-Authored-By: Alfaz Bilakhiya <alfazbilakhiya17@gmail.com>
+---
+ src/components/flow/EditItemModal.tsx         |  2 +-
+ src/components/flow/Step2CheckItems.tsx       | 31 ++++++++++++++-----
+ src/components/flow/Step3AddPricesAndSend.tsx |  4 +--
+ src/utils/importMapping.ts                    |  9 +++++-
+ 4 files changed, 35 insertions(+), 11 deletions(-)
+
+diff --git a/src/components/flow/EditItemModal.tsx b/src/components/flow/EditItemModal.tsx
+index 5ce5fca..bdcd7cb 100644
+--- a/src/components/flow/EditItemModal.tsx
++++ b/src/components/flow/EditItemModal.tsx
+@@ -31,7 +31,7 @@ export function EditItemModal({
+   useEffect(() => {
+     if (item) {
+       // eslint-disable-next-line react-hooks/set-state-in-effect
+-      setDescription(item.itemName || "");
++      setDescription(item.itemName || item.description || "");
+       setPartNumber(item.partNumber || "");
+       setQuantity(String(item.quantity ?? 1));
+       setUnit(item.unit || "PCS");
+diff --git a/src/components/flow/Step2CheckItems.tsx b/src/components/flow/Step2CheckItems.tsx
+index 3ead2be..be38604 100644
+--- a/src/components/flow/Step2CheckItems.tsx
++++ b/src/components/flow/Step2CheckItems.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import React, { useState, useMemo } from "react";
++import React, { useState, useMemo, useEffect, useRef } from "react";
+ import { QuotationState, LineItem, TableColumn, Currency } from "@/types/quotation.types";
+ import { Button } from "@/components/ui/button";
+ import { useToast } from "@/components/ui/Toast";
+@@ -101,11 +101,22 @@ export function Step2CheckItems({
+   const [viewMode, setViewMode] = useState<"compact" | "cards">("compact");
+   const [editingItem, setEditingItem] = useState<LineItem | null>(null);
+ 
++  // A newly added blank item opens straight in the editor so the user can type its name
++  const prevCountRef = useRef(items.length);
++  useEffect(() => {
++    const last = items[items.length - 1];
++    if (items.length === prevCountRef.current + 1 && last && !last.itemName?.trim()) {
++      // eslint-disable-next-line react-hooks/set-state-in-effect
++      setEditingItem(last);
++    }
++    prevCountRef.current = items.length;
++  }, [items]);
++
+   // Review status calculation
+   const getItemReviewReason = (item: LineItem): string | null => {
+     if (item.isMissingQty) return "Quantity unclear in RFQ";
+     if (!item.quantity || Number(item.quantity) <= 0) return "Please check quantity";
+-    if (!item.itemName || !item.itemName.trim()) return "Missing item description";
++    if (!item.itemName || !item.itemName.trim()) return "Missing item name";
+     if (item.needsReview) return "Review part specifications";
+     return null;
+   };
+@@ -170,12 +181,18 @@ export function Step2CheckItems({
+       onAddItem();
+       return;
+     }
++    const missingQty = items.filter(
++      (i) => i.included !== false && (!Number(i.quantity) || Number(i.quantity) <= 0)
++    ).length;
++    if (missingQty > 0) {
++      // Step 3 has no quantity field, so a 0 qty would silently price the line at 0
++      setFilterMode("review");
++      toastInfo(`${missingQty} item(s) have no quantity. Set them, or tap "Auto-Set All as 1 PCS".`);
++      return;
++    }
+     if (selectedCount === 0) {
+       handleToggleSelectAll();
+     }
+-    if (reviewCount > 0) {
+-      toastInfo(`${reviewCount} item(s) have unverified quantities from the RFQ. You can edit them in Step 3.`);
+-    }
+     onNext();
+   };
+ 
+@@ -483,7 +500,7 @@ export function Step2CheckItems({
+                   >
+                     <div className="flex items-center gap-1.5">
+                       <p className="text-xs sm:text-sm font-bold text-slate-900 truncate leading-snug">
+-                        {item.itemName || "Unnamed Item"}
++                        {item.itemName || item.description || "Unnamed Item"}
+                       </p>
+                     </div>
+ 
+@@ -493,7 +510,7 @@ export function Step2CheckItems({
+                       </span>
+                       <span>•</span>
+                       <span className="font-bold text-[#0F766E]">
+-                        {item.quantity || 1} {item.unit || "PCS"}
++                        {Number(item.quantity) > 0 ? `${item.quantity} ${item.unit || "PCS"}` : "Qty missing"}
+                       </span>
+                       {item.technicalSpecification && (
+                         <>
+diff --git a/src/components/flow/Step3AddPricesAndSend.tsx b/src/components/flow/Step3AddPricesAndSend.tsx
+index c198f5d..bfa323d 100644
+--- a/src/components/flow/Step3AddPricesAndSend.tsx
++++ b/src/components/flow/Step3AddPricesAndSend.tsx
+@@ -420,7 +420,7 @@ export function Step3AddPricesAndSend({
+         ) : (
+           <div className="space-y-3">
+           {items.map((item, idx) => {
+-            const qty = toNumber(item[qtyKey] ?? item.quantity) || 1;
++            const qty = toNumber(item[qtyKey] ?? item.quantity);
+             const price = toNumber(item[priceKey] ?? item.unitPrice) || 0;
+             const lineTotal = item.isTba ? 0 : qty * price;
+ 
+@@ -432,7 +432,7 @@ export function Step3AddPricesAndSend({
+                 <div className="flex items-start justify-between gap-3">
+                   <div className="min-w-0">
+                     <p className="font-bold text-sm sm:text-base text-[#172033] truncate">
+-                      {item.itemName || "Unnamed Item"}
++                      {item.itemName || item.description || "Unnamed Item"}
+                     </p>
+                     <p className="text-xs text-[#64748B] font-medium mt-0.5">
+                       Quantity: <strong className="text-slate-800">{qty} {item.unit || "PCS"}</strong>
+diff --git a/src/utils/importMapping.ts b/src/utils/importMapping.ts
+index a857e09..d025f9a 100644
+--- a/src/utils/importMapping.ts
++++ b/src/utils/importMapping.ts
+@@ -35,8 +35,14 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
+   const keyFor = new Map<string, string>(); // AI column key -> final column key
+   const columns: TableColumn[] = [];
+ 
++  // No item-name column (e.g. the RFQ only has "Description"): that column is the product name.
++  const promoteDescription = !result.columns.some((c) => c.kind === "name");
++
+   for (const c of result.columns) {
+-    const canon = CANONICAL[c.kind];
++    const canon =
++      c.kind === "description" && promoteDescription && !used.has("itemName")
++        ? CANONICAL.name
++        : CANONICAL[c.kind];
+     let key = canon ? canon.key : `x_${slug(c.label)}`;
+     if (used.has(key)) {
+       // duplicate kind (e.g. two "description"-like columns) -> keep both as custom text
+@@ -102,6 +108,7 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
+     }
+     if (!item.unit) item.unit = "pcs";
+     if (typeof item.itemName !== "string") item.itemName = "";
++    if (!item.itemName) item.itemName = itemTitle(item, columns);
+     return item;
+   });
+ 
+-- 
+2.56.0
+
