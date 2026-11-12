@@ -39,7 +39,7 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
  * 3. If keys are missing, gracefully redirects unauthorized visits to /sign-in without throwing 500 MIDDLEWARE_INVOCATION_FAILED.
  * 4. Catches any transient edge runtime errors and redirects safely.
  */
-export default async function middleware(request: NextRequest, event: NextFetchEvent) {
+export default async function proxy(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
 
   // Skip static assets
@@ -48,8 +48,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/icon.png") ||
     pathname.startsWith("/manifest") ||
-    pathname.startsWith("/robots.txt") ||
-    pathname.startsWith("/api/")
+    pathname.startsWith("/robots.txt")
   ) {
     return NextResponse.next();
   }
@@ -61,7 +60,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
 
   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500
   if (!publishableKey || !secretKey) {
-    if (isPublicRoute(request)) {
+    if (isPublicRoute(request) || pathname.startsWith("/api/")) {
       return NextResponse.next();
     }
     const signInUrl = new URL("/sign-in", request.url);
@@ -74,7 +73,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
     return await clerkHandler(request, event);
   } catch (err) {
     console.error("Clerk edge middleware error caught safely:", err);
-    if (isPublicRoute(request)) {
+    if (isPublicRoute(request) || pathname.startsWith("/api/")) {
       return NextResponse.next();
     }
     const signInUrl = new URL("/sign-in", request.url);
