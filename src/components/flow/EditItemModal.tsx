@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LineItem } from "@/types/quotation.types";
+import { LineItem, TableColumn } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { ArrowLeft, X, Cog, Check } from "lucide-react";
 interface EditItemModalProps {
   isOpen: boolean;
   item: LineItem | null;
+  tableColumns?: TableColumn[];
   onClose: () => void;
   onSave: (id: string, updates: Partial<LineItem>) => void;
 }
@@ -19,6 +20,7 @@ const COMMON_UNITS = ["PCS", "SETS", "LOT", "KGS", "MTR", "BOX", "DRUM", "PAIR"]
 export function EditItemModal({
   isOpen,
   item,
+  tableColumns = [],
   onClose,
   onSave,
 }: EditItemModalProps) {
@@ -27,6 +29,14 @@ export function EditItemModal({
   const [quantity, setQuantity] = useState("1");
   const [unit, setUnit] = useState("PCS");
   const [unitPrice, setUnitPrice] = useState("");
+  const [customValues, setCustomValues] = useState<Record<string, string>>({});
+
+  // Additional visible columns not covered by core inputs
+  const additionalColumns = tableColumns.filter(
+    (col) =>
+      col.visible &&
+      !["sno", "itemName", "name", "description", "partNumber", "quantity", "qty", "unit", "unitPrice", "rate", "total"].includes(col.key)
+  );
 
   useEffect(() => {
     if (item) {
@@ -36,8 +46,16 @@ export function EditItemModal({
       setQuantity(String(item.quantity ?? 1));
       setUnit(item.unit || "PCS");
       setUnitPrice(item.unitPrice ? String(item.unitPrice) : "");
+
+      const customs: Record<string, string> = {};
+      tableColumns.forEach((col) => {
+        if (!["sno", "itemName", "name", "description", "partNumber", "quantity", "qty", "unit", "unitPrice", "rate", "total"].includes(col.key)) {
+          customs[col.key] = item[col.key] !== undefined && item[col.key] !== null ? String(item[col.key]) : "";
+        }
+      });
+      setCustomValues(customs);
     }
-  }, [item]);
+  }, [item, tableColumns]);
 
   if (!isOpen || !item) return null;
 
@@ -53,6 +71,7 @@ export function EditItemModal({
       quantity: qtyNum,
       unit: unit.trim().toUpperCase() || "PCS",
       unitPrice: priceNum,
+      ...customValues,
       isMissingQty: false,
       needsReview: false,
     });
@@ -183,6 +202,37 @@ export function EditItemModal({
               className="h-11 font-mono text-base sm:text-sm rounded-xl border-slate-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
             />
           </div>
+
+          {/* Dynamic Business & Custom Columns */}
+          {additionalColumns.length > 0 && (
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                Custom Specifications &amp; Commercial Terms
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {additionalColumns.map((col) => (
+                  <div key={col.id} className="space-y-1.5">
+                    <Label className="text-xs font-bold text-[#0F172A] flex items-center justify-between">
+                      <span>{col.label}</span>
+                      <span className="text-[10px] text-slate-400 font-normal uppercase">{col.type}</span>
+                    </Label>
+                    <Input
+                      type={col.type === "number" ? "number" : "text"}
+                      value={customValues[col.key] || ""}
+                      onChange={(e) =>
+                        setCustomValues((prev) => ({
+                          ...prev,
+                          [col.key]: e.target.value,
+                        }))
+                      }
+                      placeholder={`Enter ${col.label.toLowerCase()}...`}
+                      className="h-11 text-base sm:text-sm rounded-xl border-slate-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons (Screen 4 in Mockup: Cancel & Save Changes) */}
           <div className="pt-3 pb-2 flex items-center gap-3">

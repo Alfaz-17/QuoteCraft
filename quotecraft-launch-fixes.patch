@@ -1,0 +1,691 @@
+From 233ebb4a1da9194606f9c48d85224b43b2403c8f Mon Sep 17 00:00:00 2001
+From: Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 06:12:15 +0000
+Subject: [PATCH 1/3] Run clerkMiddleware for API routes and rename middleware
+ to proxy (Next 16)
+
+Co-Authored-By: Alfaz Bilakhiya <alfazbilakhiya17@gmail.com>
+---
+ src/{middleware.ts => proxy.ts} | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename src/{middleware.ts => proxy.ts} (100%)
+
+diff --git a/src/middleware.ts b/src/proxy.ts
+similarity index 100%
+rename from src/middleware.ts
+rename to src/proxy.ts
+-- 
+2.56.0
+
+
+From bddd47d03735bbe2cb4cbc86f7725e46a71ea6af Mon Sep 17 00:00:00 2001
+From: Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 06:12:17 +0000
+Subject: [PATCH 2/3] Let API routes pass through clerkMiddleware so auth()
+ works
+
+Co-Authored-By: Alfaz Bilakhiya <alfazbilakhiya17@gmail.com>
+---
+ src/proxy.ts | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/src/proxy.ts b/src/proxy.ts
+index 6c56c4c..3e302a3 100644
+--- a/src/proxy.ts
++++ b/src/proxy.ts
+@@ -39,7 +39,7 @@ const clerkHandler = clerkMiddleware(async (auth, request) => {
+  * 3. If keys are missing, gracefully redirects unauthorized visits to /sign-in without throwing 500 MIDDLEWARE_INVOCATION_FAILED.
+  * 4. Catches any transient edge runtime errors and redirects safely.
+  */
+-export default async function middleware(request: NextRequest, event: NextFetchEvent) {
++export default async function proxy(request: NextRequest, event: NextFetchEvent) {
+   const pathname = request.nextUrl.pathname;
+ 
+   // Skip static assets
+@@ -48,8 +48,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
+     pathname.startsWith("/favicon.ico") ||
+     pathname.startsWith("/icon.png") ||
+     pathname.startsWith("/manifest") ||
+-    pathname.startsWith("/robots.txt") ||
+-    pathname.startsWith("/api/")
++    pathname.startsWith("/robots.txt")
+   ) {
+     return NextResponse.next();
+   }
+@@ -61,7 +60,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
+ 
+   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500
+   if (!publishableKey || !secretKey) {
+-    if (isPublicRoute(request)) {
++    if (isPublicRoute(request) || pathname.startsWith("/api/")) {
+       return NextResponse.next();
+     }
+     const signInUrl = new URL("/sign-in", request.url);
+@@ -74,7 +73,7 @@ export default async function middleware(request: NextRequest, event: NextFetchE
+     return await clerkHandler(request, event);
+   } catch (err) {
+     console.error("Clerk edge middleware error caught safely:", err);
+-    if (isPublicRoute(request)) {
++    if (isPublicRoute(request) || pathname.startsWith("/api/")) {
+       return NextResponse.next();
+     }
+     const signInUrl = new URL("/sign-in", request.url);
+-- 
+2.56.0
+
+
+From edce7f52e1964491a80938897ecc49af89f23eb2 Mon Sep 17 00:00:00 2001
+From: Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 06:25:32 +0000
+Subject: [PATCH 3/3] Launch fixes: verify Clerk webhooks, stable quotation
+ ids, per-user local data, skip empty autosave, persist tableColumns, drop dev
+ Clerk key fallback
+
+Co-Authored-By: Alfaz Bilakhiya <alfazbilakhiya17@gmail.com>
+---
+ prisma/schema.prisma                 |  1 +
+ src/app/api/quotation/save/route.ts  | 44 +++++++++++++++---
+ src/app/api/quotations/[id]/route.ts |  1 +
+ src/app/api/webhooks/clerk/route.ts  | 27 +++++++++--
+ src/app/dashboard/page.tsx           |  2 +
+ src/app/providers.tsx                |  4 +-
+ src/app/quotations/page.tsx          |  2 +
+ src/hooks/quotationReducer.ts        | 10 ++++
+ src/hooks/useQuotationState.tsx      | 69 +++++++++++++++++++++-------
+ src/lib/local-user-data.ts           | 57 +++++++++++++++++++++++
+ src/lib/prisma.ts                    | 61 +++++++++++++++++++++---
+ src/proxy.ts                         |  4 +-
+ src/types/quotation.types.ts         |  1 +
+ 13 files changed, 243 insertions(+), 40 deletions(-)
+ create mode 100644 src/lib/local-user-data.ts
+
+diff --git a/prisma/schema.prisma b/prisma/schema.prisma
+index 43967f6..8b88daf 100644
+--- a/prisma/schema.prisma
++++ b/prisma/schema.prisma
+@@ -49,6 +49,7 @@ model Quotation {
+   discountType   String   @default("flat")
+   taxPercent     Float    @default(0)
+   shippingCharge Float    @default(0)
++  tableColumns   Json?    // column layout of the imported RFQ
+   createdAt      DateTime @default(now())
+   updatedAt      DateTime @updatedAt
+ }
+diff --git a/src/app/api/quotation/save/route.ts b/src/app/api/quotation/save/route.ts
+index 0c92f42..a82aecd 100644
+--- a/src/app/api/quotation/save/route.ts
++++ b/src/app/api/quotation/save/route.ts
+@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
+ import { getAuthenticatedUserId } from "@/lib/clerk-auth";
+ import {
+   findQuotationByUserAndNumber,
++  getOwnedQuotation,
++  getNextQuotationNumber,
+   createQuotation,
+   updateQuotation,
+ } from "@/lib/prisma";
++
+ import {
+   calculateRowTotal,
+   calculateSubtotal,
+@@ -13,6 +16,8 @@ import {
+ } from "@/utils/calculations";
+ import { LineItem, TableColumn } from "@/types/quotation.types";
+ 
++const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++
+ export async function POST(req: NextRequest) {
+   try {
+     const userId = await getAuthenticatedUserId();
+@@ -40,8 +45,6 @@ export async function POST(req: NextRequest) {
+       return NextResponse.json({ error: "Missing document number" }, { status: 400 });
+     }
+ 
+-    const existing = await findQuotationByUserAndNumber(userId, documentInfo.number);
+-
+     // Recalculate row totals server-side to guarantee precision & integrity
+     const cols = (Array.isArray(tableColumns) ? tableColumns : undefined) as TableColumn[] | undefined;
+     const sanitizedItems: LineItem[] = (Array.isArray(items) ? items : []).map((item: LineItem) => ({
+@@ -82,21 +85,48 @@ export async function POST(req: NextRequest) {
+       discountType: cleanDiscountType,
+       taxPercent: cleanTaxPercent,
+       shippingCharge: cleanShipping,
++      tableColumns: cols ?? null,
+     };
+ 
++    // Quotes are identified by a client-generated quotationId; the number is only a label.
++    // Never upsert by number: a new device restarting at QT-1001 must not overwrite an existing quote.
++    const requestedId =
++      typeof state.quotationId === "string" && UUID_RE.test(state.quotationId) ? state.quotationId : null;
++    let number = String(documentInfo.number).trim();
+     let quotationId: string;
+-    if (existing) {
+-      await updateQuotation(existing.id, payload);
+-      quotationId = existing.id;
++
++    const owned = requestedId ? await getOwnedQuotation(userId, requestedId) : null;
++    if (owned) {
++      if (number !== owned.number) {
++        const clash = await findQuotationByUserAndNumber(userId, number);
++        if (clash && clash.id !== owned.id) number = owned.number;
++      }
++      await updateQuotation(owned.id, { ...payload, number });
++      quotationId = owned.id;
+     } else {
+-      const created = await createQuotation({ userId, number: documentInfo.number, ...payload });
++      if (await findQuotationByUserAndNumber(userId, number)) {
++        number = await getNextQuotationNumber(userId, number);
++      }
++      let created = await createQuotation({ id: requestedId ?? undefined, userId, number, ...payload });
++      if (!created && requestedId) {
++        const raced = await getOwnedQuotation(userId, requestedId);
++        if (raced) {
++          await updateQuotation(raced.id, payload);
++          created = { id: raced.id };
++          number = raced.number;
++        } else {
++          // id already used by another account: issue a fresh one
++          created = await createQuotation({ userId, number, ...payload });
++        }
++      }
++      if (!created) throw new Error("Failed to create quotation");
+       quotationId = created.id;
+     }
+ 
+     return NextResponse.json({
+       success: true,
+       quotationId,
+-      number: documentInfo.number,
++      number,
+       subtotal: serverSubtotal,
+       grandTotal: serverGrandTotal,
+       message: "Quotation saved successfully",
+diff --git a/src/app/api/quotations/[id]/route.ts b/src/app/api/quotations/[id]/route.ts
+index fa7f2a7..4b9f1ae 100644
+--- a/src/app/api/quotations/[id]/route.ts
++++ b/src/app/api/quotations/[id]/route.ts
+@@ -84,6 +84,7 @@ export async function PUT(
+       discountType: body.discountType || existing.discountType,
+       taxPercent: typeof body.taxPercent === "number" ? body.taxPercent : existing.taxPercent,
+       shippingCharge: typeof body.shippingCharge === "number" ? body.shippingCharge : existing.shippingCharge,
++      tableColumns: Array.isArray(body.tableColumns) ? body.tableColumns : undefined,
+     });
+ 
+     const updated = await getQuotationById(userId, id);
+diff --git a/src/app/api/webhooks/clerk/route.ts b/src/app/api/webhooks/clerk/route.ts
+index 138902b..cca14b2 100644
+--- a/src/app/api/webhooks/clerk/route.ts
++++ b/src/app/api/webhooks/clerk/route.ts
+@@ -1,18 +1,37 @@
+ import { NextRequest, NextResponse } from "next/server";
++import { verifyWebhook } from "@clerk/nextjs/webhooks";
+ import { db } from "@/lib/prisma";
+ 
++interface ClerkUserPayload {
++  id?: string;
++  first_name?: string | null;
++  last_name?: string | null;
++  primary_email_address_id?: string | null;
++  email_addresses?: { id: string; email_address: string }[];
++}
++
+ export async function POST(req: NextRequest) {
++  // Reject anything not signed by Clerk (Svix); unsigned payloads could hijack accounts by email.
++  let eventType: string;
++  let data: ClerkUserPayload;
+   try {
+-    const payload = await req.json();
+-    const eventType = payload?.type;
+-    const data = payload?.data;
++    const evt = await verifyWebhook(req);
++    eventType = evt.type;
++    data = evt.data as ClerkUserPayload;
++  } catch (err) {
++    console.error("Clerk webhook verification failed:", err);
++    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
++  }
+ 
++  try {
+     if (!eventType || !data) {
+       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
+     }
+ 
+     const clerkUserId = data.id;
+-    const primaryEmail = data.email_addresses?.[0]?.email_address?.toLowerCase().trim();
++    const emails = data.email_addresses ?? [];
++    const primaryEmail = (emails.find((e) => e.id === data.primary_email_address_id) ?? emails[0])
++      ?.email_address?.toLowerCase().trim();
+     const name = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
+ 
+     if (eventType === "user.created" || eventType === "user.updated") {
+diff --git a/src/app/dashboard/page.tsx b/src/app/dashboard/page.tsx
+index f490173..4aa08ed 100644
+--- a/src/app/dashboard/page.tsx
++++ b/src/app/dashboard/page.tsx
+@@ -196,6 +196,8 @@ export default function DashboardPage() {
+   const handleOpenInBuilder = (quote: QuotationRecord) => {
+     try {
+       const fullDraft: Partial<QuotationState> = {
++        quotationId: quote.id,
++        tableColumns: quote.tableColumns,
+         documentInfo: {
+           type: (quote.type as "quotation" | "rfq" | "proforma") || "quotation",
+           number: quote.number,
+diff --git a/src/app/providers.tsx b/src/app/providers.tsx
+index 6ec62ac..ba90744 100644
+--- a/src/app/providers.tsx
++++ b/src/app/providers.tsx
+@@ -6,9 +6,7 @@ import { ClerkProvider } from "@clerk/nextjs";
+ import { ToastProvider } from "@/components/ui/Toast";
+ 
+ export function Providers({ children }: { children: React.ReactNode }) {
+-  const publishableKey =
+-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+-    "pk_test_dmlhYmxlLXRlcnJpZXItNjMuY2xlcmsuYWNjb3VudHMuZGV2JA";
++  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+ 
+   return (
+     <ClerkProvider
+diff --git a/src/app/quotations/page.tsx b/src/app/quotations/page.tsx
+index 95d0827..43e72ec 100644
+--- a/src/app/quotations/page.tsx
++++ b/src/app/quotations/page.tsx
+@@ -184,6 +184,8 @@ export default function QuotationsPage() {
+   const handleEdit = (quote: QuotationRecord) => {
+     try {
+       const fullDraft: Partial<QuotationState> = {
++        quotationId: quote.id,
++        tableColumns: quote.tableColumns,
+         documentInfo: {
+           type: (quote.type as "quotation" | "rfq" | "proforma") || "quotation",
+           number: quote.number,
+diff --git a/src/hooks/quotationReducer.ts b/src/hooks/quotationReducer.ts
+index 0888d89..a176f10 100644
+--- a/src/hooks/quotationReducer.ts
++++ b/src/hooks/quotationReducer.ts
+@@ -1,3 +1,4 @@
++import { newQuotationId } from "@/lib/local-user-data";
+ import { QuotationState, TableColumn, Currency } from "../types/quotation.types";
+ 
+ export const DEFAULT_COLUMNS: TableColumn[] = [
+@@ -39,6 +40,7 @@ function getNextDocNumber(): string {
+ 
+ export function createFreshQuotation(company?: QuotationState["company"], branding?: QuotationState["branding"]): QuotationState {
+   return {
++    quotationId: typeof window === "undefined" ? undefined : newQuotationId(),
+     branding: branding || {
+       logo: null,
+       showLogo: true,
+@@ -118,6 +120,7 @@ export type QuotationAction =
+   | { type: "UPDATE_COLUMN"; payload: { id: string; updates: Partial<TableColumn> } }
+   | { type: "SET_COLUMNS"; payload: TableColumn[] }
+   | { type: "NEW_QUOTATION" }
++  | { type: "SET_SAVED_QUOTATION"; payload: { sentId: string; quotationId: string; number: string } }
+   | { type: "RESET"; payload: QuotationState };
+ 
+ export const quotationReducer = (state: QuotationState, action: QuotationAction): QuotationState => {
+@@ -214,10 +217,17 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
+         builderConfig: state.builderConfig,
+         pdfShowSignatureBlock: state.pdfShowSignatureBlock,
+       };
++    case "SET_SAVED_QUOTATION": {
++      const { sentId, quotationId, number } = action.payload;
++      if (state.quotationId !== sentId) return state;
++      if (quotationId === sentId && state.documentInfo.number === number) return state;
++      return { ...state, quotationId, documentInfo: { ...state.documentInfo, number } };
++    }
+     case "RESET":
+       return { 
+         ...initialState, 
+         ...action.payload,
++        quotationId: action.payload.quotationId || newQuotationId(),
+         branding: { ...initialState.branding, ...action.payload.branding },
+         documentInfo: { ...initialState.documentInfo, ...action.payload.documentInfo },
+         company: { ...initialState.company, ...action.payload.company },
+diff --git a/src/hooks/useQuotationState.tsx b/src/hooks/useQuotationState.tsx
+index b43baed..e2f18f6 100644
+--- a/src/hooks/useQuotationState.tsx
++++ b/src/hooks/useQuotationState.tsx
+@@ -8,6 +8,7 @@ import { useAuth } from "@clerk/nextjs";
+ import { quotationReducer, initialState, QuotationAction } from "./quotationReducer";
+ import { QuotationState, Currency } from "../types/quotation.types";
+ import { calculateSubtotal } from "../utils/calculations";
++import { ensureLocalDataOwner, syncLocalDocCounter } from "@/lib/local-user-data";
+ 
+ export type SyncStatus = "local" | "syncing" | "synced" | "error";
+ 
+@@ -50,12 +51,25 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
+   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+   const [syncStatus, setSyncStatus]   = useState<SyncStatus>("local");
+ 
+-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
++  const { isSignedIn, isLoaded: authLoaded, userId } = useAuth();
+ 
+   const profileLoadedRef = useRef(false);
++  const hydratedRef = useRef(false);
++  const reloadForUserSwitchRef = useRef(false);
++
++  // ── 0. Never show one user's cached workspace to another user ─────────────
++  // Runs during render so child pages reading localStorage in effects see clean data.
++  if (authLoaded && isSignedIn && userId && ensureLocalDataOwner(userId) && hydratedRef.current) {
++    reloadForUserSwitchRef.current = true;
++  }
++  useEffect(() => {
++    if (reloadForUserSwitchRef.current) window.location.reload();
++  });
+ 
+-  // ── 1. Hydrate from localStorage (once) ───────────────────────────────────
++  // ── 1. Hydrate from localStorage (once, after auth resolves) ──────────────
+   useEffect(() => {
++    if (!authLoaded || hydratedRef.current) return;
++    hydratedRef.current = true;
+     try {
+       const saved        = localStorage.getItem(STORAGE_KEY);
+       const savedCompany = localStorage.getItem(COMPANY_KEY);
+@@ -93,7 +107,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
+       console.error("Failed to load saved state", e);
+     }
+     setIsHydrated(true);
+-  }, []);
++  }, [authLoaded]);
+ 
+   // ── 2. Load profile from DB on login ─────────────────────────────────────
+   useEffect(() => {
+@@ -217,18 +231,39 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
+   }, [state, isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
+ 
+   // ── 4. Debounced cloud sync — quotation document ───────────────────────────
+-  const syncQuotation = useCallback(async (s: QuotationState) => {
+-    try {
+-      setSyncStatus("syncing");
+-      const res = await fetch("/api/quotation/save", {
+-        method: "POST",
+-        headers: { "Content-Type": "application/json" },
+-        body: JSON.stringify(s),
+-      });
+-      setSyncStatus(res.ok ? "synced" : "error");
+-    } catch {
+-      setSyncStatus("error");
+-    }
++  const stateRef = useRef(state);
++  stateRef.current = state;
++  const syncChainRef = useRef<Promise<void>>(Promise.resolve());
++
++  // Saves are serialized and always send the latest state, so a quote is created once.
++  const syncQuotation = useCallback(() => {
++    syncChainRef.current = syncChainRef.current.then(async () => {
++      const s = stateRef.current;
++      if (!s.quotationId || s.items.length === 0) return;
++      try {
++        setSyncStatus("syncing");
++        const res = await fetch("/api/quotation/save", {
++          method: "POST",
++          headers: { "Content-Type": "application/json" },
++          body: JSON.stringify(s),
++        });
++        if (!res.ok) {
++          setSyncStatus("error");
++          return;
++        }
++        const data = await res.json();
++        if (typeof data?.quotationId === "string" && typeof data?.number === "string") {
++          dispatch({
++            type: "SET_SAVED_QUOTATION",
++            payload: { sentId: s.quotationId, quotationId: data.quotationId, number: data.number },
++          });
++          syncLocalDocCounter(data.number);
++        }
++        setSyncStatus("synced");
++      } catch {
++        setSyncStatus("error");
++      }
++    });
+   }, []);
+ 
+   const debouncedSyncQuotation = useDebouncedCallback(syncQuotation, 2000);
+@@ -236,7 +271,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
+   useEffect(() => {
+     if (!isHydrated) return;
+     if (!isSignedIn) { setSyncStatus("local"); return; }
+-    debouncedSyncQuotation(state);
++    // Don't create empty quotations in the database
++    if (state.items.length === 0) return;
++    debouncedSyncQuotation();
+   }, [state, isHydrated, isSignedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+ 
+   // ── 5. Debounced cloud sync — settings/profile only ───────────────────────
+diff --git a/src/lib/local-user-data.ts b/src/lib/local-user-data.ts
+new file mode 100644
+index 0000000..7cdb8f9
+--- /dev/null
++++ b/src/lib/local-user-data.ts
+@@ -0,0 +1,57 @@
++const OWNER_KEY = "qc:localDataOwner";
++
++export const USER_LOCAL_KEYS = [
++  "quoteDraft",
++  "companyProfile",
++  "brandingProfile",
++  "defaultTerms",
++  "companyLogo",
++  "quotationPreferences",
++  "onboardingCompleted",
++  "lastDocNumber",
++  "userCurrency",
++];
++
++/**
++ * Binds browser-cached workspace data to a single Clerk user.
++ * If a different user signs in on the same browser, the previous user's
++ * cached company profile, logo and drafts are wiped.
++ * Returns true when data from another user was cleared.
++ */
++export function ensureLocalDataOwner(userId: string): boolean {
++  if (typeof window === "undefined") return false;
++  try {
++    const owner = localStorage.getItem(OWNER_KEY);
++    if (owner === userId) return false;
++    // Legacy data without an owner is adopted by the first user who signs in.
++    if (owner !== null) {
++      for (const key of USER_LOCAL_KEYS) localStorage.removeItem(key);
++    }
++    localStorage.setItem(OWNER_KEY, userId);
++    return owner !== null;
++  } catch {
++    return false;
++  }
++}
++
++export function newQuotationId(): string {
++  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
++    return crypto.randomUUID();
++  }
++  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
++    const r = (Math.random() * 16) | 0;
++    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
++  });
++}
++
++/** Keeps the local doc-number counter ahead of numbers the server assigned. */
++export function syncLocalDocCounter(number: string) {
++  if (typeof window === "undefined") return;
++  const match = number.match(/(\d+)$/);
++  if (!match) return;
++  try {
++    const current = parseInt(localStorage.getItem("lastDocNumber") || "1000", 10);
++    const assigned = parseInt(match[1], 10);
++    if (assigned > current) localStorage.setItem("lastDocNumber", String(assigned));
++  } catch {}
++}
+diff --git a/src/lib/prisma.ts b/src/lib/prisma.ts
+index f3632ef..2e908c5 100644
+--- a/src/lib/prisma.ts
++++ b/src/lib/prisma.ts
+@@ -79,6 +79,38 @@ export async function updateUserGeminiKey(id: string, geminiApiKey: string | nul
+ // Quotation helpers
+ // ---------------------------------------------------------------------------
+ 
++let quotationColumnsEnsured = false;
++async function ensureQuotationColumns() {
++  if (quotationColumnsEnsured) return;
++  try {
++    await db.query(`ALTER TABLE "Quotation" ADD COLUMN IF NOT EXISTS "tableColumns" JSONB;`);
++  } catch {
++    // Column may already exist or role lacks ALTER permission
++  }
++  quotationColumnsEnsured = true;
++}
++
++export async function getOwnedQuotation(userId: string, id: string) {
++  const { rows } = await db.query(
++    `SELECT id, number FROM "Quotation" WHERE "userId" = $1 AND id = $2 LIMIT 1`,
++    [userId, id]
++  );
++  return (rows[0] as { id: string; number: string } | undefined) ?? null;
++}
++
++/** Next free number for this user with the same prefix, e.g. QT-1007 -> QT-<max+1>. */
++export async function getNextQuotationNumber(userId: string, sampleNumber: string) {
++  const prefix = sampleNumber.match(/^(.*?)\d+$/)?.[1] ?? "QT-";
++  const { rows } = await db.query(`SELECT number FROM "Quotation" WHERE "userId" = $1`, [userId]);
++  let max = 1000;
++  for (const r of rows as { number: string }[]) {
++    if (!r.number?.startsWith(prefix)) continue;
++    const rest = r.number.slice(prefix.length);
++    if (/^\d+$/.test(rest)) max = Math.max(max, parseInt(rest, 10));
++  }
++  return `${prefix}${max + 1}`;
++}
++
+ export async function findQuotationByUserAndNumber(userId: string, number: string) {
+   const { rows } = await db.query(
+     `SELECT id FROM "Quotation" WHERE "userId" = $1 AND number = $2 LIMIT 1`,
+@@ -88,6 +120,8 @@ export async function findQuotationByUserAndNumber(userId: string, number: strin
+ }
+ 
+ export async function createQuotation(data: {
++  id?: string;
++  tableColumns?: object[] | null;
+   userId: string;
+   number: string;
+   type: string;
+@@ -109,14 +143,16 @@ export async function createQuotation(data: {
+   taxPercent: number;
+   shippingCharge: number;
+ }) {
++  await ensureQuotationColumns();
+   const { rows } = await db.query(
+     `INSERT INTO "Quotation"
+        (id, "userId", number, type, date, "validUntil", vessel, reference, scope, make, model,
+         "introText", company, client, items, terms, currency, discount, "discountType",
+-        "taxPercent", "shippingCharge", "createdAt", "updatedAt")
++        "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt")
+      VALUES
+-       (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+-        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW())
++       (COALESCE($22::text, gen_random_uuid()::text), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
++        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21::jsonb, NOW(), NOW())
++     ON CONFLICT (id) DO NOTHING
+      RETURNING id`,
+     [
+       data.userId, data.number, data.type, data.date, data.validUntil,
+@@ -125,12 +161,16 @@ export async function createQuotation(data: {
+       JSON.stringify(data.company), JSON.stringify(data.client), JSON.stringify(data.items),
+       data.terms, data.currency, data.discount, data.discountType,
+       data.taxPercent, data.shippingCharge,
++      data.tableColumns ? JSON.stringify(data.tableColumns) : null,
++      data.id ?? null,
+     ]
+   );
+-  return rows[0];
++  return (rows[0] as { id: string } | undefined) ?? null;
+ }
+ 
+ export async function updateQuotation(id: string, data: {
++  number?: string;
++  tableColumns?: object[] | null;
+   type: string;
+   date: string;
+   validUntil: string;
+@@ -150,12 +190,15 @@ export async function updateQuotation(id: string, data: {
+   taxPercent: number;
+   shippingCharge: number;
+ }) {
++  await ensureQuotationColumns();
+   await db.query(
+     `UPDATE "Quotation" SET
+        type=$1, date=$2, "validUntil"=$3, vessel=$4, reference=$5, scope=$6,
+        make=$7, model=$8, "introText"=$9, company=$10, client=$11, items=$12,
+        terms=$13, currency=$14, discount=$15, "discountType"=$16,
+-       "taxPercent"=$17, "shippingCharge"=$18, "updatedAt"=NOW()
++       "taxPercent"=$17, "shippingCharge"=$18,
++       number=COALESCE($20::text, number), "tableColumns"=COALESCE($21::jsonb, "tableColumns"),
++       "updatedAt"=NOW()
+      WHERE id=$19`,
+     [
+       data.type, data.date, data.validUntil, data.vessel, data.reference, data.scope,
+@@ -163,6 +206,8 @@ export async function updateQuotation(id: string, data: {
+       JSON.stringify(data.company), JSON.stringify(data.client), JSON.stringify(data.items),
+       data.terms, data.currency, data.discount, data.discountType,
+       data.taxPercent, data.shippingCharge, id,
++      data.number ?? null,
++      data.tableColumns ? JSON.stringify(data.tableColumns) : null,
+     ]
+   );
+ }
+@@ -171,10 +216,11 @@ export async function getUserQuotations(
+   userId: string,
+   options?: { search?: string; type?: string; limit?: number }
+ ) {
++  await ensureQuotationColumns();
+   const params: unknown[] = [userId];
+   let query = `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
+                       company, client, items, terms, currency, discount, "discountType",
+-                      "taxPercent", "shippingCharge", "createdAt", "updatedAt"
++                      "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt"
+                FROM "Quotation" WHERE "userId" = $1`;
+ 
+   if (options?.type && options.type !== "all") {
+@@ -200,10 +246,11 @@ export async function getUserQuotations(
+ }
+ 
+ export async function getQuotationById(userId: string, id: string) {
++  await ensureQuotationColumns();
+   const { rows } = await db.query(
+     `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
+             "introText", company, client, items, terms, currency, discount, "discountType",
+-            "taxPercent", "shippingCharge", "createdAt", "updatedAt"
++            "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt"
+      FROM "Quotation" WHERE "userId" = $1 AND id = $2 LIMIT 1`,
+     [userId, id]
+   );
+diff --git a/src/proxy.ts b/src/proxy.ts
+index 3e302a3..7a77019 100644
+--- a/src/proxy.ts
++++ b/src/proxy.ts
+@@ -53,9 +53,7 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
+     return NextResponse.next();
+   }
+ 
+-  const publishableKey =
+-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+-    "pk_test_dmlhYmxlLXRlcnJpZXItNjMuY2xlcmsuYWNjb3VudHMuZGV2JA";
++  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+   const secretKey = process.env.CLERK_SECRET_KEY;
+ 
+   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500
+diff --git a/src/types/quotation.types.ts b/src/types/quotation.types.ts
+index c775d73..ef52a2e 100644
+--- a/src/types/quotation.types.ts
++++ b/src/types/quotation.types.ts
+@@ -163,6 +163,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+ };
+ 
+ export interface QuotationState {
++  quotationId?: string;
+   branding: QuotationBranding;
+   documentInfo: DocumentInfo;
+   introText?: string;
+-- 
+2.56.0
+

@@ -32,7 +32,14 @@ import {
   Sliders,
   ShieldCheck,
   Sparkles,
-  PenLine
+  PenLine,
+  SlidersHorizontal,
+  Eye,
+  EyeOff,
+  Trash2,
+  Plus,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
@@ -40,8 +47,11 @@ import {
   QUOTATION_TEMPLATES, 
   PRESET_COLOR_PALETTES, 
   PRESET_FONTS, 
-  TemplateLayoutId 
+  TemplateLayoutId,
+  TableColumn
 } from "@/types/quotation.types";
+import { MARINE_COLUMN_PRESETS } from "@/components/flow/Step2CheckItems";
+import { DEFAULT_COLUMNS } from "@/hooks/quotationReducer";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -72,6 +82,78 @@ export default function SettingsPage() {
   const [companyTaxNo, setCompanyTaxNo] = useState(state.company.taxId || "");
   const [signatoryTitle, setSignatoryTitle] = useState(state.company.signatoryTitle || "");
   const [showSignatureBlock, setShowSignatureBlock] = useState(state.pdfShowSignatureBlock !== false);
+
+  // Default Quotation Columns
+  const [defaultColumns, setDefaultColumns] = useState<TableColumn[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const prefs = localStorage.getItem("quotationPreferences");
+        if (prefs) {
+          const parsed = JSON.parse(prefs);
+          if (Array.isArray(parsed.defaultColumns) && parsed.defaultColumns.length > 0) {
+            return parsed.defaultColumns;
+          }
+        }
+      } catch {}
+    }
+    return DEFAULT_COLUMNS;
+  });
+  const [newColLabel, setNewColLabel] = useState("");
+
+  const handleTogglePreset = (preset: typeof MARINE_COLUMN_PRESETS[0]) => {
+    const existing = defaultColumns.find((c) => c.key === preset.key || c.id === preset.id);
+    if (existing) {
+      setDefaultColumns(
+        defaultColumns.map((c) =>
+          c.id === existing.id ? { ...c, visible: !c.visible } : c
+        )
+      );
+    } else {
+      setDefaultColumns([
+        ...defaultColumns,
+        {
+          id: preset.id,
+          label: preset.label,
+          key: preset.key,
+          type: preset.type,
+          visible: true,
+          width: "110px",
+        },
+      ]);
+    }
+  };
+
+  const handleAddCustomColumn = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const label = newColLabel.trim();
+    if (!label) return;
+    const cleanKey = `x_${label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || Date.now()}`;
+    setDefaultColumns([
+      ...defaultColumns,
+      {
+        id: `col_${Date.now()}`,
+        label,
+        key: cleanKey,
+        type: "text",
+        visible: true,
+        width: "110px",
+      },
+    ]);
+    setNewColLabel("");
+  };
+
+  const handleDeleteColumn = (id: string) => {
+    setDefaultColumns(defaultColumns.filter((c) => c.id !== id));
+  };
+
+  const handleMoveColumn = (index: number, direction: -1 | 1) => {
+    const targetIdx = index + direction;
+    if (targetIdx < 0 || targetIdx >= defaultColumns.length) return;
+    const updated = [...defaultColumns];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIdx, 0, moved);
+    setDefaultColumns(updated);
+  };
 
   // Branding & Template fields
   const [selectedLayout, setSelectedLayout] = useState<TemplateLayoutId>(state.branding.layout || "marine");
@@ -156,7 +238,13 @@ export default function SettingsPage() {
     });
     try {
       localStorage.setItem("companyProfile", JSON.stringify(updatedCompany));
-      localStorage.setItem("quotationPreferences", JSON.stringify({ pdfShowSignatureBlock: showSignatureBlock }));
+      localStorage.setItem(
+        "quotationPreferences",
+        JSON.stringify({
+          pdfShowSignatureBlock: showSignatureBlock,
+          defaultColumns,
+        })
+      );
     } catch (e) {
       console.error(e);
     }
@@ -222,10 +310,20 @@ export default function SettingsPage() {
       type: "SET_PDF_SHOW_SIGNATURE",
       payload: showSignatureBlock,
     });
+    dispatch({
+      type: "SET_COLUMNS",
+      payload: defaultColumns,
+    });
 
     try {
       localStorage.setItem("companyProfile", JSON.stringify(updatedCompany));
-      localStorage.setItem("quotationPreferences", JSON.stringify({ pdfShowSignatureBlock: showSignatureBlock }));
+      localStorage.setItem(
+        "quotationPreferences",
+        JSON.stringify({
+          pdfShowSignatureBlock: showSignatureBlock,
+          defaultColumns,
+        })
+      );
       if (state.terms) {
         localStorage.setItem("defaultTerms", state.terms);
       }
@@ -243,6 +341,7 @@ export default function SettingsPage() {
           builderConfig: {
             ...state.builderConfig,
             pdfShowSignatureBlock: showSignatureBlock,
+            defaultColumns,
           },
         }),
       });
@@ -643,6 +742,145 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Default Table Columns Manager */}
+              <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-200/90 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-[#0F766E]" />
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        Default Table Columns &amp; Marine Fields
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Configure which columns and marine attributes automatically appear on newly created quotations and PDF exports.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                    {defaultColumns.filter(c => c.visible).length} Active Columns
+                  </span>
+                </div>
+
+                {/* Presets Grid */}
+                <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                  <Label className="text-xs font-bold text-slate-700">Quick-Enable Marine Fields</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {MARINE_COLUMN_PRESETS.map((preset) => {
+                      const col = defaultColumns.find((c) => c.key === preset.key || c.id === preset.id);
+                      const isVisible = Boolean(col && col.visible);
+
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => handleTogglePreset(preset)}
+                          className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2 ${
+                            isVisible
+                              ? "bg-teal-50 border-teal-200 text-teal-900 shadow-2xs font-bold"
+                              : "bg-white border-slate-200 hover:border-slate-300 text-slate-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-sm select-none">{preset.icon}</span>
+                            <span className="text-xs truncate">{preset.label}</span>
+                          </div>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            isVisible ? "bg-[#0F766E] text-white" : "bg-slate-100 text-slate-400"
+                          }`}>
+                            {isVisible ? "ON" : "OFF"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Columns List */}
+                <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                  <Label className="text-xs font-bold text-slate-700">Active Column Layout</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {defaultColumns.map((col, idx) => {
+                      const isProtected = col.role === "total" || col.role === "qty" || col.role === "price" || col.key === "sno" || col.key === "itemName";
+
+                      return (
+                        <div
+                          key={col.id}
+                          className={`flex items-center gap-2 p-2 rounded-xl border bg-white ${
+                            col.visible ? "border-slate-200 shadow-2xs" : "border-slate-200/60 opacity-60 bg-slate-50/50"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDefaultColumns(
+                                defaultColumns.map((c) =>
+                                  c.id === col.id ? { ...c, visible: !c.visible } : c
+                                )
+                              )
+                            }
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                              col.visible ? "text-[#0F766E] hover:bg-teal-50" : "text-slate-400 hover:bg-slate-100"
+                            }`}
+                            title={col.visible ? "Hide column" : "Show column"}
+                          >
+                            {col.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <span className="text-xs font-bold text-slate-800 flex-1 truncate">{col.label}</span>
+                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                            {col.role || col.type || "text"}
+                          </span>
+                          <div className="flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveColumn(idx, -1)}
+                              disabled={idx === 0}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                            >
+                              <ChevronUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveColumn(idx, 1)}
+                              disabled={idx === defaultColumns.length - 1}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                            >
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                          </div>
+                          {!isProtected && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteColumn(col.id)}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:text-rose-600"
+                              title="Delete Column"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Add Custom Column Form */}
+                <form onSubmit={handleAddCustomColumn} className="flex items-center gap-2 pt-2 border-t border-slate-200/80">
+                  <Input
+                    value={newColLabel}
+                    onChange={(e) => setNewColLabel(e.target.value)}
+                    placeholder="Add custom column (e.g. Warranty, Color, Certification...)"
+                    className="h-9 text-xs rounded-lg flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!newColLabel.trim()}
+                    className="h-9 px-3.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Add
+                  </Button>
+                </form>
               </div>
 
               <div className="space-y-1.5">
@@ -1284,6 +1522,145 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Default Table Columns Manager */}
+              <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-200/90 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-[#0F766E]" />
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        Default Table Columns &amp; Marine Fields
+                      </h4>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Configure which columns and marine attributes automatically appear on newly created quotations and PDF exports.
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                    {defaultColumns.filter(c => c.visible).length} Active Columns
+                  </span>
+                </div>
+
+                {/* Presets Grid */}
+                <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                  <Label className="text-xs font-bold text-slate-700">Quick-Enable Marine Fields</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {MARINE_COLUMN_PRESETS.map((preset) => {
+                      const col = defaultColumns.find((c) => c.key === preset.key || c.id === preset.id);
+                      const isVisible = Boolean(col && col.visible);
+
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => handleTogglePreset(preset)}
+                          className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2 ${
+                            isVisible
+                              ? "bg-teal-50 border-teal-200 text-teal-900 shadow-2xs font-bold"
+                              : "bg-white border-slate-200 hover:border-slate-300 text-slate-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-sm select-none">{preset.icon}</span>
+                            <span className="text-xs truncate">{preset.label}</span>
+                          </div>
+                          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            isVisible ? "bg-[#0F766E] text-white" : "bg-slate-100 text-slate-400"
+                          }`}>
+                            {isVisible ? "ON" : "OFF"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Columns List */}
+                <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                  <Label className="text-xs font-bold text-slate-700">Active Column Layout</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {defaultColumns.map((col, idx) => {
+                      const isProtected = col.role === "total" || col.role === "qty" || col.role === "price" || col.key === "sno" || col.key === "itemName";
+
+                      return (
+                        <div
+                          key={col.id}
+                          className={`flex items-center gap-2 p-2 rounded-xl border bg-white ${
+                            col.visible ? "border-slate-200 shadow-2xs" : "border-slate-200/60 opacity-60 bg-slate-50/50"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDefaultColumns(
+                                defaultColumns.map((c) =>
+                                  c.id === col.id ? { ...c, visible: !c.visible } : c
+                                )
+                              )
+                            }
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                              col.visible ? "text-[#0F766E] hover:bg-teal-50" : "text-slate-400 hover:bg-slate-100"
+                            }`}
+                            title={col.visible ? "Hide column" : "Show column"}
+                          >
+                            {col.visible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <span className="text-xs font-bold text-slate-800 flex-1 truncate">{col.label}</span>
+                          <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                            {col.role || col.type || "text"}
+                          </span>
+                          <div className="flex items-center">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveColumn(idx, -1)}
+                              disabled={idx === 0}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                            >
+                              <ChevronUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveColumn(idx, 1)}
+                              disabled={idx === defaultColumns.length - 1}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                            >
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                          </div>
+                          {!isProtected && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteColumn(col.id)}
+                              className="w-6 h-6 rounded flex items-center justify-center text-slate-300 hover:text-rose-600"
+                              title="Delete Column"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Add Custom Column Form */}
+                <form onSubmit={handleAddCustomColumn} className="flex items-center gap-2 pt-2 border-t border-slate-200/80">
+                  <Input
+                    value={newColLabel}
+                    onChange={(e) => setNewColLabel(e.target.value)}
+                    placeholder="Add custom column (e.g. Warranty, Color, Certification...)"
+                    className="h-9 text-xs rounded-lg flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!newColLabel.trim()}
+                    className="h-9 px-3.5 rounded-lg bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Add
+                  </Button>
+                </form>
               </div>
 
               <div className="space-y-4">

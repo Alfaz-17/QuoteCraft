@@ -91,6 +91,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
         if (parsedPrefs?.pdfShowSignatureBlock !== undefined) {
           parsed.pdfShowSignatureBlock = parsedPrefs.pdfShowSignatureBlock;
         }
+        if (!parsed.tableColumns && parsedPrefs?.defaultColumns && Array.isArray(parsedPrefs.defaultColumns)) {
+          parsed.tableColumns = parsedPrefs.defaultColumns;
+        }
         dispatch({ type: "RESET", payload: parsed });
       } else if (savedCompany || savedBranding || savedTerms || savedLogo || parsedPrefs) {
         const updates: Partial<QuotationState> = {};
@@ -100,6 +103,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
         if (savedTerms)    updates.terms    = savedTerms;
         if (parsedPrefs?.pdfShowSignatureBlock !== undefined) {
           updates.pdfShowSignatureBlock = parsedPrefs.pdfShowSignatureBlock;
+        }
+        if (parsedPrefs?.defaultColumns && Array.isArray(parsedPrefs.defaultColumns)) {
+          updates.tableColumns = parsedPrefs.defaultColumns;
         }
         dispatch({ type: "RESET", payload: { ...initialState, ...updates } as QuotationState });
       }

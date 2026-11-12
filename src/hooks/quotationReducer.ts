@@ -12,6 +12,21 @@ export const DEFAULT_COLUMNS: TableColumn[] = [
   { id: "total", label: "Total", key: "total", type: "auto", role: "total", visible: true, width: "90px" },
 ];
 
+export function getSavedDefaultColumns(): TableColumn[] {
+  if (typeof window !== "undefined") {
+    try {
+      const prefs = localStorage.getItem("quotationPreferences");
+      if (prefs) {
+        const parsed = JSON.parse(prefs);
+        if (Array.isArray(parsed.defaultColumns) && parsed.defaultColumns.length > 0) {
+          return parsed.defaultColumns;
+        }
+      }
+    } catch {}
+  }
+  return [...DEFAULT_COLUMNS];
+}
+
 export const EMPTY_COMPANY: QuotationState["company"] = {
   name: "",
   address: "",
@@ -65,7 +80,7 @@ export function createFreshQuotation(company?: QuotationState["company"], brandi
     company: company || { ...EMPTY_COMPANY },
     client: { ...EMPTY_CLIENT },
     items: [],
-    tableColumns: [...DEFAULT_COLUMNS],
+    tableColumns: getSavedDefaultColumns(),
     terms: "",
     currency: "USD" as Currency,
     discount: 0,
@@ -213,7 +228,7 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
       return {
         ...createFreshQuotation(state.company, state.branding),
         terms: state.terms,
-        tableColumns: [...DEFAULT_COLUMNS], // columns now follow each uploaded RFQ
+        tableColumns: getSavedDefaultColumns(),
         builderConfig: state.builderConfig,
         pdfShowSignatureBlock: state.pdfShowSignatureBlock,
       };
