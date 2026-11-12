@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // B. Check Daily AI Quota (5 AI requests/day per user during pilot)
+    // B. Check daily AI quota (per-user limit set in Admin → AI engine controls)
     const quota = await checkDailyAiQuota(userId);
     if (!quota.allowed) {
       return NextResponse.json(

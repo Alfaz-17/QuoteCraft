@@ -1028,7 +1028,7 @@ export default function SettingsPage() {
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Full tier active: Unlimited Excel &amp; PDF imports, 5 AI extractions per day, 4 corporate PDF templates, custom branding &amp; multi-currency calculation.
+                  Full tier active: Unlimited Excel &amp; PDF imports, daily AI extractions (limit set by admin), 4 corporate PDF templates, custom branding &amp; multi-currency calculation.
                 </p>
               </div>
             </div>
