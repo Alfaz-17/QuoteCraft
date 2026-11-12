@@ -17,6 +17,7 @@ model User {
   status        String        @default("ACTIVE") // 'ACTIVE' | 'SUSPENDED'
   lastLoginAt   DateTime?
   geminiApiKey  String?
+  aiDailyLimit  Int?          // per-customer AI extractions/day; null = global admin limit
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   quotations    Quotation[]

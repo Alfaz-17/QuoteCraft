@@ -66,6 +66,30 @@ export async function getAiEngineControls(): Promise<AiEngineControls> {
   return defaults;
 }
 
+let aiLimitColumnEnsured = false;
+
+export async function ensureUserAiLimitColumn(): Promise<void> {
+  if (aiLimitColumnEnsured) return;
+  try {
+    await db.query(`ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "aiDailyLimit" INTEGER;`);
+    aiLimitColumnEnsured = true;
+  } catch {
+    // Column may already exist or role lacks ALTER permission
+  }
+}
+
+/** Per-customer limit set in Admin → Customers; null means "use the global limit". */
+export async function getUserAiLimitOverride(userId: string): Promise<number | null> {
+  try {
+    await ensureUserAiLimitColumn();
+    const { rows } = await db.query(`SELECT "aiDailyLimit" FROM "User" WHERE id = $1 LIMIT 1`, [userId]);
+    const value = rows?.[0]?.aiDailyLimit;
+    return typeof value === "number" && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Checks if the user has exceeded their daily AI fallback extraction quota.
  * Reads atomically from PostgreSQL "AiUsageLog" within the last 24-hour rolling window.
@@ -74,7 +98,7 @@ export async function getAiEngineControls(): Promise<AiEngineControls> {
  */
 export async function checkDailyAiQuota(userId: string): Promise<DailyQuotaResult> {
   const controls = await getAiEngineControls();
-  const limit = controls.dailyAiLimitPerUser;
+  const limit = (await getUserAiLimitOverride(userId)) ?? controls.dailyAiLimitPerUser;
 
   try {
     const { rows } = await db.query(

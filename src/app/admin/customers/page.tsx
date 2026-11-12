@@ -40,6 +40,7 @@ interface Customer {
   total_quotes: number;
   total_ai_extractions: number;
   total_ai_cost: number;
+  ai_daily_limit: number | null;
 }
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,12 @@ export default function AdminCustomersPage() {
   const [actionReason, setActionReason] = useState("");
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
+  // Per-customer AI limit
+  const [globalAiLimit, setGlobalAiLimit] = useState(5);
+  const [limitUser, setLimitUser] = useState<Customer | null>(null);
+  const [limitInput, setLimitInput] = useState("");
+  const [isSavingLimit, setIsSavingLimit] = useState(false);
+
   const fetchCustomers = async () => {
     setIsLoading(true);
     try {
@@ -80,6 +87,7 @@ export default function AdminCustomersPage() {
       if (!res.ok) throw new Error("Failed to load customer list");
       const json = await res.json();
       setCustomers(json.customers || []);
+      if (typeof json.globalAiLimit === "number") setGlobalAiLimit(json.globalAiLimit);
       setTotalCount(json.pagination.total);
       setTotalPages(json.pagination.totalPages || 1);
     } catch (err: unknown) {
@@ -129,6 +137,37 @@ export default function AdminCustomersPage() {
       toastError((err as Error)?.message || "Action failed");
     } finally {
       setIsSubmittingAction(false);
+    }
+  };
+
+  const handleSaveLimit = async (value: number | null) => {
+    if (!limitUser) return;
+    if (value !== null && (!Number.isInteger(value) || value < 1 || value > 10000)) {
+      toastError("Enter a whole number between 1 and 10000.");
+      return;
+    }
+    setIsSavingLimit(true);
+    try {
+      const res = await fetch("/api/admin/customers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: limitUser.id, action: "SET_AI_LIMIT", aiDailyLimit: value }),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Failed to update AI limit");
+      }
+      toastSuccess(
+        value === null
+          ? `${limitUser.email} now uses the default limit (${globalAiLimit}/day).`
+          : `${limitUser.email} can now run ${value} AI extractions per day.`
+      );
+      setLimitUser(null);
+      fetchCustomers();
+    } catch (err: unknown) {
+      toastError((err as Error)?.message || "Failed to update AI limit");
+    } finally {
+      setIsSavingLimit(false);
     }
   };
 
@@ -288,6 +327,21 @@ export default function AdminCustomersPage() {
                             ${c.total_ai_cost.toFixed(3)}
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLimitUser(c);
+                            setLimitInput(c.ai_daily_limit ? String(c.ai_daily_limit) : "");
+                          }}
+                          title="Change this customer's daily AI limit"
+                          className={`mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${
+                            c.ai_daily_limit
+                              ? "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100"
+                              : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                          }`}
+                        >
+                          Limit: {c.ai_daily_limit ?? globalAiLimit}/day{c.ai_daily_limit ? " (custom)" : ""}
+                        </button>
                       </div>
                     </td>
 
@@ -368,6 +422,67 @@ export default function AdminCustomersPage() {
           </div>
         )}
       </div>
+
+      {/* Per-customer AI limit modal */}
+      {limitUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-[#0F766E]" />
+                <h3 className="font-black text-base text-slate-900">Daily AI Extraction Limit</h3>
+              </div>
+              <button type="button" onClick={() => setLimitUser(null)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Set how many AI extractions <strong className="text-slate-900">{limitUser.email}</strong> can run per day.
+              Leave empty to use the default limit for all customers ({globalAiLimit}/day). Excel and digital PDF imports are always unlimited.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">AI extractions per day</label>
+              <Input
+                type="number"
+                min={1}
+                max={10000}
+                step={1}
+                value={limitInput}
+                onChange={(e) => setLimitInput(e.target.value)}
+                placeholder={`Default: ${globalAiLimit}`}
+                className="h-10 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="flex justify-between gap-2 pt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={isSavingLimit || !limitUser.ai_daily_limit}
+                onClick={() => handleSaveLimit(null)}
+                className="rounded-xl text-xs font-bold text-slate-600"
+              >
+                Reset to default
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setLimitUser(null)} className="rounded-xl border-slate-200">
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={isSavingLimit}
+                  onClick={() => handleSaveLimit(limitInput.trim() === "" ? null : Number(limitInput))}
+                  className="rounded-xl font-bold text-white text-xs bg-[#0F766E] hover:bg-[#0D6B63]"
+                >
+                  {isSavingLimit ? "Saving..." : "Save Limit"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal for Suspend / Reactivate */}
       {selectedUser && (
