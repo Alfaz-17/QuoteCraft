@@ -278,38 +278,38 @@ export function Step2CheckItems({
 
         {/* RFQ Header Summary (Vessel, Customer, Ref, Date) */}
         {(state?.documentInfo?.vessel || state?.client?.companyName || state?.documentInfo?.reference) && (
-          <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="bg-white rounded-xl border border-slate-200/90 p-2.5 sm:p-3 shadow-2xs flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
               {state?.documentInfo?.vessel && (
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Vessel:</span>
-                  <span className="font-bold text-slate-900">{state.documentInfo.vessel}</span>
+                <div className="flex items-center gap-1 text-slate-700 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Vessel:</span>
+                  <span className="font-bold text-slate-900 truncate max-w-[130px] sm:max-w-[200px]">{state.documentInfo.vessel}</span>
                 </div>
               )}
               {state?.client?.companyName && (
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Buyer:</span>
-                  <span className="font-bold text-slate-900">{state.client.companyName}</span>
+                <div className="flex items-center gap-1 text-slate-700 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Buyer:</span>
+                  <span className="font-bold text-slate-900 truncate max-w-[130px] sm:max-w-[200px]">{state.client.companyName}</span>
                 </div>
               )}
               {state?.documentInfo?.reference && (
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Ref:</span>
-                  <span className="font-mono font-bold text-[#0F766E]">{state.documentInfo.reference}</span>
+                <div className="flex items-center gap-1 text-slate-700 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Ref:</span>
+                  <span className="font-mono font-bold text-[#0F766E] truncate max-w-[100px] sm:max-w-[160px]">{state.documentInfo.reference}</span>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                RFQ Details Detected
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                RFQ Detected
               </span>
               {onClearExtraction && (
                 <button
                   type="button"
                   onClick={onClearExtraction}
-                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded transition-colors"
+                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-1.5 py-0.5 rounded transition-colors shrink-0"
                 >
-                  Discard &amp; Re-Upload
+                  Discard
                 </button>
               )}
             </div>
@@ -318,20 +318,20 @@ export function Step2CheckItems({
 
         {/* ── OVERVIEW SUMMARY BAR (Compact Metric Tiles) ── */}
         <div className="grid grid-cols-2 gap-2 bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-2xs">
-          <div className="flex items-center gap-2.5 px-2">
-            <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200/80 flex items-center justify-center text-[#0F766E] shrink-0 font-bold">
+          <div className="flex items-center gap-2 px-1 sm:px-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200/80 flex items-center justify-center text-[#0F766E] shrink-0 font-bold text-xs sm:text-sm">
               {items.length}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-800 leading-tight">Total Products</p>
-              <p className="text-[11px] text-slate-400 font-medium">Extracted from RFQ</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-slate-800 leading-tight truncate">Total Products</p>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium truncate">Extracted from RFQ</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setFilterMode(reviewCount > 0 ? "review" : "all")}
-            className={`flex items-center gap-2.5 px-2 py-1 rounded-lg border transition-all text-left ${
+            className={`flex items-center gap-2 px-1.5 sm:px-2 py-1 rounded-lg border transition-all text-left min-w-0 ${
               reviewCount > 0
                 ? "bg-amber-50/70 border-amber-200 hover:bg-amber-100/60"
                 : "bg-emerald-50/70 border-emerald-200 hover:bg-emerald-100/60"
@@ -346,11 +346,11 @@ export function Step2CheckItems({
             >
               {reviewCount > 0 ? <AlertTriangle className="w-4 h-4" /> : <Check className="w-4 h-4 stroke-[3]" />}
             </div>
-            <div className="min-w-0">
-              <p className={`text-xs font-bold leading-tight ${reviewCount > 0 ? "text-amber-900" : "text-emerald-900"}`}>
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-bold leading-tight truncate ${reviewCount > 0 ? "text-amber-900" : "text-emerald-900"}`}>
                 {reviewCount > 0 ? `${reviewCount} Need Review` : "All Verified"}
               </p>
-              <p className="text-[11px] text-slate-500 font-medium truncate">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">
                 {reviewCount > 0 ? "Tap to filter warnings" : "Ready for pricing"}
               </p>
             </div>
@@ -367,7 +367,7 @@ export function Step2CheckItems({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Search ${items.length} items by name, PN, or spec...`}
+                placeholder="Search items, PN, specs..."
                 className="w-full h-10 pl-9 pr-8 rounded-xl border border-slate-300/80 bg-white text-base sm:text-xs font-medium text-slate-800 placeholder-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E]"
               />
               {searchQuery && (
@@ -385,11 +385,12 @@ export function Step2CheckItems({
             <button
               type="button"
               onClick={() => setShowColumnModal(true)}
-              className="h-10 px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
+              className="h-10 px-2.5 sm:px-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
               title="Customize Quotation Columns & Marine Presets"
+              aria-label="Customize Columns"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#0F766E]" />
-              <span className="hidden min-[480px]:inline">Columns</span>
+              <span className="hidden sm:inline">Columns</span>
               <span className="px-1.5 py-0.2 rounded-full bg-teal-50 text-[#0F766E] text-[10px] font-mono font-bold border border-teal-200">
                 {tableColumns.filter((c) => c.visible).length}
               </span>
@@ -399,89 +400,96 @@ export function Step2CheckItems({
             <button
               type="button"
               onClick={onAddItem}
-              className="h-10 px-3.5 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
+              className="h-10 px-3 sm:px-3.5 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors shadow-xs"
               title="Add a new line item manually"
+              aria-label="Add Item"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Item</span>
             </button>
           </div>
 
-          {/* Filter Pills & View Toggle */}
-          <div className="flex items-center justify-between gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-            <div className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setFilterMode("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                  filterMode === "all"
-                    ? "bg-[#0F766E] text-white shadow-xs"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                All ({items.length})
-              </button>
+          {/* Filter Pills Strip (Dedicated Row - Zero Collisions on iPhone!) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5 -mx-1 px-1">
+            <button
+              type="button"
+              onClick={() => setFilterMode("all")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                filterMode === "all"
+                  ? "bg-[#0F766E] text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              All ({items.length})
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setFilterMode("review")}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                  filterMode === "review"
-                    ? "bg-amber-600 text-white shadow-xs"
-                    : reviewCount > 0
-                    ? "bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/70"
-                    : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
-                Needs Review ({reviewCount})
-              </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode("review")}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                filterMode === "review"
+                  ? "bg-amber-600 text-white shadow-xs"
+                  : reviewCount > 0
+                  ? "bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100/70"
+                  : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {reviewCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+              <span className="hidden sm:inline">Needs Review</span>
+              <span className="sm:hidden inline">Review</span> ({reviewCount})
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setFilterMode("verified")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
-                  filterMode === "verified"
-                    ? "bg-emerald-700 text-white shadow-xs"
-                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Verified ({verifiedCount})
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setFilterMode("verified")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                filterMode === "verified"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              Verified ({verifiedCount})
+            </button>
+          </div>
 
-            {/* Right: View Density Toggle & Select All */}
-            <div className="flex items-center gap-1 shrink-0 ml-auto">
+          {/* Sub-Bar: Quick Selection & View Density Toggle (Dedicated Row - Never Overlaps!) */}
+          <div className="flex items-center justify-between gap-2 pt-0.5 text-xs">
+            <div className="flex items-center gap-1.5 min-w-0">
               <button
                 type="button"
                 onClick={handleToggleSelectAll}
-                className="text-[11px] font-bold text-[#0F766E] hover:underline px-2 py-1"
+                className="text-xs font-bold text-[#0F766E] hover:underline px-1 py-0.5 shrink-0"
               >
                 {selectedCount === items.length ? "Deselect All" : "Select All"}
               </button>
+              <span className="text-[11px] font-medium text-slate-400 truncate">
+                • {selectedCount} of {items.length} included
+              </span>
+            </div>
 
-              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("compact")}
-                  title="Compact List View"
-                  className={`p-1.5 rounded-md transition-colors ${
-                    viewMode === "compact" ? "bg-slate-100 text-[#0F766E]" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                >
-                  <LayoutList className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("cards")}
-                  title="Card View"
-                  className={`p-1.5 rounded-md transition-colors ${
-                    viewMode === "cards" ? "bg-slate-100 text-[#0F766E]" : "text-slate-400 hover:text-slate-600"
-                  }`}
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("compact")}
+                title="Compact List View"
+                aria-label="Compact List View"
+                className={`p-1.5 rounded-md transition-colors ${
+                  viewMode === "compact" ? "bg-slate-100 text-[#0F766E] font-bold" : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                <LayoutList className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                title="Card View"
+                aria-label="Card View"
+                className={`p-1.5 rounded-md transition-colors ${
+                  viewMode === "cards" ? "bg-slate-100 text-[#0F766E] font-bold" : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         </div>
@@ -562,12 +570,12 @@ export function Step2CheckItems({
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-2.5 p-2.5 transition-colors ${
+                  className={`flex items-start sm:items-center gap-2 sm:gap-2.5 p-2.5 transition-colors ${
                     !isIncluded ? "opacity-50 bg-slate-50/50" : needsReview ? "bg-amber-50/40 hover:bg-amber-50/60" : "hover:bg-slate-50/70"
                   }`}
                 >
                   {/* Inclusion Checkbox */}
-                  <label className="w-10 h-10 min-w-[40px] min-h-[40px] shrink-0 flex items-center justify-center cursor-pointer -ml-1">
+                  <label className="w-8 h-8 sm:w-9 sm:h-9 min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] shrink-0 flex items-center justify-center cursor-pointer -ml-1 mt-0.5 sm:mt-0">
                     <input
                       type="checkbox"
                       checked={isIncluded}
@@ -577,9 +585,9 @@ export function Step2CheckItems({
                   </label>
 
                   {/* S.No & Category Icon */}
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 mt-0.5 sm:mt-0">
                     <div
-                      className={`w-9 h-9 rounded-lg border flex items-center justify-center ${meta.badgeBg} ${meta.badgeText}`}
+                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg border flex items-center justify-center ${meta.badgeBg} ${meta.badgeText}`}
                       title={meta.label}
                     >
                       <CategoryIcon category={category} />
@@ -600,7 +608,7 @@ export function Step2CheckItems({
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 font-medium">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 font-medium pt-0.5">
                       <span className="font-mono font-semibold text-slate-700">
                         {item.partNumber ? `PN: ${item.partNumber}` : "No PN"}
                       </span>
@@ -611,7 +619,7 @@ export function Step2CheckItems({
                       {item.technicalSpecification && (
                         <>
                           <span>•</span>
-                          <span className="truncate max-w-[140px] text-slate-400">
+                          <span className="truncate max-w-[110px] sm:max-w-[180px] text-slate-400">
                             {item.technicalSpecification}
                           </span>
                         </>
@@ -622,7 +630,7 @@ export function Step2CheckItems({
                         return (
                           <span
                             key={col.id || col.key}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
                           >
                             <span className="text-teal-700/70 font-normal">{col.label}:</span>
                             <span className="font-bold">{String(val)}</span>
@@ -632,22 +640,22 @@ export function Step2CheckItems({
                     </div>
                   </div>
 
-                  {/* Right Status / Warning Badge & Chevron */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Right Status / Warning Badge & Actions */}
+                  <div className="flex items-center gap-1 shrink-0 mt-0.5 sm:mt-0">
                     {needsReview ? (
                       <button
                         type="button"
                         onClick={() => setEditingItem(item)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300"
+                        className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300"
                         title={reason || "Needs review"}
                       >
                         <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                        <span className="hidden min-[400px]:inline">Check</span>
+                        <span className="hidden min-[420px]:inline">Check</span>
                       </button>
                     ) : (
                       <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                         <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                        <span className="hidden min-[400px]:inline">OK</span>
+                        <span className="hidden min-[420px]:inline">OK</span>
                       </span>
                     )}
 
@@ -655,7 +663,7 @@ export function Step2CheckItems({
                     <button
                       type="button"
                       onClick={() => setEditingItem(item)}
-                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                       title="Edit Item"
                       aria-label="Edit Item"
                     >
@@ -666,7 +674,7 @@ export function Step2CheckItems({
                     <button
                       type="button"
                       onClick={() => onDeleteItem(item.id)}
-                      className="w-9 h-9 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Delete Item"
                       aria-label="Delete Item"
                     >
@@ -689,7 +697,7 @@ export function Step2CheckItems({
               return (
                 <div
                   key={item.id}
-                  className={`bg-white rounded-xl border p-3.5 space-y-2.5 shadow-2xs transition-all ${
+                  className={`bg-white rounded-xl border p-3 sm:p-3.5 space-y-2.5 shadow-2xs transition-all ${
                     !isIncluded
                       ? "opacity-60 border-slate-200"
                       : needsReview
@@ -697,9 +705,10 @@ export function Step2CheckItems({
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <label className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center cursor-pointer shrink-0 -ml-1">
+                  {/* Top Line: Checkbox + Icon + Title Input + Status + Delete */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                      <label className="w-8 h-8 sm:w-9 sm:h-9 min-w-[32px] min-h-[32px] flex items-center justify-center cursor-pointer shrink-0 -ml-1">
                         <input
                           type="checkbox"
                           checked={isIncluded}
@@ -725,24 +734,24 @@ export function Step2CheckItems({
                           })
                         }
                         placeholder="Product Name"
-                        className="w-full font-bold text-base sm:text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none"
+                        className="w-full font-bold text-sm text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#0F766E] px-1 py-0.5 rounded focus:outline-none min-w-0"
                       />
                     </div>
 
                     <div className="shrink-0 flex items-center gap-1">
                       {needsReview ? (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                           Review
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           OK
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={() => onDeleteItem(item.id)}
-                        className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-300 hover:text-rose-600 rounded transition-colors"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                         aria-label="Delete Item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -750,32 +759,33 @@ export function Step2CheckItems({
                     </div>
                   </div>
 
-                  {/* Part Number & Stepper Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                      <span className="text-slate-400 font-semibold">PN:</span>
-                      <input
-                        type="text"
-                        value={item.partNumber || ""}
-                        onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
-                        placeholder="e.g. MP-102"
-                        className="font-mono text-base sm:text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[140px] focus:outline-none focus:border-[#0F766E]"
-                      />
-                      {activeCustomCols.map((col) => {
-                        const val = item[col.key];
-                        if (val === undefined || val === null || String(val).trim() === "") return null;
-                        return (
-                          <span
-                            key={col.id || col.key}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
-                          >
-                            <span className="text-teal-700/70 font-normal">{col.label}:</span>
-                            <span className="font-bold">{String(val)}</span>
-                          </span>
-                        );
-                      })}
-                    </div>
+                  {/* Middle Line: Part Number & Custom Column Badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100 text-xs">
+                    <span className="text-slate-400 font-semibold text-[11px]">PN:</span>
+                    <input
+                      type="text"
+                      value={item.partNumber || ""}
+                      onChange={(e) => onUpdateItem(item.id, { partNumber: e.target.value })}
+                      placeholder="e.g. MP-102"
+                      className="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded px-2 py-1 max-w-[120px] focus:outline-none focus:border-[#0F766E]"
+                    />
+                    {activeCustomCols.map((col) => {
+                      const val = item[col.key];
+                      if (val === undefined || val === null || String(val).trim() === "") return null;
+                      return (
+                        <span
+                          key={col.id || col.key}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-teal-50/80 text-teal-900 border border-teal-200/60 text-[10px] font-medium"
+                        >
+                          <span className="text-teal-700/70 font-normal">{col.label}:</span>
+                          <span className="font-bold">{String(val)}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
 
+                  {/* Bottom Line: Stepper + Unit Dropdown + Edit Specs Button */}
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
                     <div className="flex items-center gap-1.5">
                       <div className="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-2xs">
                         <button
@@ -786,7 +796,7 @@ export function Step2CheckItems({
                               onUpdateItem(item.id, { quantity: cur - 1, isMissingQty: false });
                             }
                           }}
-                          className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100"
                           aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
@@ -801,7 +811,7 @@ export function Step2CheckItems({
                             const val = parseFloat(e.target.value) || 0;
                             onUpdateItem(item.id, { quantity: val, isMissingQty: false });
                           }}
-                          className="w-12 h-9 text-center font-bold text-base sm:text-xs text-slate-800 focus:outline-none border-x border-slate-200"
+                          className="w-10 sm:w-12 h-8 sm:h-9 text-center font-bold text-xs text-slate-800 focus:outline-none border-x border-slate-200"
                         />
                         <button
                           type="button"
@@ -809,7 +819,7 @@ export function Step2CheckItems({
                             const cur = Number(item.quantity) || 1;
                             onUpdateItem(item.id, { quantity: cur + 1, isMissingQty: false });
                           }}
-                          className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-600 hover:bg-slate-100"
+                          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
@@ -819,23 +829,24 @@ export function Step2CheckItems({
                       <select
                         value={item.unit ? item.unit.toUpperCase() : "PCS"}
                         onChange={(e) => onUpdateItem(item.id, { unit: e.target.value })}
-                        className="h-9 px-2 rounded-lg border border-slate-300 text-base sm:text-xs font-bold text-slate-700 bg-white"
+                        className="h-8 sm:h-9 px-2 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 bg-white"
                       >
                         {COMMON_UNITS.map((u) => (
                           <option key={u} value={u}>{u}</option>
                         ))}
                       </select>
-
-                      <button
-                        type="button"
-                        onClick={() => setEditingItem(item)}
-                        className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                        title="Edit Full Specs"
-                        aria-label="Edit Full Specs"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEditingItem(item)}
+                      className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold flex items-center gap-1 transition-colors"
+                      title="Edit Full Specs"
+                      aria-label="Edit Full Specs"
+                    >
+                      <Pencil className="w-3 h-3 text-[#0F766E]" />
+                      <span className="hidden min-[360px]:inline">Specs</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -921,23 +932,23 @@ export function Step2CheckItems({
 
       {/* ── COLUMN CUSTOMIZER MODAL ── */}
       {showColumnModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in">
-          <div className="bg-white w-full max-w-xl max-h-[90vh] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="bg-white w-full max-w-xl max-h-[90dvh] rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#0F766E] flex items-center justify-center">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#0F766E] flex items-center justify-center shrink-0">
                   <SlidersHorizontal className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900">Quotation Table Columns</h3>
-                  <p className="text-[11px] text-slate-500 font-medium">Add standard marine fields or create custom columns</p>
+                <div className="min-w-0">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 truncate">Quotation Table Columns</h3>
+                  <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">Add marine fields or create custom columns</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowColumnModal(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -1014,7 +1025,7 @@ export function Step2CheckItems({
                     return (
                       <div
                         key={col.id}
-                        className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
+                        className={`flex items-center gap-1.5 sm:gap-2 p-2 rounded-xl border transition-all ${
                           col.visible ? "bg-white border-slate-200 shadow-2xs" : "bg-slate-50/80 border-slate-200/60 opacity-60"
                         }`}
                       >
@@ -1022,7 +1033,7 @@ export function Step2CheckItems({
                         <button
                           type="button"
                           onClick={() => onUpdateColumn && onUpdateColumn(col.id, { visible: !col.visible })}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
                             col.visible ? "text-[#0F766E] hover:bg-teal-50" : "text-slate-400 hover:bg-slate-200"
                           }`}
                           title={col.visible ? "Hide from quotation & PDF" : "Show in quotation & PDF"}
@@ -1042,7 +1053,7 @@ export function Step2CheckItems({
                         </div>
 
                         {/* Column Role / Type Badge */}
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                        <span className="hidden min-[380px]:inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
                           {col.role || col.type || "text"}
                         </span>
 
@@ -1052,7 +1063,7 @@ export function Step2CheckItems({
                             type="button"
                             onClick={() => handleMoveColumn(idx, -1)}
                             disabled={idx === 0}
-                            className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                            className="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
                             title="Move Up"
                           >
                             <ChevronUp className="w-3.5 h-3.5" />
@@ -1061,7 +1072,7 @@ export function Step2CheckItems({
                             type="button"
                             onClick={() => handleMoveColumn(idx, 1)}
                             disabled={idx === tableColumns.length - 1}
-                            className="w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
+                            className="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-slate-400 hover:text-slate-700 disabled:opacity-20 disabled:hover:text-slate-400 transition-colors"
                             title="Move Down"
                           >
                             <ChevronDown className="w-3.5 h-3.5" />
@@ -1073,13 +1084,13 @@ export function Step2CheckItems({
                           <button
                             type="button"
                             onClick={() => onDeleteColumn && onDeleteColumn(col.id)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
                             title="Delete Column"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         ) : (
-                          <div className="w-8 shrink-0" />
+                          <div className="w-7 sm:w-8 shrink-0" />
                         )}
                       </div>
                     );
@@ -1098,7 +1109,7 @@ export function Step2CheckItems({
                     value={newColLabel}
                     onChange={(e) => setNewColLabel(e.target.value)}
                     placeholder="e.g. Serial Number, Certification..."
-                    className="flex-1 min-w-[180px] h-9 px-3 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
+                    className="flex-1 min-w-[140px] sm:min-w-[180px] h-9 px-3 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]"
                   />
                   <select
                     value={newColType}
