@@ -342,11 +342,11 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     
     if (hasPartNumber) {
       const descWidth = isLandscape ? 140 : 86;
-      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+      columnsConfig.push({ header: "Item Name", width: descWidth, halign: "left" });
       columnsConfig.push({ header: "Part Number", width: isLandscape ? 35 : 28, halign: "center" });
     } else {
       const descWidth = isLandscape ? 175 : 114;
-      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+      columnsConfig.push({ header: "Item Name", width: descWidth, halign: "left" });
     }
 
     columnsConfig.push({ header: "Qty", width: isLandscape ? 22 : 16, halign: "center" });

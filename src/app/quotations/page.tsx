@@ -149,7 +149,7 @@ export default function QuotationsPage() {
         items: quote.items || [],
         tableColumns: quote.tableColumns || [
           { id: "sno", label: "S.No", key: "sno", type: "auto", visible: true, width: "50px" },
-          { id: "name", label: "Item Description", key: "itemName", type: "text", visible: true },
+          { id: "name", label: "Item Name", key: "itemName", type: "text", visible: true },
           { id: "partNumber", label: "Part No.", key: "partNumber", type: "text", visible: true, width: "110px" },
           { id: "qty", label: "Qty", key: "quantity", type: "number", role: "qty", visible: true, width: "70px" },
           { id: "unit", label: "Unit", key: "unit", type: "text", visible: true, width: "70px" },

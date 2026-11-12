@@ -53,7 +53,7 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
     } else {
       columns.push({
         id: `imp_${key}`,
-        label: c.label,
+        label: key === "itemName" ? "Item Name" : c.label,
         key,
         type: canon ? canon.type : c.kind === "number" ? "number" : "text",
         ...(canon?.role ? { role: canon.role } : {}),
