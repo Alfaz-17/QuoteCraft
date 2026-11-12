@@ -420,7 +420,7 @@ export function Step3AddPricesAndSend({
         ) : (
           <div className="space-y-3">
           {items.map((item, idx) => {
-            const qty = toNumber(item[qtyKey] ?? item.quantity) || 1;
+            const qty = toNumber(item[qtyKey] ?? item.quantity);
             const price = toNumber(item[priceKey] ?? item.unitPrice) || 0;
             const lineTotal = item.isTba ? 0 : qty * price;
 
@@ -432,7 +432,7 @@ export function Step3AddPricesAndSend({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-bold text-sm sm:text-base text-[#172033] truncate">
-                      {item.itemName || "Unnamed Item"}
+                      {item.itemName || item.description || "Unnamed Item"}
                     </p>
                     <p className="text-xs text-[#64748B] font-medium mt-0.5">
                       Quantity: <strong className="text-slate-800">{qty} {item.unit || "PCS"}</strong>

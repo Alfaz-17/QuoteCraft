@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { QuotationState, LineItem, TableColumn, Currency } from "@/types/quotation.types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/Toast";
@@ -179,6 +179,17 @@ export function Step2CheckItems({
     onSetColumns(updated);
   };
 
+  // A newly added blank item opens straight in the editor so the user can type its name
+  const prevCountRef = useRef(items.length);
+  useEffect(() => {
+    const last = items[items.length - 1];
+    if (items.length === prevCountRef.current + 1 && last && !last.itemName?.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditingItem(last);
+    }
+    prevCountRef.current = items.length;
+  }, [items]);
+
   // Review status calculation
   const activeCustomCols = useMemo(() => {
     return tableColumns.filter(
@@ -191,7 +202,7 @@ export function Step2CheckItems({
   const getItemReviewReason = (item: LineItem): string | null => {
     if (item.isMissingQty) return "Quantity unclear in RFQ";
     if (!item.quantity || Number(item.quantity) <= 0) return "Please check quantity";
-    if (!item.itemName || !item.itemName.trim()) return "Missing item description";
+    if (!item.itemName || !item.itemName.trim()) return "Missing item name";
     if (item.needsReview) return "Review part specifications";
     return null;
   };
@@ -256,11 +267,17 @@ export function Step2CheckItems({
       onAddItem();
       return;
     }
+    const missingQty = items.filter(
+      (i) => i.included !== false && (!Number(i.quantity) || Number(i.quantity) <= 0)
+    ).length;
+    if (missingQty > 0) {
+      // Step 3 has no quantity field, so a 0 qty would silently price the line at 0
+      setFilterMode("review");
+      toastInfo(`${missingQty} item(s) have no quantity. Set them, or tap "Auto-Set All as 1 PCS".`);
+      return;
+    }
     if (selectedCount === 0) {
       handleToggleSelectAll();
-    }
-    if (reviewCount > 0) {
-      toastInfo(`${reviewCount} item(s) have unverified quantities from the RFQ. You can edit them in Step 3.`);
     }
     onNext();
   };
@@ -596,7 +613,7 @@ export function Step2CheckItems({
                   >
                     <div className="flex items-center gap-1.5">
                       <p className="text-xs sm:text-sm font-bold text-slate-900 truncate leading-snug">
-                        {item.itemName || "Unnamed Item"}
+                        {item.itemName || item.description || "Unnamed Item"}
                       </p>
                     </div>
 
@@ -606,7 +623,7 @@ export function Step2CheckItems({
                       </span>
                       <span>•</span>
                       <span className="font-bold text-[#0F766E]">
-                        {item.quantity || 1} {item.unit || "PCS"}
+                        {Number(item.quantity) > 0 ? `${item.quantity} ${item.unit || "PCS"}` : "Qty missing"}
                       </span>
                       {item.technicalSpecification && (
                         <>

@@ -41,7 +41,7 @@ export function EditItemModal({
   useEffect(() => {
     if (item) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDescription(item.itemName || "");
+      setDescription(item.itemName || item.description || "");
       setPartNumber(item.partNumber || "");
       setQuantity(String(item.quantity ?? 1));
       setUnit(item.unit || "PCS");
