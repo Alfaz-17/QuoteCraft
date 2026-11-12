@@ -59,6 +59,11 @@ export function MarineTemplate({ data }: TemplateProps) {
     }
 
     const standardKeys = new Set(["id", "itemName", "partNumber", "quantity", "unit", "condition", "unitPrice", "total", "needsReview", "isMissingQty", "description"]);
+    // Only print a spec line when the RFQ actually had a description/spec column
+    const showSpec = (it: LineItem) =>
+      !!it.description?.trim() &&
+      it.description.trim() !== it.itemName?.trim() &&
+      data.tableColumns.some(c => c.key === "description" && c.visible !== false);
     for (const [key, val] of Object.entries(item)) {
       if (!standardKeys.has(key) && val !== undefined && val !== null && String(val).trim()) {
         const colDef = data.tableColumns.find(c => c.key === key);
@@ -74,9 +79,9 @@ export function MarineTemplate({ data }: TemplateProps) {
             {details.join("  •  ")}
           </p>
         )}
-        {item.description && item.description.trim() && (
+        {showSpec(item) && (
           <p className="text-xs text-slate-600 font-normal italic tracking-normal normal-case">
-            Spec: {item.description.trim()}
+            Spec: {item.description?.trim()}
           </p>
         )}
       </div>

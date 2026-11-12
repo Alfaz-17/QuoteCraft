@@ -318,7 +318,9 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       lines.push(subDetails.join("   |   "));
     }
 
-    if (item.description && item.description.trim()) {
+    // Only print a spec line when the RFQ actually had a description/spec column
+    const hasSpecColumn = data.tableColumns.some(c => c.key === "description" && c.visible !== false);
+    if (hasSpecColumn && item.description?.trim() && item.description.trim() !== item.itemName?.trim()) {
       lines.push(`Spec: ${item.description.trim()}`);
     }
 

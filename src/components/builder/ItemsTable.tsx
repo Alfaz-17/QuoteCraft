@@ -394,11 +394,13 @@ export function ItemsTable({
                     <p className="text-xs text-slate-500 font-medium sm:hidden truncate mt-0.5">
                       {item.partNumber && `${item.partNumber} • `} {qtyVal || 0} {item.unit || "pcs"}
                     </p>
-                    {/* Desktop description snippet */}
-                    <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
-                      {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
-                      {item.itemName ? (item.description || "No description provided") : ""}
-                    </p>
+                    {/* Desktop part number / spec snippet */}
+                    {(item.partNumber || (item.description && item.description !== item.itemName)) && (
+                      <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
+                        {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
+                        {item.description !== item.itemName ? item.description : ""}
+                      </p>
+                    )}
                   </div>
 
                   <div className="hidden sm:flex items-center gap-6 px-4 text-right">
