@@ -79,6 +79,38 @@ export async function updateUserGeminiKey(id: string, geminiApiKey: string | nul
 // Quotation helpers
 // ---------------------------------------------------------------------------
 
+let quotationColumnsEnsured = false;
+async function ensureQuotationColumns() {
+  if (quotationColumnsEnsured) return;
+  try {
+    await db.query(`ALTER TABLE "Quotation" ADD COLUMN IF NOT EXISTS "tableColumns" JSONB;`);
+  } catch {
+    // Column may already exist or role lacks ALTER permission
+  }
+  quotationColumnsEnsured = true;
+}
+
+export async function getOwnedQuotation(userId: string, id: string) {
+  const { rows } = await db.query(
+    `SELECT id, number FROM "Quotation" WHERE "userId" = $1 AND id = $2 LIMIT 1`,
+    [userId, id]
+  );
+  return (rows[0] as { id: string; number: string } | undefined) ?? null;
+}
+
+/** Next free number for this user with the same prefix, e.g. QT-1007 -> QT-<max+1>. */
+export async function getNextQuotationNumber(userId: string, sampleNumber: string) {
+  const prefix = sampleNumber.match(/^(.*?)\d+$/)?.[1] ?? "QT-";
+  const { rows } = await db.query(`SELECT number FROM "Quotation" WHERE "userId" = $1`, [userId]);
+  let max = 1000;
+  for (const r of rows as { number: string }[]) {
+    if (!r.number?.startsWith(prefix)) continue;
+    const rest = r.number.slice(prefix.length);
+    if (/^\d+$/.test(rest)) max = Math.max(max, parseInt(rest, 10));
+  }
+  return `${prefix}${max + 1}`;
+}
+
 export async function findQuotationByUserAndNumber(userId: string, number: string) {
   const { rows } = await db.query(
     `SELECT id FROM "Quotation" WHERE "userId" = $1 AND number = $2 LIMIT 1`,
@@ -88,6 +120,8 @@ export async function findQuotationByUserAndNumber(userId: string, number: strin
 }
 
 export async function createQuotation(data: {
+  id?: string;
+  tableColumns?: object[] | null;
   userId: string;
   number: string;
   type: string;
@@ -109,14 +143,16 @@ export async function createQuotation(data: {
   taxPercent: number;
   shippingCharge: number;
 }) {
+  await ensureQuotationColumns();
   const { rows } = await db.query(
     `INSERT INTO "Quotation"
        (id, "userId", number, type, date, "validUntil", vessel, reference, scope, make, model,
         "introText", company, client, items, terms, currency, discount, "discountType",
-        "taxPercent", "shippingCharge", "createdAt", "updatedAt")
+        "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt")
      VALUES
-       (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), NOW())
+       (COALESCE($22::text, gen_random_uuid()::text), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21::jsonb, NOW(), NOW())
+     ON CONFLICT (id) DO NOTHING
      RETURNING id`,
     [
       data.userId, data.number, data.type, data.date, data.validUntil,
@@ -125,12 +161,16 @@ export async function createQuotation(data: {
       JSON.stringify(data.company), JSON.stringify(data.client), JSON.stringify(data.items),
       data.terms, data.currency, data.discount, data.discountType,
       data.taxPercent, data.shippingCharge,
+      data.tableColumns ? JSON.stringify(data.tableColumns) : null,
+      data.id ?? null,
     ]
   );
-  return rows[0];
+  return (rows[0] as { id: string } | undefined) ?? null;
 }
 
 export async function updateQuotation(id: string, data: {
+  number?: string;
+  tableColumns?: object[] | null;
   type: string;
   date: string;
   validUntil: string;
@@ -150,12 +190,15 @@ export async function updateQuotation(id: string, data: {
   taxPercent: number;
   shippingCharge: number;
 }) {
+  await ensureQuotationColumns();
   await db.query(
     `UPDATE "Quotation" SET
        type=$1, date=$2, "validUntil"=$3, vessel=$4, reference=$5, scope=$6,
        make=$7, model=$8, "introText"=$9, company=$10, client=$11, items=$12,
        terms=$13, currency=$14, discount=$15, "discountType"=$16,
-       "taxPercent"=$17, "shippingCharge"=$18, "updatedAt"=NOW()
+       "taxPercent"=$17, "shippingCharge"=$18,
+       number=COALESCE($20::text, number), "tableColumns"=COALESCE($21::jsonb, "tableColumns"),
+       "updatedAt"=NOW()
      WHERE id=$19`,
     [
       data.type, data.date, data.validUntil, data.vessel, data.reference, data.scope,
@@ -163,6 +206,8 @@ export async function updateQuotation(id: string, data: {
       JSON.stringify(data.company), JSON.stringify(data.client), JSON.stringify(data.items),
       data.terms, data.currency, data.discount, data.discountType,
       data.taxPercent, data.shippingCharge, id,
+      data.number ?? null,
+      data.tableColumns ? JSON.stringify(data.tableColumns) : null,
     ]
   );
 }
@@ -171,10 +216,11 @@ export async function getUserQuotations(
   userId: string,
   options?: { search?: string; type?: string; limit?: number }
 ) {
+  await ensureQuotationColumns();
   const params: unknown[] = [userId];
   let query = `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
                       company, client, items, terms, currency, discount, "discountType",
-                      "taxPercent", "shippingCharge", "createdAt", "updatedAt"
+                      "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt"
                FROM "Quotation" WHERE "userId" = $1`;
 
   if (options?.type && options.type !== "all") {
@@ -200,10 +246,11 @@ export async function getUserQuotations(
 }
 
 export async function getQuotationById(userId: string, id: string) {
+  await ensureQuotationColumns();
   const { rows } = await db.query(
     `SELECT id, number, type, date, "validUntil", vessel, reference, scope, make, model,
             "introText", company, client, items, terms, currency, discount, "discountType",
-            "taxPercent", "shippingCharge", "createdAt", "updatedAt"
+            "taxPercent", "shippingCharge", "tableColumns", "createdAt", "updatedAt"
      FROM "Quotation" WHERE "userId" = $1 AND id = $2 LIMIT 1`,
     [userId, id]
   );

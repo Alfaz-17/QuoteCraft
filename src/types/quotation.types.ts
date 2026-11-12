@@ -163,6 +163,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
 };
 
 export interface QuotationState {
+  quotationId?: string;
   branding: QuotationBranding;
   documentInfo: DocumentInfo;
   introText?: string;

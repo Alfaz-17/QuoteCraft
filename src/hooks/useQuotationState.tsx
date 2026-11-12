@@ -8,6 +8,7 @@ import { useAuth } from "@clerk/nextjs";
 import { quotationReducer, initialState, QuotationAction } from "./quotationReducer";
 import { QuotationState, Currency } from "../types/quotation.types";
 import { calculateSubtotal } from "../utils/calculations";
+import { ensureLocalDataOwner, syncLocalDocCounter } from "@/lib/local-user-data";
 
 export type SyncStatus = "local" | "syncing" | "synced" | "error";
 
@@ -50,12 +51,25 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [syncStatus, setSyncStatus]   = useState<SyncStatus>("local");
 
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { isSignedIn, isLoaded: authLoaded, userId } = useAuth();
 
   const profileLoadedRef = useRef(false);
+  const hydratedRef = useRef(false);
+  const reloadForUserSwitchRef = useRef(false);
 
-  // ── 1. Hydrate from localStorage (once) ───────────────────────────────────
+  // ── 0. Never show one user's cached workspace to another user ─────────────
+  // Runs during render so child pages reading localStorage in effects see clean data.
+  if (authLoaded && isSignedIn && userId && ensureLocalDataOwner(userId) && hydratedRef.current) {
+    reloadForUserSwitchRef.current = true;
+  }
   useEffect(() => {
+    if (reloadForUserSwitchRef.current) window.location.reload();
+  });
+
+  // ── 1. Hydrate from localStorage (once, after auth resolves) ──────────────
+  useEffect(() => {
+    if (!authLoaded || hydratedRef.current) return;
+    hydratedRef.current = true;
     try {
       const saved        = localStorage.getItem(STORAGE_KEY);
       const savedCompany = localStorage.getItem(COMPANY_KEY);
@@ -93,7 +107,7 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to load saved state", e);
     }
     setIsHydrated(true);
-  }, []);
+  }, [authLoaded]);
 
   // ── 2. Load profile from DB on login ─────────────────────────────────────
   useEffect(() => {
@@ -217,18 +231,39 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
   }, [state, isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 4. Debounced cloud sync — quotation document ───────────────────────────
-  const syncQuotation = useCallback(async (s: QuotationState) => {
-    try {
-      setSyncStatus("syncing");
-      const res = await fetch("/api/quotation/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(s),
-      });
-      setSyncStatus(res.ok ? "synced" : "error");
-    } catch {
-      setSyncStatus("error");
-    }
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const syncChainRef = useRef<Promise<void>>(Promise.resolve());
+
+  // Saves are serialized and always send the latest state, so a quote is created once.
+  const syncQuotation = useCallback(() => {
+    syncChainRef.current = syncChainRef.current.then(async () => {
+      const s = stateRef.current;
+      if (!s.quotationId || s.items.length === 0) return;
+      try {
+        setSyncStatus("syncing");
+        const res = await fetch("/api/quotation/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(s),
+        });
+        if (!res.ok) {
+          setSyncStatus("error");
+          return;
+        }
+        const data = await res.json();
+        if (typeof data?.quotationId === "string" && typeof data?.number === "string") {
+          dispatch({
+            type: "SET_SAVED_QUOTATION",
+            payload: { sentId: s.quotationId, quotationId: data.quotationId, number: data.number },
+          });
+          syncLocalDocCounter(data.number);
+        }
+        setSyncStatus("synced");
+      } catch {
+        setSyncStatus("error");
+      }
+    });
   }, []);
 
   const debouncedSyncQuotation = useDebouncedCallback(syncQuotation, 2000);
@@ -236,7 +271,9 @@ export function QuotationProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isHydrated) return;
     if (!isSignedIn) { setSyncStatus("local"); return; }
-    debouncedSyncQuotation(state);
+    // Don't create empty quotations in the database
+    if (state.items.length === 0) return;
+    debouncedSyncQuotation();
   }, [state, isHydrated, isSignedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 5. Debounced cloud sync — settings/profile only ───────────────────────

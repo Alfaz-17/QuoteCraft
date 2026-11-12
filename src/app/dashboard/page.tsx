@@ -196,6 +196,8 @@ export default function DashboardPage() {
   const handleOpenInBuilder = (quote: QuotationRecord) => {
     try {
       const fullDraft: Partial<QuotationState> = {
+        quotationId: quote.id,
+        tableColumns: quote.tableColumns,
         documentInfo: {
           type: (quote.type as "quotation" | "rfq" | "proforma") || "quotation",
           number: quote.number,

@@ -1,18 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { db } from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
-  try {
-    const payload = await req.json();
-    const eventType = payload?.type;
-    const data = payload?.data;
+interface ClerkUserPayload {
+  id?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  primary_email_address_id?: string | null;
+  email_addresses?: { id: string; email_address: string }[];
+}
 
+export async function POST(req: NextRequest) {
+  // Reject anything not signed by Clerk (Svix); unsigned payloads could hijack accounts by email.
+  let eventType: string;
+  let data: ClerkUserPayload;
+  try {
+    const evt = await verifyWebhook(req);
+    eventType = evt.type;
+    data = evt.data as ClerkUserPayload;
+  } catch (err) {
+    console.error("Clerk webhook verification failed:", err);
+    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
+  }
+
+  try {
     if (!eventType || !data) {
       return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
     }
 
     const clerkUserId = data.id;
-    const primaryEmail = data.email_addresses?.[0]?.email_address?.toLowerCase().trim();
+    const emails = data.email_addresses ?? [];
+    const primaryEmail = (emails.find((e) => e.id === data.primary_email_address_id) ?? emails[0])
+      ?.email_address?.toLowerCase().trim();
     const name = [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
 
     if (eventType === "user.created" || eventType === "user.updated") {

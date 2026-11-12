@@ -1,3 +1,4 @@
+import { newQuotationId } from "@/lib/local-user-data";
 import { QuotationState, TableColumn, Currency } from "../types/quotation.types";
 
 export const DEFAULT_COLUMNS: TableColumn[] = [
@@ -39,6 +40,7 @@ function getNextDocNumber(): string {
 
 export function createFreshQuotation(company?: QuotationState["company"], branding?: QuotationState["branding"]): QuotationState {
   return {
+    quotationId: typeof window === "undefined" ? undefined : newQuotationId(),
     branding: branding || {
       logo: null,
       showLogo: true,
@@ -118,6 +120,7 @@ export type QuotationAction =
   | { type: "UPDATE_COLUMN"; payload: { id: string; updates: Partial<TableColumn> } }
   | { type: "SET_COLUMNS"; payload: TableColumn[] }
   | { type: "NEW_QUOTATION" }
+  | { type: "SET_SAVED_QUOTATION"; payload: { sentId: string; quotationId: string; number: string } }
   | { type: "RESET"; payload: QuotationState };
 
 export const quotationReducer = (state: QuotationState, action: QuotationAction): QuotationState => {
@@ -214,10 +217,17 @@ export const quotationReducer = (state: QuotationState, action: QuotationAction)
         builderConfig: state.builderConfig,
         pdfShowSignatureBlock: state.pdfShowSignatureBlock,
       };
+    case "SET_SAVED_QUOTATION": {
+      const { sentId, quotationId, number } = action.payload;
+      if (state.quotationId !== sentId) return state;
+      if (quotationId === sentId && state.documentInfo.number === number) return state;
+      return { ...state, quotationId, documentInfo: { ...state.documentInfo, number } };
+    }
     case "RESET":
       return { 
         ...initialState, 
         ...action.payload,
+        quotationId: action.payload.quotationId || newQuotationId(),
         branding: { ...initialState.branding, ...action.payload.branding },
         documentInfo: { ...initialState.documentInfo, ...action.payload.documentInfo },
         company: { ...initialState.company, ...action.payload.company },

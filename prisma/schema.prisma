@@ -49,6 +49,7 @@ model Quotation {
   discountType   String   @default("flat")
   taxPercent     Float    @default(0)
   shippingCharge Float    @default(0)
+  tableColumns   Json?    // column layout of the imported RFQ
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

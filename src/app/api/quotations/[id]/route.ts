@@ -84,6 +84,7 @@ export async function PUT(
       discountType: body.discountType || existing.discountType,
       taxPercent: typeof body.taxPercent === "number" ? body.taxPercent : existing.taxPercent,
       shippingCharge: typeof body.shippingCharge === "number" ? body.shippingCharge : existing.shippingCharge,
+      tableColumns: Array.isArray(body.tableColumns) ? body.tableColumns : undefined,
     });
 
     const updated = await getQuotationById(userId, id);

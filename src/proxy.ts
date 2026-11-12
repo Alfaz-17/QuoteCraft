@@ -53,9 +53,7 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
     return NextResponse.next();
   }
 
-  const publishableKey =
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-    "pk_test_dmlhYmxlLXRlcnJpZXItNjMuY2xlcmsuYWNjb3VudHMuZGV2JA";
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const secretKey = process.env.CLERK_SECRET_KEY;
 
   // If Clerk keys are missing on Edge, protect routes safely without crashing Vercel with 500
