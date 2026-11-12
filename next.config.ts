@@ -5,9 +5,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["pg"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "25mb",
+      bodySizeLimit: "50mb",
     },
-    proxyClientMaxBodySize: "25mb",
+    proxyClientMaxBodySize: "50mb",
   },
 };
 

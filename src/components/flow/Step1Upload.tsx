@@ -76,15 +76,6 @@ export function Step1Upload({
     return () => clearInterval(timer);
   }, [isProcessing]);
 
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (err) => reject(err);
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFileSelect = (file: File) => {
     const validExtensions = [".xlsx", ".xls", ".csv", ".pdf", ".png", ".jpg", ".jpeg"];
     const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
@@ -94,8 +85,8 @@ export function Step1Upload({
       return;
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      toastError("File size exceeds 20MB. Please upload a smaller file or paste text.");
+    if (file.size > 30 * 1024 * 1024) {
+      toastError("File size exceeds 30MB. Please upload a smaller file or paste text.");
       return;
     }
 
@@ -126,15 +117,12 @@ export function Step1Upload({
     setProcessStep("Reading file...");
 
     try {
-      const base64 = await fileToBase64(selectedFile);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
       const res = await fetch("/api/ai/import-rfq", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileData: base64,
-          fileName: selectedFile.name,
-          mimeType: selectedFile.type,
-        }),
+        body: formData,
       });
 
       if (res.status === 401) {

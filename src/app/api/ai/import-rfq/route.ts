@@ -41,27 +41,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Parse input payload
-    const body = await req.json();
-    const { fileData, rawText } = body;
-    fileName = body.fileName || null;
-    mimeType = body.mimeType || null;
+    // 1. Parse input payload (Supports both multipart/form-data and JSON)
+    const contentType = req.headers.get("content-type") || "";
+    let fileData: string | null = null;
+    let rawText: string | null = null;
 
     // Load AI engine settings from admin controls (dynamic)
     const aiControls = await getAiEngineControls();
-
-    // Security & payload size check: configurable MB file limit (base64 ~1.37x)
-    const effectiveLimitMb = Math.max(aiControls.maxUploadSizeMb || 10, 25);
+    const effectiveLimitMb = Math.max(aiControls.maxUploadSizeMb || 10, 35);
     const maxBytes = effectiveLimitMb * 1024 * 1024;
-    const maxBase64Length = Math.ceil(maxBytes * 1.37);
-    if (fileData && typeof fileData === "string" && fileData.length > maxBase64Length) {
-      return NextResponse.json(
-        {
-          error:
-            `The uploaded file exceeds the ${effectiveLimitMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
-        },
-        { status: 413 }
-      );
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = formData.get("file") as File | null;
+      rawText = (formData.get("rawText") as string) || null;
+
+      if (file && typeof file === "object" && typeof file.arrayBuffer === "function") {
+        if (file.size > maxBytes) {
+          return NextResponse.json(
+            {
+              error: `The uploaded file (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the ${effectiveLimitMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
+            },
+            { status: 413 }
+          );
+        }
+        fileName = file.name || null;
+        mimeType = file.type || null;
+        const arrayBuf = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+        fileData = buffer.toString("base64");
+      }
+    } else {
+      const body = await req.json();
+      fileData = body.fileData || null;
+      rawText = body.rawText || null;
+      fileName = body.fileName || null;
+      mimeType = body.mimeType || null;
+
+      // Base64 string payload size check (base64 ~1.37x)
+      const maxBase64Length = Math.ceil(maxBytes * 1.37);
+      if (fileData && typeof fileData === "string" && fileData.length > maxBase64Length) {
+        return NextResponse.json(
+          {
+            error: `The uploaded file exceeds the ${effectiveLimitMb}MB size limit. Please upload a smaller file or copy-paste the raw RFQ text.`,
+          },
+          { status: 413 }
+        );
+      }
     }
 
     // Check raw text length (cap at 60,000 characters)

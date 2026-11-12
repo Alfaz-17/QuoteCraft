@@ -124,23 +124,13 @@ export function ItemsTable({
     onSetColumns(next);
   };
 
-  // Convert file to Base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 4 * 1024 * 1024) {
-        const errorMsg = "The file you selected exceeds the 4MB limit. Please upload a smaller file or copy-paste the text directly.";
+      if (file.size > 30 * 1024 * 1024) {
+        const errorMsg = "The file you selected exceeds the 30MB limit. Please upload a smaller file or copy-paste the text directly.";
         setAiError(errorMsg);
-        toastError("File too large. Max size is 4MB.");
+        toastError("File too large. Max size is 30MB.");
         setSelectedFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -158,20 +148,7 @@ export function ItemsTable({
     let loadingToastId = "";
 
     try {
-      let bodyData: any = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      if (selectedFile) {
-        const base64 = await fileToBase64(selectedFile);
-        bodyData = {
-          fileData: base64,
-          fileName: selectedFile.name,
-          mimeType: selectedFile.type,
-        };
-      } else if (aiText.trim()) {
-        bodyData = {
-          rawText: aiText,
-        };
-      } else {
+      if (!selectedFile && !aiText.trim()) {
         const errorMsg = "Please select a file or paste RFQ description text.";
         setAiError(errorMsg);
         toastError(errorMsg);
@@ -181,11 +158,21 @@ export function ItemsTable({
 
       loadingToastId = toastInfo("Analyzing RFQ with AI... Please hold.", 15000);
 
-      const res = await fetch("/api/ai/import-rfq", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData),
-      });
+      let res: Response;
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        res = await fetch("/api/ai/import-rfq", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        res = await fetch("/api/ai/import-rfq", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawText: aiText }),
+        });
+      }
 
       if (!res.ok) {
         let errorMsg = "Failed to process RFQ with AI.";
