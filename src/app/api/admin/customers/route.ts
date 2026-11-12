@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin, logAdminAction } from "@/lib/admin-auth";
 import { db } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { ensureUserAiLimitColumn, getAiEngineControls } from "@/lib/ai-quota";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
     }
 
+    await ensureUserAiLimitColumn();
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.trim() || "";
     const status = searchParams.get("status") || "ALL"; // ALL, ACTIVE, SUSPENDED
@@ -63,6 +65,7 @@ export async function GET(req: NextRequest) {
         u.status,
         u."createdAt",
         u."lastLoginAt",
+        u."aiDailyLimit" as ai_daily_limit,
         p.company->>'name' as company_name,
         p.company->>'email' as company_email,
         p.company->>'phone' as company_phone,
@@ -90,9 +93,11 @@ export async function GET(req: NextRequest) {
     `;
 
     const dataRes = await db.query(dataSql, params);
+    const { dailyAiLimitPerUser } = await getAiEngineControls();
 
     return NextResponse.json({
       customers: dataRes.rows,
+      globalAiLimit: dailyAiLimitPerUser,
       pagination: {
         total: totalCount,
         page,
@@ -114,7 +119,41 @@ export async function PATCH(req: NextRequest) {
   try {
     const admin = await requireSuperAdmin();
     const body = await req.json();
-    const { userId, action, reason } = body; // action: 'SUSPEND' | 'REACTIVATE'
+    const { userId, action, reason } = body; // action: 'SUSPEND' | 'REACTIVATE' | 'SET_AI_LIMIT'
+
+    if (action === "SET_AI_LIMIT") {
+      if (!userId) {
+        return NextResponse.json({ error: "Invalid action payload" }, { status: 400 });
+      }
+      const raw = body.aiDailyLimit;
+      const value = raw === null || raw === undefined || raw === "" ? null : Number(raw);
+      if (value !== null && (!Number.isInteger(value) || value < 1 || value > 10000)) {
+        return NextResponse.json(
+          { error: "AI limit must be a whole number between 1 and 10000, or empty to use the default." },
+          { status: 400 }
+        );
+      }
+
+      await ensureUserAiLimitColumn();
+      const { rows } = await db.query(
+        `UPDATE "User" SET "aiDailyLimit" = $1, "updatedAt" = NOW() WHERE id = $2 RETURNING id, email, name, "aiDailyLimit";`,
+        [value, userId]
+      );
+      if (rows.length === 0) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      await logAdminAction({
+        adminId: admin.id,
+        adminEmail: admin.email,
+        action: "SET_AI_LIMIT",
+        targetEntity: "User",
+        targetId: userId,
+        details: { targetEmail: rows[0].email, aiDailyLimit: value ?? "default" },
+      });
+
+      return NextResponse.json({ success: true, user: rows[0] });
+    }
 
     if (!userId || !["SUSPEND", "REACTIVATE"].includes(action)) {
       return NextResponse.json({ error: "Invalid action payload" }, { status: 400 });

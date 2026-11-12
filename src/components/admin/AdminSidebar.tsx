@@ -8,78 +8,58 @@ import {
   LayoutDashboard,
   Users,
   LineChart,
-  CreditCard,
   Cpu,
   FileSpreadsheet,
   LifeBuoy,
-  Sliders,
-  ShieldAlert,
+  Settings,
+  ScrollText,
   LogOut,
-  ChevronRight,
   Menu,
   X,
   ExternalLink,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 
-export const adminNavItems = [
+export const adminNavGroups = [
   {
-    name: "Overview",
-    href: "/admin",
-    icon: LayoutDashboard,
-    badge: null,
+    label: "Main",
+    items: [
+      { name: "Overview", href: "/admin", icon: LayoutDashboard },
+      { name: "Customers", href: "/admin/customers", icon: Users },
+      { name: "Quotations", href: "/admin/quotations", icon: FileSpreadsheet },
+    ],
   },
   {
-    name: "Customers",
-    href: "/admin/customers",
-    icon: Users,
-    badge: null,
+    label: "Insights",
+    items: [
+      { name: "Analytics", href: "/admin/analytics", icon: LineChart },
+      { name: "AI usage", href: "/admin/ai-usage", icon: Cpu },
+    ],
   },
   {
-    name: "Analytics",
-    href: "/admin/analytics",
-    icon: LineChart,
-    badge: null,
-  },
-  {
-    name: "Revenue & Plans",
-    href: "/admin/revenue",
-    icon: CreditCard,
-    badge: "SaaS",
-  },
-  {
-    name: "AI Usage & Costs",
-    href: "/admin/ai-usage",
-    icon: Cpu,
-    badge: "Groq",
-  },
-  {
-    name: "Quotations",
-    href: "/admin/quotations",
-    icon: FileSpreadsheet,
-    badge: null,
-  },
-  {
-    name: "Support & Feedback",
-    href: "/admin/support",
-    icon: LifeBuoy,
-    badge: null,
-  },
-  {
-    name: "Platform Settings",
-    href: "/admin/settings",
-    icon: Sliders,
-    badge: null,
-  },
-  {
-    name: "Security & Audit Logs",
-    href: "/admin/activity-logs",
-    icon: ShieldAlert,
-    badge: null,
+    label: "Manage",
+    items: [
+      { name: "Support tickets", href: "/admin/support", icon: LifeBuoy },
+      { name: "Settings", href: "/admin/settings", icon: Settings },
+      { name: "Audit log", href: "/admin/activity-logs", icon: ScrollText },
+    ],
   },
 ];
+
+export const adminNavItems = adminNavGroups.flatMap((g) => g.items);
+
+function Brand() {
+  return (
+    <Link href="/admin" className="flex items-center gap-2.5">
+      <QuoteCraftLogo size={28} showText={false} />
+      <div className="leading-tight">
+        <p className="text-sm font-bold text-slate-900">QuoteCraft</p>
+        <p className="text-[11px] text-slate-500">Admin</p>
+      </div>
+    </Link>
+  );
+}
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -87,187 +67,116 @@ export function AdminSidebar() {
   const { signOut } = useClerk();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // If on login page, don't show admin sidebar
   if (pathname === "/admin/login") return null;
 
-  const displayName = user?.fullName || user?.firstName || "Founder / Owner";
-  const userEmail = user?.primaryEmailAddress?.emailAddress || "alfazbilakhiya17@gmail.com";
-  const userInitial = displayName.charAt(0).toUpperCase() || "A";
+  const displayName = user?.fullName || user?.firstName || "Admin";
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
 
-  const renderNavLinks = (onItemClick?: () => void) => (
-    <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-      <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-teal-400/80">
-        Owner Command Center
-      </div>
-      {adminNavItems.map((item) => {
-        const isActive =
-          item.href === "/admin"
-            ? pathname === "/admin"
-            : pathname.startsWith(item.href);
-
-        return (
-          <Link
-            key={item.name}
-            href={item.href}
-            onClick={onItemClick}
-            className={cn(
-              "group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 min-h-[42px]",
-              isActive
-                ? "bg-[#0F766E] text-white shadow-md shadow-[#0F766E]/40 font-bold"
-                : "text-slate-300 hover:text-white hover:bg-[#082E3A]"
-            )}
-          >
-            <item.icon
-              className={cn(
-                "w-4 h-4 shrink-0 transition-colors",
-                isActive ? "text-[#F59E0B]" : "text-slate-400 group-hover:text-white"
-              )}
-            />
-            <span className="flex-1 truncate">{item.name}</span>
-            {item.badge && (
-              <span
+  const nav = (onItemClick?: () => void) => (
+    <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
+      {adminNavGroups.map((group) => (
+        <div key={group.label} className="space-y-0.5">
+          <p className="px-3 pb-1 text-[11px] font-medium text-slate-400">{group.label}</p>
+          {group.items.map((item) => {
+            const isActive = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onItemClick}
                 className={cn(
-                  "px-1.5 py-0.5 rounded text-[10px] font-extrabold",
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                   isActive
-                    ? "bg-[#F59E0B] text-slate-900"
-                    : "bg-teal-900/60 text-teal-300 border border-teal-700/50"
+                    ? "bg-slate-100 text-slate-900 font-semibold"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                {item.badge}
-              </span>
-            )}
-            {isActive && <ChevronRight className="w-3.5 h-3.5 text-teal-200 shrink-0" />}
-          </Link>
-        );
-      })}
-
-      <div className="pt-4 mt-2 border-t border-[#0D3845]/70 space-y-1">
-        <div className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
-          Customer Application
+                <item.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-[#0F766E]" : "text-slate-400")} />
+                <span className="truncate">{item.name}</span>
+              </Link>
+            );
+          })}
         </div>
+      ))}
+
+      <div className="pt-4 border-t border-slate-100">
         <Link
           href="/dashboard"
           onClick={onItemClick}
-          className="group flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#082E3A] transition-all"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900"
         >
-          <span className="flex items-center gap-2.5">
-            <QuoteCraftLogo size={18} variant="dark" />
-            <span>Go to App</span>
-          </span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
+          <ExternalLink className="w-4 h-4 text-slate-400" />
+          Open QuoteCraft app
         </Link>
       </div>
     </nav>
   );
 
-  return (
-    <>
-      {/* ── DESKTOP SIDEBAR ── */}
-      <aside className="hidden lg:flex flex-col w-64 bg-[#031820] text-slate-200 h-screen sticky top-0 shrink-0 z-30 select-none border-r border-[#0D3845]">
-        {/* Header Branding */}
-        <div className="p-4 border-b border-[#0D3845]/70 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-2.5 group">
-            <QuoteCraftLogo size={32} variant="dark" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-sm text-white tracking-tight">QuoteCraft</span>
-                <span className="text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-[#F59E0B] border border-amber-500/30">
-                  Founder
-                </span>
-              </div>
-              <p className="text-[10px] font-medium text-slate-400 tracking-wide">
-                Owner Command Center
-              </p>
-            </div>
-          </Link>
+  const account = (
+    <div className="p-3 border-t border-slate-200">
+      <div className="flex items-center gap-2.5 px-2 py-2">
+        <div className="w-8 h-8 rounded-full bg-[#0F766E] text-white flex items-center justify-center text-xs font-semibold shrink-0">
+          {displayName.charAt(0).toUpperCase()}
         </div>
-
-        {/* Navigation items */}
-        {renderNavLinks()}
-
-        {/* Founder Profile & Logout */}
-        <div className="p-3 border-t border-[#0D3845]/70 bg-[#021319]">
-          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#06232E] border border-[#0D3845]/60 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-[#0F766E] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
-              {userInitial}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-white truncate">{displayName}</p>
-              <p className="text-[10px] text-teal-300 font-mono truncate">{userEmail}</p>
-            </div>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 ring-4 ring-emerald-400/20" title="Founder Active" />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => signOut({ redirectUrl: "/admin/login" })}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 hover:text-white hover:bg-rose-950/40 border border-rose-900/40 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Sign Out Admin</span>
-          </button>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-slate-900 truncate">{displayName}</p>
+          <p className="text-xs text-slate-500 truncate">{userEmail}</p>
         </div>
-      </aside>
-
-      {/* ── MOBILE TOP BAR & SLIDE DRAWER ── */}
-      <div className="lg:hidden sticky top-0 z-40 bg-[#031820] border-b border-[#0D3845] px-4 py-3 flex items-center justify-between text-white">
-        <Link href="/admin" className="flex items-center gap-2">
-          <QuoteCraftLogo size={26} variant="dark" />
-          <div>
-            <span className="font-extrabold text-sm text-white">QuoteCraft</span>
-            <span className="ml-1.5 text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-[#F59E0B]">
-              Owner
-            </span>
-          </div>
-        </Link>
-
         <button
           type="button"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-xl bg-[#082E3A] text-slate-200 hover:text-white border border-[#0D3845]"
-          aria-label="Toggle navigation"
+          onClick={() => signOut({ redirectUrl: "/admin/login" })}
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+          title="Sign out"
+          aria-label="Sign out"
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          <LogOut className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <aside className="hidden lg:flex flex-col w-60 bg-white border-r border-slate-200 h-screen sticky top-0 shrink-0 z-30">
+        <div className="h-14 px-5 flex items-center border-b border-slate-200">
+          <Brand />
+        </div>
+        {nav()}
+        {account}
+      </aside>
+
+      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 h-14 flex items-center justify-between">
+        <Brand />
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Mobile Slide-over Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex flex-col bg-[#031820] text-slate-200 animate-in fade-in duration-200">
-          <div className="p-4 border-b border-[#0D3845] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <QuoteCraftLogo size={28} variant="dark" />
-              <div>
-                <p className="font-black text-sm text-white">Owner Command Center</p>
-                <p className="text-[10px] text-teal-400 font-mono">{userEmail}</p>
-              </div>
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setMobileOpen(false)} />
+          <div className="relative w-72 max-w-[85%] bg-white h-full flex flex-col shadow-xl">
+            <div className="h-14 px-5 flex items-center justify-between border-b border-slate-200">
+              <Brand />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                className="p-2 rounded-lg text-slate-500 hover:bg-slate-100"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="p-2 rounded-xl bg-[#082E3A] text-slate-200 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {renderNavLinks(() => setMobileOpen(false))}
-          </div>
-
-          <div className="p-4 border-t border-[#0D3845] bg-[#021319]">
-            <button
-              type="button"
-              onClick={() => signOut({ redirectUrl: "/admin/login" })}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 hover:bg-rose-950/40 border border-rose-900/40"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out Admin</span>
-            </button>
+            {nav(() => setMobileOpen(false))}
+            {account}
           </div>
         </div>
       )}
     </>
   );
 }
-

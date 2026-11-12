@@ -32,7 +32,7 @@ export function AdminLoginClient() {
             router.replace("/admin");
           } else {
             setErrorMsg(
-              "This account is not authorized for Owner Administration. Please sign in with founder credentials."
+              "This account doesn't have admin access. Sign in with an admin account."
             );
             setIsVerifyingOwner(false);
           }
@@ -65,10 +65,10 @@ export function AdminLoginClient() {
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-[#F59E0B] text-xs font-black uppercase tracking-wider">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Founder / Owner Portal
+            QuoteCraft
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Owner Command Center
+            Admin sign in
           </h1>
           <p className="text-xs text-slate-400">
             Private management and operational monitoring for QuoteCraft.
@@ -104,7 +104,7 @@ export function AdminLoginClient() {
                 onClick={() => router.replace("/admin")}
                 className="w-full h-11 rounded-xl bg-[#0F766E] hover:bg-[#0D6B63] text-white font-bold text-xs"
               >
-                Enter Command Center <ArrowRight className="w-4 h-4 ml-1.5" />
+                Go to admin <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
               <Button
                 variant="outline"

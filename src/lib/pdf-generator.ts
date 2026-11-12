@@ -318,7 +318,9 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       lines.push(subDetails.join("   |   "));
     }
 
-    if (item.description && item.description.trim()) {
+    // Only print a spec line when the RFQ actually had a description/spec column
+    const hasSpecColumn = data.tableColumns.some(c => c.key === "description" && c.visible !== false);
+    if (hasSpecColumn && item.description?.trim() && item.description.trim() !== item.itemName?.trim()) {
       lines.push(`Spec: ${item.description.trim()}`);
     }
 
@@ -340,11 +342,11 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     
     if (hasPartNumber) {
       const descWidth = isLandscape ? 140 : 86;
-      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+      columnsConfig.push({ header: "Item Name", width: descWidth, halign: "left" });
       columnsConfig.push({ header: "Part Number", width: isLandscape ? 35 : 28, halign: "center" });
     } else {
       const descWidth = isLandscape ? 175 : 114;
-      columnsConfig.push({ header: "Item Description & Technical Specifications", width: descWidth, halign: "left" });
+      columnsConfig.push({ header: "Item Name", width: descWidth, halign: "left" });
     }
 
     columnsConfig.push({ header: "Qty", width: isLandscape ? 22 : 16, halign: "center" });

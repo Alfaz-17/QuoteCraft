@@ -66,7 +66,6 @@ export function EditItemModal({
 
     onSave(item.id, {
       itemName: description.trim() || item.itemName,
-      description: description.trim(),
       partNumber: partNumber.trim(),
       quantity: qtyNum,
       unit: unit.trim().toUpperCase() || "PCS",
@@ -122,10 +121,10 @@ export function EditItemModal({
             </div>
           </div>
 
-          {/* Description * */}
+          {/* Item Name * */}
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-[#0F172A]">
-              Description <span className="text-rose-500">*</span>
+              Item Name <span className="text-rose-500">*</span>
             </Label>
             <Input
               required

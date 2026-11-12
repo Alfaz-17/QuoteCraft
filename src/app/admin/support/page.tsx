@@ -145,15 +145,15 @@ export default function AdminSupportPage() {
         <div>
           <div className="flex items-center gap-2">
             <LifeBuoy className="w-5 h-5 text-[#0F766E]" />
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Support &amp; Feedback Hub
+            <h1 className="text-2xl font-semibold text-slate-900">
+              Support tickets
             </h1>
             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
               {counts.total} Tickets
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Review customer feature requests, bug inquiries, and AI extraction feedback.
+          <p className="text-sm text-slate-500 mt-1">
+            Messages and bug reports sent by customers.
           </p>
         </div>
 
@@ -441,7 +441,7 @@ export default function AdminSupportPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-bold text-slate-700">
-                  Internal Founder Notes (Private)
+                  Internal notes (private)
                 </Label>
                 <textarea
                   rows={3}

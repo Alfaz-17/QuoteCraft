@@ -35,8 +35,14 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
   const keyFor = new Map<string, string>(); // AI column key -> final column key
   const columns: TableColumn[] = [];
 
+  // No item-name column (e.g. the RFQ only has "Description"): that column is the product name.
+  const promoteDescription = !result.columns.some((c) => c.kind === "name");
+
   for (const c of result.columns) {
-    const canon = CANONICAL[c.kind];
+    const canon =
+      c.kind === "description" && promoteDescription && !used.has("itemName")
+        ? CANONICAL.name
+        : CANONICAL[c.kind];
     let key = canon ? canon.key : `x_${slug(c.label)}`;
     if (used.has(key)) {
       // duplicate kind (e.g. two "description"-like columns) -> keep both as custom text
@@ -47,7 +53,7 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
     } else {
       columns.push({
         id: `imp_${key}`,
-        label: c.label,
+        label: key === "itemName" ? "Item Name" : c.label,
         key,
         type: canon ? canon.type : c.kind === "number" ? "number" : "text",
         ...(canon?.role ? { role: canon.role } : {}),
@@ -102,6 +108,7 @@ export function mapImport(result: ImportResult): { columns: TableColumn[]; items
     }
     if (!item.unit) item.unit = "pcs";
     if (typeof item.itemName !== "string") item.itemName = "";
+    if (!item.itemName) item.itemName = itemTitle(item, columns);
     return item;
   });
 

@@ -104,15 +104,15 @@ export default function AdminQuotationsPage() {
         <div>
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-[#0F766E]" />
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Quotation Management
+            <h1 className="text-2xl font-semibold text-slate-900">
+              Quotations
             </h1>
             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
               {totalCount} Total
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Platform-wide quotation registry. Tenant-isolated metadata for compliance and volume tracking.
+          <p className="text-sm text-slate-500 mt-1">
+            All quotations created by customers.
           </p>
         </div>
 
@@ -315,7 +315,7 @@ export default function AdminQuotationsPage() {
             <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
               <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <span>
-                <strong>Tenant Privacy Protected:</strong> Private line item prices and descriptions belong strictly to the supplier. Only header metadata is displayed.
+                <strong>Privacy:</strong> line items and prices are private to the customer. Only summary details are shown.
               </span>
             </div>
 

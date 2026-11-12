@@ -127,10 +127,10 @@ export function ItemsTable({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 30 * 1024 * 1024) {
-        const errorMsg = "The file you selected exceeds the 30MB limit. Please upload a smaller file or copy-paste the text directly.";
+      if (file.size > 4 * 1024 * 1024) {
+        const errorMsg = "The file you selected is larger than the 4MB limit. Please upload a smaller file or copy-paste the text directly.";
         setAiError(errorMsg);
-        toastError("File too large. Max size is 30MB.");
+        toastError("File too large. Max size is 4MB.");
         setSelectedFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -183,7 +183,7 @@ export function ItemsTable({
             if (parsed?.error) errorMsg = parsed.error;
           } catch {
             if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
-              errorMsg = "The file or text exceeds the upload size limit (up to 20MB). Please use a smaller file or paste fewer items.";
+              errorMsg = "The file or text exceeds the 4MB upload limit. Please use a smaller file or paste fewer items.";
             } else if (rawText) {
               errorMsg = rawText.slice(0, 150);
             }
@@ -394,11 +394,13 @@ export function ItemsTable({
                     <p className="text-xs text-slate-500 font-medium sm:hidden truncate mt-0.5">
                       {item.partNumber && `${item.partNumber} • `} {qtyVal || 0} {item.unit || "pcs"}
                     </p>
-                    {/* Desktop description snippet */}
-                    <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
-                      {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
-                      {item.itemName ? (item.description || "No description provided") : ""}
-                    </p>
+                    {/* Desktop part number / spec snippet */}
+                    {(item.partNumber || (item.description && item.description !== item.itemName)) && (
+                      <p className="hidden sm:block text-[12px] text-slate-500 font-medium truncate mt-0.5 max-w-md">
+                        {item.partNumber && <span className="text-slate-700 mr-2 border border-slate-200 bg-white px-1 rounded">{item.partNumber}</span>}
+                        {item.description !== item.itemName ? item.description : ""}
+                      </p>
+                    )}
                   </div>
 
                   <div className="hidden sm:flex items-center gap-6 px-4 text-right">

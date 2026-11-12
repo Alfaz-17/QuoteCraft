@@ -59,6 +59,11 @@ export function MarineTemplate({ data }: TemplateProps) {
     }
 
     const standardKeys = new Set(["id", "itemName", "partNumber", "quantity", "unit", "condition", "unitPrice", "total", "needsReview", "isMissingQty", "description"]);
+    // Only print a spec line when the RFQ actually had a description/spec column
+    const showSpec = (it: LineItem) =>
+      !!it.description?.trim() &&
+      it.description.trim() !== it.itemName?.trim() &&
+      data.tableColumns.some(c => c.key === "description" && c.visible !== false);
     for (const [key, val] of Object.entries(item)) {
       if (!standardKeys.has(key) && val !== undefined && val !== null && String(val).trim()) {
         const colDef = data.tableColumns.find(c => c.key === key);
@@ -74,9 +79,9 @@ export function MarineTemplate({ data }: TemplateProps) {
             {details.join("  •  ")}
           </p>
         )}
-        {item.description && item.description.trim() && (
+        {showSpec(item) && (
           <p className="text-xs text-slate-600 font-normal italic tracking-normal normal-case">
-            Spec: {item.description.trim()}
+            Spec: {item.description?.trim()}
           </p>
         )}
       </div>
@@ -341,7 +346,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               // Example 1 Header Style: Subtle bottom border with gray headers
               <tr className="border-b border-slate-300 text-slate-600 text-xs uppercase font-bold tracking-wider">
                 <th className="py-2.5 px-3 text-center w-10">#</th>
-                <th className="py-2.5 px-3">Description</th>
+                <th className="py-2.5 px-3">Item Name</th>
                 {hasPartNumber && <th className="py-2.5 px-3 text-center w-32">Part Number</th>}
                 <th className="py-2.5 px-3 text-center w-20">Qty</th>
                 <th className="py-2.5 px-3 text-right w-24">Price</th>
@@ -351,7 +356,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               // Anvil Minimal Header Style: Clean underline
               <tr className="border-b-2 border-slate-200 text-slate-400 text-xs uppercase font-bold tracking-wider">
                 <th className="py-2 px-1 text-center w-8">#</th>
-                <th className="py-2 px-2">Item Description</th>
+                <th className="py-2 px-2">Item Name</th>
                 {hasPartNumber && <th className="py-2 px-2 text-center w-28">Part No</th>}
                 <th className="py-2 px-2 text-center w-16">Qty</th>
                 <th className="py-2 px-2 text-right w-24">Rate</th>
@@ -361,7 +366,7 @@ export function MarineTemplate({ data }: TemplateProps) {
               // Marine & Technical Header Style: Full solid primary color bar
               <tr style={{ backgroundColor: primaryColor }} className="text-white text-xs uppercase font-bold tracking-wider">
                 <th className="py-2 px-2 text-center w-10">#</th>
-                <th className="py-2 px-3">Item Description & Specifications</th>
+                <th className="py-2 px-3">Item Name</th>
                 {hasPartNumber && <th className="py-2 px-3 text-center w-32">Part Number</th>}
                 <th className="py-2 px-3 text-center w-20">Qty</th>
                 <th className="py-2 px-3 text-right w-24">Rate ({currencySymbol})</th>
