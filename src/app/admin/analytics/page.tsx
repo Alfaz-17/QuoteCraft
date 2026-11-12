@@ -89,12 +89,12 @@ export default function AdminAnalyticsPage() {
         <div>
           <div className="flex items-center gap-2">
             <LineChart className="w-5 h-5 text-[#0F766E]" />
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Product &amp; Workflow Analytics
+            <h1 className="text-2xl font-semibold text-slate-900">
+              Analytics
             </h1>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            End-to-end quotation creation funnel, extraction success metrics, and buyer currency distribution.
+          <p className="text-sm text-slate-500 mt-1">
+            Quotation funnel, import methods and currencies.
           </p>
         </div>
 
@@ -219,7 +219,7 @@ export default function AdminAnalyticsPage() {
                                   ? m.method === "deterministic_pdf"
                                     ? "Deterministic PDF Scraper"
                                     : "Deterministic Excel Parser"
-                                  : "Groq Qwen AI Fallback"}
+                                  : "AI extraction"}
                               </span>
                               <span
                                 className={`text-[10px] font-black px-1.5 py-0.2 rounded uppercase ${

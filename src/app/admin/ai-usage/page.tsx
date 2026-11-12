@@ -118,15 +118,12 @@ export default function AdminAiUsagePage() {
         <div>
           <div className="flex items-center gap-2">
             <Cpu className="w-5 h-5 text-amber-500" />
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              AI Usage &amp; Cost Monitoring
+            <h1 className="text-2xl font-semibold text-slate-900">
+              AI usage
             </h1>
-            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] uppercase">
-              Groq Qwen 3.8-27B
-            </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Real AI token consumption, estimated operational expenses, latency benchmarks, and error audits.
+          <p className="text-sm text-slate-500 mt-1">
+            AI extraction volume, estimated cost, speed and errors.
           </p>
         </div>
 
