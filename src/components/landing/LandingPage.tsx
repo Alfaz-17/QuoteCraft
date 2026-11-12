@@ -32,7 +32,6 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
-  Star,
   MessageCircle,
   Building,
   Ship,
@@ -73,7 +72,6 @@ export function LandingPage() {
             <a href="#how-it-works" className="hover:text-[#0F766E] transition-colors">How it Works</a>
             <a href="#features" className="hover:text-[#0F766E] transition-colors">Features</a>
             <a href="#pricing" className="hover:text-[#0F766E] transition-colors">Pricing</a>
-            <a href="#testimonials" className="hover:text-[#0F766E] transition-colors">Customers</a>
             <a href="#faq" className="hover:text-[#0F766E] transition-colors">FAQ</a>
           </nav>
 
@@ -160,13 +158,6 @@ export function LandingPage() {
                 className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
               >
                 Pricing
-              </a>
-              <a
-                href="#testimonials"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="py-2 px-3 rounded-lg hover:bg-slate-50 hover:text-[#0F766E] transition-colors"
-              >
-                Customers
               </a>
               <a
                 href="#faq"
@@ -926,7 +917,7 @@ export function LandingPage() {
               Simple, Transparent Pricing
             </h2>
             <p className="text-sm sm:text-base text-[#475569] font-medium max-w-2xl mx-auto">
-              QuoteCraft is currently in open Release Candidate. All professional capabilities—including unlimited AI RFQ extractions, all 4 corporate templates, and custom branding—are 100% complimentary with no credit card required.
+              QuoteCraft is currently in open Release Candidate. All professional capabilities—including unlimited Excel &amp; PDF imports, daily AI extractions for scanned RFQs, all 4 corporate templates, and custom branding—are 100% complimentary with no credit card required.
             </p>
 
             {/* Monthly / Annual Toggle */}
@@ -1100,72 +1091,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── CUSTOMER TESTIMONIALS (GLOBAL PORTS) ── */}
-      <section id="testimonials" className="py-20 bg-white border-t border-[#ECE7DE]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-14">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#B45309] text-xs font-bold border border-[#FDE68A]">
-              <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
-              Loved by Marine Traders Worldwide
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-[#0F172A] tracking-tight">
-              Trusted by Suppliers Across 40+ Ports
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
-              <div className="flex items-center gap-1 text-[#F59E0B]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed italic">
-                &ldquo;We handle 50+ vessel enquiries every week across Singapore anchorage. QuoteCraft cut our quote turnaround from 1 hour to 3 minutes. The AI extraction handles messy Excel tables flawlessly.&rdquo;
-              </p>
-              <div className="pt-2 border-t border-slate-200/60">
-                <p className="text-xs font-bold text-slate-900">Marcus Tan</p>
-                <p className="text-xs text-slate-500">Managing Director &bull; Singapore Marine Chandlers</p>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
-              <div className="flex items-center gap-1 text-[#F59E0B]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed italic">
-                &ldquo;The WhatsApp quote sharing changed our sales speed. We send quotes to vessel managers directly while competitors are still formatting Word documents. Our order conversion rate jumped 28%.&rdquo;
-              </p>
-              <div className="pt-2 border-t border-slate-200/60">
-                <p className="text-xs font-bold text-slate-900">Tariq Al-Mansoor</p>
-                <p className="text-xs text-slate-500">Senior Broker &bull; Dubai Port Marine Equipment</p>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-lg bg-[#FAF9F5] border border-slate-200/80 space-y-4">
-              <div className="flex items-center gap-1 text-[#F59E0B]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed italic">
-                &ldquo;Having the Anvil and Classic templates built-in gives our quotations a Fortune-500 presentation. Customers regularly praise how readable and clear our spare parts lists look.&rdquo;
-              </p>
-              <div className="pt-2 border-t border-slate-200/60">
-                <p className="text-xs font-bold text-slate-900">Jan De Vries</p>
-                <p className="text-xs text-slate-500">Procurement Lead &bull; Rotterdam Marine Spares B.V.</p>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
       {/* ── FREQUENTLY ASKED QUESTIONS (ACCORDION) ── */}
       <section id="faq" className="py-20 bg-[#FAF9F5] border-t border-[#ECE7DE]">
         <div className="max-w-4xl mx-auto px-4 sm:px-8 space-y-10">
@@ -1283,7 +1208,6 @@ export function LandingPage() {
               <a href="#how-it-works" className="hover:text-[#0F766E]">How it Works</a>
               <a href="#features" className="hover:text-[#0F766E]">Features</a>
               <a href="#pricing" className="hover:text-[#0F766E]">Pricing</a>
-              <a href="#testimonials" className="hover:text-[#0F766E]">Customers</a>
               <a href="#faq" className="hover:text-[#0F766E]">FAQ</a>
               <button
                 onClick={() => setShowStyleguide(true)}

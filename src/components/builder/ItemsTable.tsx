@@ -127,10 +127,10 @@ export function ItemsTable({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.size > 30 * 1024 * 1024) {
-        const errorMsg = "The file you selected exceeds the 30MB limit. Please upload a smaller file or copy-paste the text directly.";
+      if (file.size > 4 * 1024 * 1024) {
+        const errorMsg = "The file you selected is larger than the 4MB limit. Please upload a smaller file or copy-paste the text directly.";
         setAiError(errorMsg);
-        toastError("File too large. Max size is 30MB.");
+        toastError("File too large. Max size is 4MB.");
         setSelectedFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -183,7 +183,7 @@ export function ItemsTable({
             if (parsed?.error) errorMsg = parsed.error;
           } catch {
             if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
-              errorMsg = "The file or text exceeds the upload size limit (up to 20MB). Please use a smaller file or paste fewer items.";
+              errorMsg = "The file or text exceeds the 4MB upload limit. Please use a smaller file or paste fewer items.";
             } else if (rawText) {
               errorMsg = rawText.slice(0, 150);
             }

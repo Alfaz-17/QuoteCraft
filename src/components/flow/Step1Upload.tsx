@@ -85,8 +85,8 @@ export function Step1Upload({
       return;
     }
 
-    if (file.size > 30 * 1024 * 1024) {
-      toastError("File size exceeds 30MB. Please upload a smaller file or paste text.");
+    if (file.size > 4 * 1024 * 1024) {
+      toastError("File is larger than 4MB. Please upload a smaller file or paste the items as text.");
       return;
     }
 
@@ -140,7 +140,7 @@ export function Step1Upload({
             if (parsed?.error) errorMsg = parsed.error;
           } catch {
             if (res.status === 413 || rawText.toLowerCase().includes("too large") || rawText.toLowerCase().includes("entity")) {
-              errorMsg = "The file payload exceeds the allowed upload limit (up to 20MB). Please upload a smaller file or copy-paste the line items directly.";
+              errorMsg = "The file is larger than the 4MB upload limit. Please upload a smaller file or copy-paste the line items directly.";
             } else if (rawText) {
               errorMsg = rawText.slice(0, 150);
             }
@@ -485,7 +485,7 @@ export function Step1Upload({
                       </button>
                     </div>
                     <p className="text-[11px] text-[#64748B] pt-1">
-                      Excel (.xlsx, .xls, .csv), PDF, or Images • Max 10MB
+                      Excel (.xlsx, .xls, .csv), PDF, or Images • Max 4MB
                     </p>
                   </div>
                 </div>
