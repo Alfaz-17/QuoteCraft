@@ -1,17 +1,32 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 
+async function withDatabaseRetry<T>(operation: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const code = (error as { code?: string })?.code || "";
+      const transient = /timeout|terminated|connection|ECONNRESET|ETIMEDOUT|EHOSTUNREACH/i.test(message) ||
+        ["57P03", "53300", "ECONNRESET", "ETIMEDOUT", "EHOSTUNREACH"].includes(code);
+      if (!transient || attempt >= 3) throw error;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1200));
+    }
+  }
+}
+
 // Ensure clerkUserId column exists in PostgreSQL without throwing errors
 let hasEnsuredColumn = false;
 async function ensureClerkColumn() {
   if (hasEnsuredColumn) return;
   try {
-    await db.query(
+    await withDatabaseRetry(() => db.query(
       `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "clerkUserId" TEXT;`
-    );
-    await db.query(
+    ));
+    await withDatabaseRetry(() => db.query(
       `CREATE UNIQUE INDEX IF NOT EXISTS "User_clerkUserId_key" ON "User"("clerkUserId") WHERE "clerkUserId" IS NOT NULL;`
-    );
+    ));
     hasEnsuredColumn = true;
   } catch (err) {
     // If permission or already exists, continue gracefully
@@ -43,10 +58,10 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
 
   // 1. Check if user already exists by clerkUserId
   try {
-    const { rows: byClerk } = await db.query(
+    const { rows: byClerk } = await withDatabaseRetry(() => db.query(
       `SELECT id, name, email, "clerkUserId" FROM "User" WHERE "clerkUserId" = $1 LIMIT 1`,
       [clerkUserId]
-    );
+    ));
 
     if (byClerk && byClerk[0]) {
       return {
@@ -70,19 +85,19 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   }
 
   // 3. Check if user exists by email (Migrate / Link existing NextAuth account)
-  const { rows: byEmail } = await db.query(
+  const { rows: byEmail } = await withDatabaseRetry(() => db.query(
     `SELECT id, name, email FROM "User" WHERE LOWER(email) = LOWER($1) LIMIT 1`,
     [primaryEmail]
-  );
+  ));
 
   if (byEmail && byEmail[0]) {
     const existingId = byEmail[0].id;
     // Link existing NextAuth record to this Clerk identity
     try {
-      await db.query(
+      await withDatabaseRetry(() => db.query(
         `UPDATE "User" SET "clerkUserId" = $1, "updatedAt" = NOW() WHERE id = $2`,
         [clerkUserId, existingId]
-      );
+      ));
     } catch {
       // Ignore if column constraint or duplicate
     }
@@ -96,12 +111,16 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   }
 
   // 4. Create new User record in PostgreSQL
-  const { rows: created } = await db.query(
+  const { rows: created } = await withDatabaseRetry(() => db.query(
     `INSERT INTO "User" (id, name, email, "clerkUserId", password, "createdAt", "updatedAt")
      VALUES (gen_random_uuid(), $1, LOWER($2), $3, '', NOW(), NOW())
+     ON CONFLICT (email) DO UPDATE SET
+       "clerkUserId" = COALESCE("User"."clerkUserId", EXCLUDED."clerkUserId"),
+       name = COALESCE("User".name, EXCLUDED.name),
+       "updatedAt" = NOW()
      RETURNING id, name, email`,
     [fullName, primaryEmail, clerkUserId]
-  );
+  ));
 
   return {
     id: created[0].id,

@@ -59,12 +59,15 @@ Your task is to parse a buyer's Request for Quotation (RFQ) document into a stru
 2. ITEM TABLE EXTRACTION:
    - Detect the buyer's ORIGINAL item table.
    - Preserve the exact column order and original column header wording.
+   - Keep every source column separate. A column named "Type" or "Condition" is its own column; never append those values to an item name or description.
+   - For PDF text containing page/y/x coordinates, group fragments on the same printed row and assign each fragment to the nearest matching header column. Do not merge adjacent columns.
    - Assign sequential column keys: "c1", "c2", "c3", etc.
    - Classify each column's "kind" using one of these values:
      - "serial": Item number, Sr No, S.No, Item #, Pos
      - "name": Short item title, product name
      - "description": Detailed specifications, dimensions, material, long text
      - "partNumber": Part number, drawing number, IMPA code, ISSA code, catalog no
+     - "condition": Type, condition, grade, or item type when it has its own source column
      - "qty": Quantity requested
      - "unit": Unit of measure (e.g., PCS, SET, MTR, KG, BOX)
      - "price": Unit price or rate (ONLY if the buyer provided a price column)
@@ -96,12 +99,13 @@ You MUST respond with a single valid JSON object in this exact shape:
   "columns": [
     {"key": "c1", "label": "Item #", "kind": "serial"},
     {"key": "c2", "label": "Part No / IMPA", "kind": "partNumber"},
-    {"key": "c3", "label": "Description & Specs", "kind": "description"},
-    {"key": "c4", "label": "Qty", "kind": "qty"},
-    {"key": "c5", "label": "Unit", "kind": "unit"}
+    {"key": "c3", "label": "Type", "kind": "condition"},
+    {"key": "c4", "label": "Description & Specs", "kind": "description"},
+    {"key": "c5", "label": "Qty", "kind": "qty"},
+    {"key": "c6", "label": "Unit", "kind": "unit"}
   ],
   "rows": [
-    {"c1": "1", "c2": "791823", "c3": "Centrifugal Pump Impeller Bronze DN100", "c4": "2", "c5": "PCS"}
+    {"c1": "1", "c2": "791823", "c3": "New", "c4": "Centrifugal Pump Impeller Bronze DN100", "c5": "2", "c6": "PCS"}
   ]
 }`;
 

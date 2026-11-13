@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { extractText } from "unpdf";
+import { extractText, extractTextItems } from "unpdf";
 import { ImportResult, ImportedColumn, ImportKind } from "@/utils/importMapping";
 
 export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -10,6 +10,7 @@ export interface DeterministicParseResult extends ImportResult {
   uncertainCount: number;
   sheetName?: string;
   extractedText?: string;
+  layoutText?: string;
   rfqDetails?: {
     vesselName?: string;
     customerName?: string;
@@ -21,10 +22,11 @@ export interface DeterministicParseResult extends ImportResult {
 /** Header matching patterns */
 const PATTERNS: Record<ImportKind, RegExp[]> = {
   serial: [/^(s\.?\s*no|sr\.?\s*no|#|item\s*no|sl\s*no|pos(\.?|\s*no)?|no\.?|line(\s*no)?)$/i],
+  condition: [/^(item\s*)?(type|condition|grade|state)$/i, /\b(type|condition|grade)\b/i],
   name: [
-    /^(item(\s*name)?|description|item\s*desc(ription)?|particulars|material|scope(\s*of\s*supply)?|product(\s*name)?)$/i,
+    /^(item(\s*name)?|part\s*name|name|description|item\s*desc(ription)?|particulars|material|scope(\s*of\s*supply)?|product(\s*name)?)$/i,
     /description/i,
-    /item/i,
+    /^item$/i,
   ],
   description: [/^(specification|spec(s)?|detailed\s*desc(ription)?|remarks|dimension(s)?|size)$/i],
   partNumber: [
@@ -289,24 +291,41 @@ export async function xlsxToText(buffer: Buffer): Promise<string> {
  */
 export async function extractPdfText(
   buffer: Buffer
-): Promise<{ text: string; totalPages: number; isScanned: boolean }> {
+): Promise<{ text: string; layoutText: string; totalPages: number; isScanned: boolean }> {
   try {
     const uint8 = new Uint8Array(buffer);
-    const result = await extractText(uint8);
+    const [result, positioned] = await Promise.all([extractText(uint8), extractTextItems(uint8)]);
     const rawText = Array.isArray(result.text) ? result.text.join("\n") : String(result.text || "");
     const cleanText = rawText.replace(/\r\n/g, "\n").trim();
+    // Keep PDF coordinates so downstream extraction can distinguish adjacent table cells.
+    const layoutPages = positioned.items.map((pageItems, pageIndex) => {
+      const lines: Array<{ y: number; items: typeof pageItems }> = [];
+      for (const item of [...pageItems].filter((entry) => entry.str.trim()).sort((a, b) => b.y - a.y || a.x - b.x)) {
+        let line = lines.find((candidate) => Math.abs(candidate.y - item.y) <= Math.max(2, item.height * 0.35));
+        if (!line) {
+          line = { y: item.y, items: [] };
+          lines.push(line);
+        }
+        line.items.push(item);
+      }
+      return lines
+        .sort((a, b) => b.y - a.y)
+        .map((line) => `page=${pageIndex + 1} y=${line.y.toFixed(1)}: ${line.items.sort((a, b) => a.x - b.x).map((item) => `x=${item.x.toFixed(1)} ${JSON.stringify(item.str.trim())}`).join(" | ")}`);
+    });
+    const layoutText = layoutPages.flat().join("\n");
     // A scanned PDF with only image pages typically has < 30 alphanumeric characters
     const alphanumericCount = (cleanText.match(/[a-zA-Z0-9]/g) || []).length;
     const isScanned = alphanumericCount < 30;
 
     return {
       text: cleanText,
+      layoutText,
       totalPages: result.totalPages || 1,
       isScanned,
     };
   } catch (err) {
     console.warn("PDF text extraction error:", err);
-    return { text: "", totalPages: 1, isScanned: true };
+    return { text: "", layoutText: "", totalPages: 1, isScanned: true };
   }
 }
 

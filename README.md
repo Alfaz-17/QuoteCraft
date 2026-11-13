@@ -10,7 +10,7 @@
 In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all formats: multi-sheet Excel files, scanned PDFs, equipment photographs, or raw emails. Re-typing hundreds of lines with IMPA/ISSA codes, part numbers, and quantities into a quote is the single biggest bottleneck for suppliers.
 
 **QuoteCraft automates this entire front-office workflow:**
-1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets (instant, 0% hallucination) with ultra-fast Groq AI (`qwen/qwen3.8-27b` & `llama-3.3-70b-versatile`) fallback for scanned documents and unstructured text.
+1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets, coordinate-aware extraction for searchable PDFs, and Groq AI (`qwen/qwen3.8-27b` & `llama-3.3-70b-versatile`) fallback for digital PDFs and unstructured text. Scanned PDFs need OCR or an image upload with vision fallback enabled.
 2. **Structure Preservation:** Replicates the buyer's exact column headers and line items so quotes match the customer's purchase order specifications.
 3. **Marine-Grade Calculation Engine:** Deterministic per-line rounding, subtotal integrity, discount protections (capped against negative totals), and multi-currency formatting (USD, EUR, GBP, AED, INR, SGD, JPY).
 4. **Branded Maritime PDF Export:** Generates high-density, professional quotations complete with company logos, vessel metadata, terms & conditions, and bank payment instructions.
@@ -23,7 +23,7 @@ In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all fo
 - **Language:** TypeScript 5
 - **Styling:** Tailwind CSS + Radix UI Primitives + Lucide Icons
 - **Authentication:** [Clerk](https://clerk.com/)
-- **Database:** Serverless PostgreSQL ([Neon](https://neon.tech/)) + Connection Pooling
+- **Database:** PostgreSQL via `DATABASE_URL` (Neon, Supabase, or another PostgreSQL host)
 - **AI Intelligence:** [Groq Cloud SDK](https://groq.com/) (`qwen/qwen3.8-27b` with automatic `llama-3.3-70b-versatile` failover) for ultra-low latency RFQ document extraction; Google Gemini (`gemini-2.5-flash`) for logo color palette extraction
 - **PDF Generation:** `jspdf` + `jspdf-autotable` & `@react-pdf/renderer`
 - **Testing:** Node.js native test runner + `tsx`
@@ -34,7 +34,7 @@ In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all fo
 
 ### 1. Prerequisites
 - Node.js 20+ installed
-- PostgreSQL database (or Neon serverless account)
+- PostgreSQL database (Neon, Supabase, or another PostgreSQL host)
 - Clerk application account (for user authentication)
 - Groq Cloud API key (for fast RFQ document intelligence)
 - (Optional) Google AI Studio API key (for logo palette analysis)
@@ -52,8 +52,8 @@ npm install
 
 Create a `.env` file in the root directory:
 ```env
-# Database
-DATABASE_URL="postgresql://user:password@ep-example.neon.tech/neondb?sslmode=require"
+# Database (use the connection string from your PostgreSQL provider)
+DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
 
 # Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."

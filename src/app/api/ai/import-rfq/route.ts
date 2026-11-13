@@ -11,7 +11,6 @@ import {
 import {
   xlsxToText,
   parseExcelDeterministically,
-  parsePdfDeterministically,
   extractPdfText,
   XLSX_MIME,
 } from "@/lib/rfq-parser";
@@ -158,7 +157,7 @@ export async function POST(req: NextRequest) {
     }
 
     // -------------------------------------------------------------------------
-    // 2B. LAYER A2: DETERMINISTIC DIGITAL PDF EXTRACTION (Zero LLM cost)
+    // 2B. PDF TEXT EXTRACTION WITH PAGE COORDINATES
     // -------------------------------------------------------------------------
     let extractedPdfTextContent: string | null = null;
     let isScannedPdf = false;
@@ -168,43 +167,11 @@ export async function POST(req: NextRequest) {
         const base64Data = fileData.split(",")[1] || fileData;
         const buffer = Buffer.from(base64Data, "base64");
 
-        // 1. Try deterministic table scraper
-        const pdfResult = await parsePdfDeterministically(buffer);
-
-        if (pdfResult && pdfResult.rows.length > 0) {
-          logAiUsage({
-            userId,
-            fileName,
-            mimeType,
-            method: "deterministic_pdf",
-            itemCount: pdfResult.rows.length,
-            durationMs: pdfResult.durationMs,
-            status: "SUCCESS",
-          }).catch(() => {});
-
-          trackPlatformEvent({
-            userId,
-            eventType: "EXTRACTION_SUCCESS",
-            metadata: {
-              method: "deterministic_pdf",
-              items: pdfResult.rows.length,
-            },
-          }).catch(() => {});
-
-          return NextResponse.json({
-            columns: pdfResult.columns,
-            rows: pdfResult.rows,
-            method: "deterministic_pdf",
-            durationMs: pdfResult.durationMs,
-            uncertainCount: pdfResult.uncertainCount,
-            rfqDetails: pdfResult.rfqDetails,
-          });
-        }
-
-        // 2. If table scraper needs assistance, inspect digital text stream
+        // Keep both readable text and item coordinates; whitespace-splitting PDF text
+        // can move values across columns and silently corrupt extracted rows.
         const textExtract = await extractPdfText(buffer);
         if (!textExtract.isScanned && textExtract.text && textExtract.text.length > 40) {
-          extractedPdfTextContent = textExtract.text;
+          extractedPdfTextContent = textExtract.layoutText || textExtract.text;
         } else {
           isScannedPdf = true;
         }

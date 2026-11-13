@@ -4,7 +4,7 @@ import { toNumber } from "@/utils/calculations";
 /** What the AI classifies each column of the buyer's document as. */
 export type ImportKind =
   | "serial" | "name" | "description" | "partNumber"
-  | "qty" | "unit" | "price" | "total" | "text" | "number";
+  | "condition" | "qty" | "unit" | "price" | "total" | "text" | "number";
 
 export interface ImportedColumn { key: string; label: string; kind: ImportKind }
 export interface ImportResult { columns: ImportedColumn[]; rows: Record<string, unknown>[] }
@@ -17,6 +17,7 @@ const CANONICAL: Record<string, { key: string; type: TableColumn["type"]; role?:
   name:        { key: "itemName",   type: "text" },
   description: { key: "description", type: "text" },
   partNumber:  { key: "partNumber", type: "text", width: "110px" },
+  condition:   { key: "condition", type: "text" },
   qty:         { key: "quantity",   type: "number", role: "qty", width: "70px" },
   unit:        { key: "unit",       type: "text", width: "70px" },
   price:       { key: "unitPrice",  type: "number", role: "price", width: "90px" },
