@@ -285,12 +285,12 @@ export function Step2CheckItems({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background">
       {/* ── TOP SCROLLABLE CONTAINER ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto w-full space-y-4 pb-28">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-6xl mx-auto w-full space-y-4 pb-4 sm:pb-8">
         {/* Step Header */}
         <StepHeader
           step={2}
-          title="Review Extracted Items"
-          subtitle="Quickly verify items from your RFQ before adding commercial prices."
+          title="Check items"
+          subtitle="Verify names, part numbers, and quantities before pricing."
         />
 
         {/* Subtle RFQ Metadata Strip (Integrated & Minimal) */}
@@ -842,18 +842,18 @@ export function Step2CheckItems({
 
       {/* ── STICKY BOTTOM ACTION BAR (Ultra Clean & Responsive) ── */}
       <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="h-11 px-3.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+            className="hidden sm:flex h-11 px-3.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold items-center justify-center gap-1.5 shrink-0 transition-colors"
             title="Back to Step 1 (Upload RFQ)"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Upload</span>
           </button>
 
-          <div className="min-w-0 flex-1 px-1">
+          <div className="min-w-0 w-full sm:flex-1 px-1 order-2 sm:order-none">
             <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
               {selectedCount} of {items.length} Included
             </p>
@@ -868,7 +868,7 @@ export function Step2CheckItems({
 
           <Button
             onClick={handleProceed}
-            className="h-11 px-5 sm:px-7 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
+            className="w-full sm:w-auto h-11 px-5 sm:px-7 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
           >
             <span>Proceed to Pricing</span>
             <ArrowRight className="w-4 h-4" />

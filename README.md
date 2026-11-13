@@ -10,7 +10,7 @@
 In maritime supply and ship chandlery, buyers send requisitions (RFQs) in all formats: multi-sheet Excel files, scanned PDFs, equipment photographs, or raw emails. Re-typing hundreds of lines with IMPA/ISSA codes, part numbers, and quantities into a quote is the single biggest bottleneck for suppliers.
 
 **QuoteCraft automates this entire front-office workflow:**
-1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets, coordinate-aware extraction for searchable PDFs, and Groq AI (`qwen/qwen3.8-27b` & `llama-3.3-70b-versatile`) fallback for digital PDFs and unstructured text. Scanned PDFs need OCR or an image upload with vision fallback enabled.
+1. **Intelligent RFQ Ingestion:** Deterministic parsing for Excel spreadsheets, coordinate-aware extraction for searchable PDFs, and Groq AI fallback for digital PDFs and unstructured text. Scanned PDFs are rendered page-by-page and read with the vision model when Vision Fallback is enabled.
 2. **Structure Preservation:** Replicates the buyer's exact column headers and line items so quotes match the customer's purchase order specifications.
 3. **Marine-Grade Calculation Engine:** Deterministic per-line rounding, subtotal integrity, discount protections (capped against negative totals), and multi-currency formatting (USD, EUR, GBP, AED, INR, SGD, JPY).
 4. **Branded Maritime PDF Export:** Generates high-density, professional quotations complete with company logos, vessel metadata, terms & conditions, and bank payment instructions.

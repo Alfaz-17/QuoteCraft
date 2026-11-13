@@ -296,17 +296,17 @@ export function Step1Upload({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-background">
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-6 max-w-2xl mx-auto w-full space-y-5 pb-12">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-6 py-4 sm:py-6 max-w-2xl mx-auto w-full space-y-4 sm:space-y-5 pb-8">
         {/* Step Progress & Screen Title */}
         <StepHeader
           step={1}
-          title="Upload RFQ"
-          subtitle="Extract products from customer enquiries."
+          title="Add request"
+          subtitle="Upload a file or paste the customer enquiry."
         />
 
         {/* Existing Draft Notification (Prevents confusion when previous items exist) */}
         {state.items.length > 0 && (
-          <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3 sm:p-4 flex flex-col min-[390px]:flex-row min-[390px]:items-center justify-between gap-3 text-xs shadow-2xs">
             <div className="min-w-0">
               <p className="font-extrabold text-amber-900 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -316,7 +316,7 @@ export function Step1Upload({
                 {state.documentInfo.vessel ? `Vessel: ${state.documentInfo.vessel}` : state.documentInfo.number || "Unsaved quotation draft"}
               </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="w-full min-[390px]:w-auto flex items-center justify-end gap-2 shrink-0">
               <button
                 type="button"
                 onClick={onSkipUpload}
@@ -339,24 +339,25 @@ export function Step1Upload({
 
         {/* Input Mode Selector: Upload File vs Paste Text */}
         <div className="flex justify-center">
-          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+          <div className="flex w-full sm:w-auto p-1 bg-slate-100 rounded-xl border border-slate-200">
             <button
               type="button"
               onClick={() => setInputMode("file")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
+              className={`flex flex-1 items-center justify-center gap-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "file"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
               <UploadCloud className="w-4 h-4 text-[#0F766E]" />
-              <span>Upload Document</span>
+              <span className="sm:hidden">Upload file</span>
+              <span className="hidden sm:inline">Upload Document</span>
             </button>
 
             <button
               type="button"
               onClick={() => setInputMode("paste")}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
+              className={`flex flex-1 items-center justify-center gap-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
                 inputMode === "paste"
                   ? "bg-white text-slate-900 shadow-xs"
                   : "text-slate-500 hover:text-slate-800"
@@ -369,7 +370,7 @@ export function Step1Upload({
         </div>
 
         {/* Functional Upload Card (Single Clean Card) */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs space-y-4">
           {inputMode === "file" ? (
             <div>
               <input
@@ -457,7 +458,7 @@ export function Step1Upload({
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border border-dashed rounded-xl p-8 transition-colors cursor-pointer text-center space-y-4 ${
+                  className={`border border-dashed rounded-xl p-5 sm:p-8 transition-colors cursor-pointer text-center space-y-4 ${
                     isDragOver
                       ? "border-[#0F766E] bg-teal-50/50"
                       : "border-slate-300 hover:border-[#0F766E]/60 bg-slate-50/50 hover:bg-slate-50"
@@ -469,7 +470,8 @@ export function Step1Upload({
 
                   <div className="space-y-2">
                     <p className="text-sm font-bold text-slate-900">
-                      Upload your RFQ document
+                      <span className="sm:hidden">Tap to choose your RFQ file</span>
+                      <span className="hidden sm:inline">Upload your RFQ document</span>
                     </p>
                     <div>
                       <button

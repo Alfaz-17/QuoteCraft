@@ -235,19 +235,19 @@ export function Step3AddPricesAndSend({
 
         {/* Sticky Bottom Actions: Download PDF (Primary) + Share Quotation (Secondary) */}
         <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
+          <div className="max-w-2xl mx-auto w-full flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between gap-2 min-[380px]:gap-3">
+            <div className="min-w-0 w-full min-[380px]:flex-1">
               <span className="text-xs text-slate-500 block leading-tight">Grand Total:</span>
               <span className="font-mono font-black text-base sm:text-lg text-[#0F766E] truncate block">
                 {formattedTotal}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="w-full min-[380px]:w-auto flex items-center gap-2 shrink-0">
               <Button
                 variant="outline"
                 onClick={() => setShowShareModal(true)}
-                className="h-11 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 min-h-[44px] flex items-center gap-1.5"
+                className="flex-1 min-[380px]:flex-none h-11 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm border-slate-300 text-slate-700 hover:bg-slate-50 min-h-[44px] flex items-center justify-center gap-1.5"
                 title="Share via WhatsApp or Email"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -257,7 +257,7 @@ export function Step3AddPricesAndSend({
               <Button
                 disabled={isDownloading}
                 onClick={handleDownloadPDF}
-                className="h-11 px-4 sm:px-6 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-sm flex items-center justify-center gap-2 min-h-[44px]"
+                className="flex-1 min-[380px]:flex-none h-11 px-4 sm:px-6 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-sm flex items-center justify-center gap-2 min-h-[44px]"
               >
                 {isDownloading ? (
                   <>
@@ -363,21 +363,21 @@ export function Step3AddPricesAndSend({
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-50">
       {/* Scrollable Pricing Form */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 lg:px-8 py-6 max-w-5xl mx-auto w-full space-y-4 pb-28">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-3 sm:px-6 lg:px-8 py-4 sm:py-6 max-w-5xl mx-auto w-full space-y-4 pb-4 sm:pb-8">
         {/* Step Progress & Title */}
         <StepHeader
           step={3}
-          title="Pricing"
+          title="Price items"
           subtitle="Enter unit prices and quotation details."
         />
 
         {/* Currency Selector Strip */}
-        <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 p-3 shadow-xs">
-          <span className="text-xs font-semibold text-slate-600">Quotation Currency:</span>
+        <div className="flex flex-col min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between gap-2 bg-white rounded-xl border border-slate-200 p-3 shadow-xs">
+          <span className="text-sm min-[390px]:text-xs font-semibold text-slate-600">Quotation Currency</span>
           <select
             value={currency}
             onChange={(e) => onSetCurrency(e.target.value as Currency)}
-            className="h-9 px-3 rounded-xl border border-slate-300 font-bold text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E]"
+            className="w-full min-[390px]:w-auto h-11 min-[390px]:h-9 px-3 rounded-xl border border-slate-300 font-bold text-sm min-[390px]:text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 focus:border-[#0F766E]"
           >
             {Object.keys(CURRENCY_SYMBOLS).map((c) => (
               <option key={c} value={c}>
@@ -465,7 +465,7 @@ export function Step3AddPricesAndSend({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-3 pt-1">
-                    <div className="flex-1 max-w-[200px]">
+                    <div className="flex-1 min-w-0 sm:max-w-[200px]">
                       <Label className="text-xs font-semibold text-slate-600 block mb-1">
                         Unit Price
                       </Label>
@@ -634,7 +634,7 @@ export function Step3AddPricesAndSend({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-slate-700">Email</Label>
                   <Input
@@ -708,18 +708,18 @@ export function Step3AddPricesAndSend({
 
       {/* ── STICKY BOTTOM ACTION BAR (Exact User Architecture) ── */}
       <footer className="shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] z-20 shadow-md">
-        <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="h-11 px-3.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
+            className="hidden sm:flex h-11 px-3.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold items-center justify-center gap-1.5 shrink-0 transition-colors"
             title="Back to Step 2 (Check Items)"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Items</span>
           </button>
 
-          <div className="min-w-0 flex-1 px-1">
+          <div className="min-w-0 w-full sm:flex-1 px-1 order-2 sm:order-none">
             <span className="text-xs text-slate-500 block leading-tight">Quotation Total:</span>
             <span className="font-mono font-black text-sm sm:text-base text-[#0F766E] truncate block">
               {formattedTotal}
@@ -728,7 +728,7 @@ export function Step3AddPricesAndSend({
 
           <Button
             onClick={() => setStage("preview")}
-            className="h-11 px-5 sm:px-7 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98]"
+            className="w-full sm:w-auto h-11 px-5 sm:px-7 rounded-xl font-extrabold text-xs sm:text-sm bg-[#0F766E] hover:bg-[#0D6B63] text-white shadow-md shadow-[#0F766E]/20 flex items-center justify-center gap-1.5 shrink-0 transition-transform active:scale-[0.98] order-1 sm:order-none"
           >
             <span>Review &amp; Send</span>
             <ArrowRight className="w-4 h-4" />

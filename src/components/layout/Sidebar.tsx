@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { 
   LayoutDashboard, 
@@ -13,7 +14,8 @@ import {
   ChevronRight,
   PlusCircle,
   Globe,
-  ShieldCheck
+  ShieldCheck,
+  MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
@@ -66,6 +68,7 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut } = useClerk();
 
@@ -170,41 +173,73 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* ── MOBILE BOTTOM NAVIGATION BAR (Strictly 4 Items, z-30, safe-area aware) ── */}
-      {/* Hidden when user is on the quotation builder ("/") so it does not block in-flow action buttons like "Download PDF" & "WhatsApp" */}
+      {/* Mobile primary navigation. The builder keeps its own action footer clear. */}
       {pathname !== "/" && (
-        <nav
-          aria-label="Mobile Navigation"
-          className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-3 py-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around"
-        >
-          {menuItems
-            .filter((item) => ["/dashboard", "/", "/quotations", "/settings"].includes(item.href))
-            .map((item) => {
-              const isActive = pathname === item.href;
+        <>
+          {isMoreOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Close more navigation"
+                onClick={() => setIsMoreOpen(false)}
+                className="md:hidden fixed inset-0 z-40 bg-slate-950/30"
+              />
+              <section
+                id="more-navigation"
+                aria-label="More destinations"
+                className="md:hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-3 right-3 z-50 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-in slide-in-from-bottom-2 fade-in"
+              >
+                <div className="flex items-center justify-between px-2 pb-2">
+                  <h2 className="text-sm font-bold text-slate-900">More</h2>
+                  <button type="button" onClick={() => setIsMoreOpen(false)} className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 min-h-[40px]">Close</button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {menuItems.filter((item) => ["Templates", "Product Tour", "Help & Support"].includes(item.name)).map((item) => {
+                    const Component = item.isExternal ? "a" : Link;
+                    return (
+                      <Component
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMoreOpen(false)}
+                        {...(item.isExternal ? { target: "_blank", rel: "noreferrer" } : {})}
+                        className="flex min-h-12 items-center gap-2.5 rounded-xl bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-800"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0 text-teal-700" />
+                        {item.name}
+                      </Component>
+                    );
+                  })}
+                </div>
+              </section>
+            </>
+          )}
+          <nav
+            aria-label="Mobile Navigation"
+            className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-1 py-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around"
+          >
+            {menuItems.filter((item) => ["Dashboard", "New Quotation", "My Quotations"].includes(item.name)).map((item) => {
+              const isActive = pathname === item.href || (item.name === "New Quotation" && pathname === "/");
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={cn(
-                    "flex flex-col items-center justify-center py-1.5 px-3 rounded-lg transition-all duration-150 min-w-[60px] min-h-[48px]",
-                    isActive
-                      ? "text-[#0F766E] font-bold"
-                      : "text-[#475569] hover:text-[#0F172A]"
-                  )}
+                  className={cn("flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center rounded-lg py-1.5 transition-colors", isActive ? "font-bold text-[#0F766E]" : "text-[#475569] hover:text-[#0F172A]")}
                 >
-                  <div
-                    className={cn(
-                      "w-7 h-7 rounded-lg flex items-center justify-center transition-colors mb-0.5",
-                      isActive ? "bg-[#E0F2F1] text-[#0F766E]" : ""
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" />
-                  </div>
-                  <span className="text-[12px] font-semibold leading-none">{item.mobileLabel}</span>
+                  <span className={cn("mb-0.5 flex h-7 w-7 items-center justify-center rounded-lg", isActive && "bg-[#E0F2F1]")}> <item.icon className="h-4 w-4" /> </span>
+                  <span className="text-[11px] font-semibold leading-none">{item.mobileLabel === "New Quote" ? "New" : item.mobileLabel}</span>
                 </Link>
               );
             })}
-        </nav>
+            <Link href="/settings" className={cn("flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center rounded-lg py-1.5 transition-colors", pathname === "/settings" ? "font-bold text-[#0F766E]" : "text-[#475569] hover:text-[#0F172A]")}>
+              <span className={cn("mb-0.5 flex h-7 w-7 items-center justify-center rounded-lg", pathname === "/settings" && "bg-[#E0F2F1]")}><Settings className="h-4 w-4" /></span>
+              <span className="text-[11px] font-semibold leading-none">Settings</span>
+            </Link>
+            <button type="button" aria-expanded={isMoreOpen} aria-controls="more-navigation" onClick={() => setIsMoreOpen((open) => !open)} className={cn("flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center rounded-lg py-1.5 transition-colors", isMoreOpen ? "font-bold text-[#0F766E]" : "text-[#475569] hover:text-[#0F172A]")}>
+              <span className={cn("mb-0.5 flex h-7 w-7 items-center justify-center rounded-lg", isMoreOpen && "bg-[#E0F2F1]")}><MoreHorizontal className="h-4 w-4" /></span>
+              <span className="text-[11px] font-semibold leading-none">More</span>
+            </button>
+          </nav>
+        </>
       )}
     </>
   );

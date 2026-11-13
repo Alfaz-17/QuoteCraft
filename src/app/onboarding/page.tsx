@@ -29,7 +29,7 @@ import {
 import { QuoteCraftLogo } from "@/components/ui/QuoteCraftLogo";
 import { HeroSailingLoader } from "@/components/ui/Loaders";
 import { useToast } from "@/components/ui/Toast";
-import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
+import { analyzeLogoPalette, ExtractedPalette } from "@/utils/logoColorExtractor";
 import { Currency, CURRENCY_SYMBOLS } from "@/types/quotation.types";
 
 const PRESET_COLORS = [
@@ -158,11 +158,11 @@ export default function OnboardingPage() {
       setLogo(base64);
       setIsAnalyzingLogo(true);
       try {
-        const palette = await extractColorsFromImage(base64);
+        const palette = await analyzeLogoPalette(base64);
         setAiDetectedPalette(palette);
         setPrimaryColor(palette.primaryColor);
         setSecondaryColor(palette.secondaryColor);
-        toastSuccess("✨ AI extracted brand colors from your logo!");
+        toastSuccess(palette.source === "ai" ? "AI matched your logo colors." : "Logo colors detected and applied.");
       } catch (err) {
         console.warn("AI color extraction failed", err);
       } finally {

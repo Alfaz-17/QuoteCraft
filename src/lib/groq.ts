@@ -27,6 +27,7 @@ export const aiOutputSchema = z.object({
 export type AiOutputData = z.infer<typeof aiOutputSchema>;
 
 export const DEFAULT_GROQ_MODEL = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
+export const GROQ_VISION_MODEL = "qwen/qwen3.8-27b";
 
 /**
  * Creates or retrieves a server-side Groq SDK client instance.
@@ -129,6 +130,12 @@ export async function extractRfqWithGroq(params: {
     mimeType: string;
     base64Data: string;
   };
+  imageInputs?: Array<{
+    mimeType: string;
+    base64Data: string;
+    pageNumber?: number;
+  }>;
+  additionalInstructions?: string;
   customApiKey?: string;
   customModel?: string;
 }): Promise<GroqExtractionResult> {
@@ -138,13 +145,28 @@ export async function extractRfqWithGroq(params: {
 
   let messages: Array<Groq.Chat.Completions.ChatCompletionMessageParam>;
 
-  if (params.imageInput) {
-    const { mimeType, base64Data } = params.imageInput;
+  if (params.imageInput || params.imageInputs?.length) {
+    const imageInputs: Array<{ mimeType: string; base64Data: string; pageNumber?: number }> =
+      params.imageInputs?.length ? params.imageInputs : params.imageInput ? [params.imageInput] : [];
     // Validate supported image MIME types
     const supportedMimes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!supportedMimes.includes(mimeType.toLowerCase())) {
-      throw new Error(`UNSUPPORTED_IMAGE_MIME: ${mimeType}`);
+    if (imageInputs.length > 3) {
+      throw new Error("TOO_MANY_VISION_IMAGES");
     }
+    for (const image of imageInputs) {
+      if (!supportedMimes.includes(image.mimeType.toLowerCase())) {
+        throw new Error(`UNSUPPORTED_IMAGE_MIME: ${image.mimeType}`);
+      }
+    }
+
+    const pageDescription = imageInputs
+      .map((image, index) => image.pageNumber ? `PDF page ${image.pageNumber}` : `image ${index + 1}`)
+      .join(", ");
+
+    const imageParts: Groq.Chat.Completions.ChatCompletionContentPart[] = imageInputs.map(({ mimeType, base64Data }) => ({
+      type: "image_url",
+      image_url: { url: `data:${mimeType};base64,${base64Data}` },
+    }));
 
     messages = [
       { role: "system", content: GROQ_MARINE_SYSTEM_PROMPT },
@@ -153,14 +175,15 @@ export async function extractRfqWithGroq(params: {
         content: [
           {
             type: "text",
-            text: "Extract the RFQ details and line items table from this uploaded procurement document image. Return only JSON.",
+            text: [
+              `Extract the RFQ details and line items from ${pageDescription}.`,
+              "Read the page images as a table: preserve the original columns and keep each value in its printed row and column.",
+              "Do not guess unreadable text; use an empty string for unclear cells.",
+              params.additionalInstructions,
+              "Return only JSON.",
+            ].filter(Boolean).join("\n"),
           },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:${mimeType};base64,${base64Data}`,
-            },
-          },
+          ...imageParts,
         ],
       },
     ];
@@ -205,7 +228,7 @@ export async function extractRfqWithGroq(params: {
       errMsg.includes("timeout");
 
     // If primary model hit Groq TPM/ITPM limit or timed out, attempt immediate failover to high-capacity Llama-3.3-70b
-    if (isRateOrTimeout && activeModel !== "llama-3.3-70b-versatile") {
+    if (isRateOrTimeout && !params.imageInput && !params.imageInputs?.length && activeModel !== "llama-3.3-70b-versatile") {
       console.warn(`Groq primary model ${activeModel} hit rate limit. Auto-failing over to llama-3.3-70b-versatile for fast recovery...`);
       activeModel = "llama-3.3-70b-versatile";
       response = await groq.chat.completions.create({

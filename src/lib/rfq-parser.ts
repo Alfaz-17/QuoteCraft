@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { extractText, extractTextItems } from "unpdf";
+import { extractText, extractTextItems, renderPageAsImage } from "unpdf";
 import { ImportResult, ImportedColumn, ImportKind } from "@/utils/importMapping";
 
 export const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -327,6 +327,21 @@ export async function extractPdfText(
     console.warn("PDF text extraction error:", err);
     return { text: "", layoutText: "", totalPages: 1, isScanned: true };
   }
+}
+
+/** Renders one PDF page at vision-friendly resolution and returns a data URL. */
+export async function renderPdfPageAsImage(
+  buffer: Buffer,
+  pageNumber: number,
+  scale = 2
+): Promise<{ mimeType: string; base64Data: string }> {
+  const dataUrl = await renderPageAsImage(new Uint8Array(buffer), pageNumber, {
+    scale,
+    toDataURL: true,
+  });
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/);
+  if (!match) throw new Error(`PDF_PAGE_RENDER_FAILED:${pageNumber}`);
+  return { mimeType: match[1], base64Data: match[2] };
 }
 
 /**

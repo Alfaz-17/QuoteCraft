@@ -36,7 +36,7 @@ export async function analyzeLogoColors(imageBase64: string, apiKey: string) {
     {
       inlineData: {
         data: imageBase64.split(",")[1] || imageBase64,
-        mimeType: "image/png",
+        mimeType: imageBase64.match(/^data:(image\/[a-z0-9.+-]+);base64,/i)?.[1] || "image/png",
       },
     },
   ]);

@@ -8,6 +8,37 @@ export interface ExtractedPalette {
   secondaryColor: string;
   paletteName: string;
   detectedColors: string[];
+  source?: "ai" | "image";
+}
+
+/** Ask the authenticated server-side AI to read the brand colors; fall back to
+ * pixel sampling when no AI key is configured or the request cannot complete. */
+export async function analyzeLogoPalette(imageSource: string): Promise<ExtractedPalette> {
+  try {
+    const response = await fetch("/api/ai/analyze-logo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageSource }),
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      const colors = payload?.colors;
+      const isHex = (value: unknown): value is string => typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+      if (isHex(colors?.primary) && isHex(colors?.secondary)) {
+        return {
+          primaryColor: colors.primary.toUpperCase(),
+          secondaryColor: colors.secondary.toUpperCase(),
+          paletteName: "AI Logo Match",
+          detectedColors: [colors.primary.toUpperCase(), colors.secondary.toUpperCase()],
+          source: "ai",
+        };
+      }
+    }
+  } catch (error) {
+    console.warn("AI logo palette analysis unavailable; using image color sampling.", error);
+  }
+
+  return extractColorsFromImage(imageSource);
 }
 
 export function extractColorsFromImage(
@@ -105,8 +136,9 @@ export function extractColorsFromImage(
         resolve({
           primaryColor: primary,
           secondaryColor: secondary,
-          paletteName: "AI Logo Match",
+          paletteName: "Logo Color Match",
           detectedColors: sorted.slice(0, 5).map((c) => toHex(c.r, c.g, c.b)),
+          source: "image",
         });
       } catch (err) {
         console.warn("AI Logo color analysis fallback:", err);
@@ -128,6 +160,7 @@ function getDefaultPalette(): ExtractedPalette {
     secondaryColor: "#F59E0B",
     paletteName: "QuoteCraft Brand",
     detectedColors: ["#0F766E", "#F59E0B"],
+    source: "image",
   };
 }
 

@@ -35,6 +35,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   const printableWidth = pageWidth - (margin * 2);
 
   const primaryColor = data.branding.primaryColor || "#0F766E"; // Marine deep teal by default
+  const secondaryColor = data.branding.secondaryColor || "#F59E0B";
   const currencySymbol = CURRENCY_SYMBOLS[data.currency] || "$";
   const layout = data.branding.layout || "marine";
 
@@ -55,6 +56,7 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   };
 
   const rgb = hexToRgb(primaryColor);
+  const secondaryRgb = hexToRgb(secondaryColor);
 
   const formatValue = (num: number): string => {
     return num % 1 === 0 ? num.toFixed(0) : num.toFixed(2);
@@ -69,9 +71,20 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
     }
   };
 
+  // Two-color brand ribbon used on every page. Keep its split consistent so
+  // the logo-derived primary and accent colors read as one system.
+  const brandPrimaryWidth = pageWidth * 0.72;
+  const drawBrandRibbon = (y: number, height: number) => {
+    doc.setFillColor(...rgb);
+    doc.rect(0, y, brandPrimaryWidth, height, "F");
+    doc.setFillColor(...secondaryRgb);
+    doc.rect(brandPrimaryWidth, y, pageWidth - brandPrimaryWidth, height, "F");
+  };
+
   // =========================================================================
   // 1. TOP HEADER: SUPPLIER BRANDING (LEFT) & QUOTE METADATA (RIGHT)
   // =========================================================================
+  drawBrandRibbon(0, 2.4);
   const headerStartY = 13;
   let logoH = 0;
   let logoW = 0;
@@ -166,10 +179,13 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
 
   let currentY = Math.max(headerStartY + logoH, companyY, metaY) + 5;
 
-  // Header Divider
-  doc.setDrawColor(226, 232, 240); // slate-200
-  doc.setLineWidth(0.35);
+  // Two-color header rule mirrors the top ribbon without adding visual weight.
+  doc.setDrawColor(...rgb);
+  doc.setLineWidth(0.75);
   doc.line(margin, currentY, rightX, currentY);
+  doc.setDrawColor(...secondaryRgb);
+  doc.setLineWidth(0.75);
+  doc.line(margin + printableWidth * 0.72, currentY, rightX, currentY);
   currentY += 5;
 
   // =========================================================================
@@ -435,8 +451,8 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
       cellPadding: 2.5,
       halign: "center",
       valign: "middle",
-      lineColor: layout === "classic" || layout === "minimal" ? [203, 213, 225] : [226, 232, 240],
-      lineWidth: layout === "classic" || layout === "minimal" ? 0.3 : 0.15,
+      lineColor: secondaryRgb,
+      lineWidth: layout === "classic" || layout === "minimal" ? 0.55 : 0.35,
     },
     alternateRowStyles: {
       fillColor: layout === "classic" ? [245, 245, 245] : [248, 250, 252], // slate-50 / example1 zebra
@@ -507,6 +523,8 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   totY += 3.5;
   doc.setFillColor(rgb[0], rgb[1], rgb[2]);
   doc.roundedRect(totalsLeft - 2, totY, totalsBoxWidth + 2, 7.5, 1.2, 1.2, "F");
+  doc.setFillColor(...secondaryRgb);
+  doc.roundedRect(totalsLeft - 2, totY + 6.5, totalsBoxWidth + 2, 1, 0.3, 0.3, "F");
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
@@ -594,10 +612,14 @@ export const generateProfessionalPDF = async (data: QuotationState) => {
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     
-    // Bottom border rule
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.25);
+    // Two-color footer rule and edge ribbon repeat on every page.
+    doc.setDrawColor(...rgb);
+    doc.setLineWidth(0.65);
     doc.line(margin, pageHeight - 10, rightX, pageHeight - 10);
+    doc.setDrawColor(...secondaryRgb);
+    doc.setLineWidth(0.65);
+    doc.line(margin + printableWidth * 0.72, pageHeight - 10, rightX, pageHeight - 10);
+    drawBrandRibbon(pageHeight - 2.4, 2.4);
 
     // Left: Supplier Name & Document Number
     doc.setFont("helvetica", "normal");

@@ -4,14 +4,15 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuotationState } from "@/hooks/useQuotationState";
-import { StepNavigation, FlowStep } from "@/components/flow/StepNavigation";
+import type { FlowStep } from "@/components/flow/StepNavigation";
 import { Step1Upload } from "@/components/flow/Step1Upload";
 import { Step2CheckItems } from "@/components/flow/Step2CheckItems";
 import { Step3AddPricesAndSend } from "@/components/flow/Step3AddPricesAndSend";
 import { CompanyProfileModal } from "@/components/flow/CompanyProfileModal";
 import { Button } from "@/components/ui/button";
 import { 
-  RotateCcw, FilePlus, ArrowLeft, MoreVertical, Building2, RefreshCw, LayoutDashboard
+  RotateCcw, FilePlus, ArrowLeft, MoreVertical, Building2, RefreshCw, LayoutDashboard,
+  FileText, Layers, Settings
 } from "lucide-react";
 import { LineItem, TableColumn, QuotationState, Currency } from "@/types/quotation.types";
 
@@ -391,12 +392,13 @@ function QuotationBuilder() {
 
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" title="QuoteCraft Dashboard">
             <QuoteCraftLogo size={26} showText={false} />
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none group-hover:text-[#0F766E] transition-colors truncate">
+            <span className="hidden sm:inline font-extrabold text-sm sm:text-base tracking-tight text-slate-900 leading-none group-hover:text-[#0F766E] transition-colors truncate">
               Quote<span className="text-[#0F766E]">Craft</span>
             </span>
             {currentStep > 1 && (
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-[#0F766E] border border-teal-200 shrink-0">
-                Step {currentStep} of 3
+                <span className="sm:hidden">{currentStep}/3</span>
+                <span className="hidden sm:inline">Step {currentStep} of 3</span>
               </span>
             )}
             {state.documentInfo?.number && (
@@ -412,7 +414,7 @@ function QuotationBuilder() {
           <button
             type="button"
             onClick={handleUndo}
-            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center min-h-[44px] min-w-[44px]"
+            className="hidden sm:flex p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors items-center justify-center min-h-[44px] min-w-[44px]"
             title="Undo (Ctrl+Z)"
             aria-label="Undo"
           >
@@ -437,6 +439,18 @@ function QuotationBuilder() {
                 onClick={() => setShowMoreMenu(false)}
               />
               <div className="absolute right-0 top-12 z-50 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl py-2 text-xs font-semibold animate-in fade-in zoom-in-95">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    handleUndo();
+                  }}
+                  className="sm:hidden w-full px-4 py-3 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4 text-[#0F766E]" />
+                  <span>Undo last change</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -482,6 +496,31 @@ function QuotationBuilder() {
                 >
                   <LayoutDashboard className="w-4 h-4 text-slate-400" />
                   <span>Exit to Dashboard</span>
+                </Link>
+                <div className="my-1 border-t border-slate-100" />
+                <Link
+                  href="/quotations"
+                  onClick={() => setShowMoreMenu(false)}
+                  className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                >
+                  <FileText className="w-4 h-4 text-slate-400" />
+                  <span>My Quotations</span>
+                </Link>
+                <Link
+                  href="/templates"
+                  onClick={() => setShowMoreMenu(false)}
+                  className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                >
+                  <Layers className="w-4 h-4 text-slate-400" />
+                  <span>Templates</span>
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setShowMoreMenu(false)}
+                  className="w-full px-4 py-2.5 text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-slate-400" />
+                  <span>Settings</span>
                 </Link>
               </div>
             </>

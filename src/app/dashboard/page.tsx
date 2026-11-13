@@ -297,7 +297,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 4 Stat Cards: Total, Sent, Drafts, This Month */}
-        <div className="grid grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {/* Total */}
           <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 text-center shadow-xs flex flex-col justify-center items-center min-h-[72px]">
             <span className="text-xl sm:text-2xl font-black font-mono text-[#0F172A] leading-tight">

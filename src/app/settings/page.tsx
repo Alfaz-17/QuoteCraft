@@ -42,7 +42,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
-import { extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
+import { analyzeLogoPalette, extractColorsFromImage, ExtractedPalette } from "@/utils/logoColorExtractor";
 import { 
   QUOTATION_TEMPLATES, 
   PRESET_COLOR_PALETTES, 
@@ -179,11 +179,11 @@ export default function SettingsPage() {
     }
     setIsAnalyzingLogo(true);
     try {
-      const palette = await extractColorsFromImage(source);
+      const palette = await analyzeLogoPalette(source);
       setAiDetectedPalette(palette);
       setSelectedColor(palette.primaryColor);
       setSelectedSecondary(palette.secondaryColor);
-      toastSuccess(`✨ AI extracted brand colors: ${palette.primaryColor} (Primary) & ${palette.secondaryColor} (Accent)!`);
+      toastSuccess(`${palette.source === "ai" ? "AI matched" : "Detected"} logo colors: ${palette.primaryColor} (Primary) & ${palette.secondaryColor} (Accent).`);
     } catch (err) {
       console.warn("Color analysis error:", err);
     } finally {
@@ -391,14 +391,19 @@ export default function SettingsPage() {
       <header className="bg-white border-b border-slate-200/80 px-4 sm:px-8 py-3.5 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {mobileSection !== "menu" && (
+            {mobileSection !== "menu" ? (
               <button
                 type="button"
                 onClick={() => setMobileSection("menu")}
-                className="md:hidden text-slate-500 hover:text-slate-800 mr-1"
+                aria-label="Back to Settings"
+                className="md:hidden mr-1 flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
+            ) : (
+              <Link href="/dashboard" aria-label="Back to Dashboard" className="md:hidden mr-1 flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
             )}
             <Settings className="w-4 h-4 text-[#0F766E]" />
             <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none">

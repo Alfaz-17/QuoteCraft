@@ -5,15 +5,70 @@ import { logAiUsage, trackPlatformEvent } from "@/lib/admin-auth";
 import { checkDailyAiQuota, getAiEngineControls } from "@/lib/ai-quota";
 import {
   extractRfqWithGroq,
-  aiOutputSchema,
+  AiOutputData,
   DEFAULT_GROQ_MODEL,
+  GROQ_VISION_MODEL,
 } from "@/lib/groq";
 import {
   xlsxToText,
   parseExcelDeterministically,
   extractPdfText,
+  renderPdfPageAsImage,
   XLSX_MIME,
 } from "@/lib/rfq-parser";
+
+const SCANNED_PDF_PAGES_PER_BATCH = 2;
+const MAX_SCANNED_PDF_PAGES = 6;
+const MAX_VISION_IMAGE_BYTES = 18 * 1024 * 1024;
+export const maxDuration = 60;
+
+function mergeVisionPageResults(results: AiOutputData[]): AiOutputData {
+  const columns: AiOutputData["columns"] = [];
+  const rows: AiOutputData["rows"] = [];
+
+  for (const result of results) {
+    if (result.rows.length > 0 && result.columns.length === 0) {
+      throw new Error("SCANNED_PDF_TABLE_COLUMNS_MISSING");
+    }
+    const keyMap = new Map<string, string>();
+    const normalized = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+    result.columns.forEach((column, index) => {
+      let target = columns.find((existing) =>
+        normalized(existing.label) === normalized(column.label) &&
+        (!existing.kind || !column.kind || existing.kind === column.kind)
+      );
+      if (!target && columns.length === result.columns.length) {
+        target = columns[index];
+      }
+      if (!target) {
+        const key = `c${columns.length + 1}`;
+        target = { ...column, key };
+        columns.push(target);
+      }
+      keyMap.set(column.key, target.key);
+    });
+
+    for (const row of result.rows) {
+      const mergedRow: Record<string, unknown> = {};
+      for (const [sourceKey, targetKey] of keyMap) {
+        mergedRow[targetKey] = row[sourceKey] ?? "";
+      }
+      rows.push(mergedRow);
+    }
+  }
+
+  const rfqDetails = { vesselName: "", customerName: "", rfqNumber: "", date: "" };
+  for (const result of results) {
+    for (const field of Object.keys(rfqDetails) as Array<keyof typeof rfqDetails>) {
+      if (!rfqDetails[field] && result.rfqDetails?.[field]) {
+        rfqDetails[field] = result.rfqDetails[field];
+      }
+    }
+  }
+
+  return { columns, rows, rfqDetails };
+}
 
 export async function POST(req: NextRequest) {
   let userId: string | null = null;
@@ -161,15 +216,19 @@ export async function POST(req: NextRequest) {
     // -------------------------------------------------------------------------
     let extractedPdfTextContent: string | null = null;
     let isScannedPdf = false;
+    let scannedPdfBuffer: Buffer | null = null;
+    let scannedPdfPageCount = 0;
 
     if (fileData && isPdf) {
       try {
         const base64Data = fileData.split(",")[1] || fileData;
         const buffer = Buffer.from(base64Data, "base64");
+        scannedPdfBuffer = buffer;
 
         // Keep both readable text and item coordinates; whitespace-splitting PDF text
         // can move values across columns and silently corrupt extracted rows.
         const textExtract = await extractPdfText(buffer);
+        scannedPdfPageCount = textExtract.totalPages;
         if (!textExtract.isScanned && textExtract.text && textExtract.text.length > 40) {
           extractedPdfTextContent = textExtract.layoutText || textExtract.text;
         } else {
@@ -177,20 +236,29 @@ export async function POST(req: NextRequest) {
         }
       } catch (pdfErr) {
         console.warn("Deterministic PDF parse skipped to fallback:", pdfErr);
+        isScannedPdf = true;
       }
     }
 
-    // -------------------------------------------------------------------------
-    // 3. SCANNED PDF AUDIT & GUARD
-    // -------------------------------------------------------------------------
-    if (fileData && isPdf && isScannedPdf && !extractedPdfTextContent) {
-      return NextResponse.json(
-        {
-          error:
-            "This PDF is a scanned document or photograph without selectable digital text. Please upload an original digital/searchable PDF, Excel/CSV spreadsheet, or an image file (JPG/PNG).",
-        },
-        { status: 400 }
-      );
+    if (fileData && isPdf && isScannedPdf) {
+      if (!aiControls.enableVisionFallback) {
+        return NextResponse.json(
+          { error: "Scanned-PDF OCR is disabled. Enable Vision Fallback in Admin → AI Engine settings." },
+          { status: 403 }
+        );
+      }
+      if (!scannedPdfPageCount) {
+        return NextResponse.json(
+          { error: "Could not read the scanned PDF pages. Try exporting or scanning the document again." },
+          { status: 400 }
+        );
+      }
+      if (scannedPdfPageCount > MAX_SCANNED_PDF_PAGES) {
+        return NextResponse.json(
+          { error: `Scanned-PDF OCR supports up to ${MAX_SCANNED_PDF_PAGES} pages per import. Split this PDF into smaller files and upload each part.` },
+          { status: 413 }
+        );
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -214,7 +282,7 @@ export async function POST(req: NextRequest) {
     if (!quota.allowed) {
       return NextResponse.json(
         {
-          error: `Daily AI fallback extraction limit reached (${quota.used}/${quota.limit} requests today). You can still import Excel and digital PDFs with unlimited zero-cost deterministic imports, or try again tomorrow.`,
+          error: `Daily AI extraction limit reached (${quota.used}/${quota.limit} requests today). You can still import supported Excel files with unlimited zero-cost deterministic imports, or try again tomorrow.`,
         },
         { status: 429 }
       );
@@ -256,6 +324,63 @@ export async function POST(req: NextRequest) {
         textInput: extractedPdfTextContent,
         customModel: aiControls.groqModel,
       });
+    } else if (fileData && isPdf && isScannedPdf && scannedPdfBuffer) {
+      const batches: AiOutputData[] = [];
+      let promptTokens = 0;
+      let completionTokens = 0;
+      let totalTokens = 0;
+      let visionDurationMs = 0;
+      const pageBatchCount = Math.ceil(scannedPdfPageCount / SCANNED_PDF_PAGES_PER_BATCH);
+
+      for (let batchIndex = 0; batchIndex < pageBatchCount; batchIndex++) {
+        const firstPage = batchIndex * SCANNED_PDF_PAGES_PER_BATCH + 1;
+        const lastPage = Math.min(firstPage + SCANNED_PDF_PAGES_PER_BATCH - 1, scannedPdfPageCount);
+        const imageInputs = [];
+
+        for (let pageNumber = firstPage; pageNumber <= lastPage; pageNumber++) {
+          let image = await renderPdfPageAsImage(scannedPdfBuffer, pageNumber);
+          let imageBytes = Buffer.from(image.base64Data, "base64").byteLength;
+          if (imageBytes > MAX_VISION_IMAGE_BYTES) {
+            image = await renderPdfPageAsImage(scannedPdfBuffer, pageNumber, 1.5);
+            imageBytes = Buffer.from(image.base64Data, "base64").byteLength;
+          }
+          if (imageBytes > MAX_VISION_IMAGE_BYTES) {
+            image = await renderPdfPageAsImage(scannedPdfBuffer, pageNumber, 1);
+            imageBytes = Buffer.from(image.base64Data, "base64").byteLength;
+          }
+          if (imageBytes > MAX_VISION_IMAGE_BYTES) {
+            return NextResponse.json(
+              { error: `Scanned PDF page ${pageNumber} is too large to process. Upload a lower-resolution scan.` },
+              { status: 413 }
+            );
+          }
+          imageInputs.push({ ...image, pageNumber });
+        }
+
+        const knownColumns = batches.find((batch) => batch.columns.length > 0)?.columns;
+        const additionalInstructions = batchIndex === 0
+          ? "These are the first pages of the scanned RFQ. Extract every visible header and item row."
+          : `These are pages ${firstPage}-${lastPage} of the same RFQ and may continue the previous table without repeating its header. Use these exact columns and kinds in this order: ${JSON.stringify(knownColumns)}. Continue item rows without repeating previous-page rows.`;
+
+        const batch = await extractRfqWithGroq({
+          imageInputs,
+          additionalInstructions,
+          customModel: GROQ_VISION_MODEL,
+        });
+        batches.push(batch.data);
+        promptTokens += batch.usage.promptTokens;
+        completionTokens += batch.usage.completionTokens;
+        totalTokens += batch.usage.totalTokens;
+        visionDurationMs += batch.durationMs;
+      }
+
+      const merged = mergeVisionPageResults(batches);
+      extractionResult = {
+        data: merged,
+        model: GROQ_VISION_MODEL,
+        usage: { promptTokens, completionTokens, totalTokens },
+        durationMs: visionDurationMs,
+      };
     } else if (fileData && mimeType && mimeType.startsWith("image/")) {
       // Check if image vision fallback is enabled by admin
       if (!aiControls.enableVisionFallback) {
@@ -274,7 +399,7 @@ export async function POST(req: NextRequest) {
           mimeType,
           base64Data,
         },
-        customModel: aiControls.groqModel,
+        customModel: GROQ_VISION_MODEL,
       });
     } else if (rawText && typeof rawText === "string" && rawText.trim().length > 0) {
       // Raw text paste fallback
@@ -376,6 +501,10 @@ export async function POST(req: NextRequest) {
       statusCode = 500;
       friendlyMessage =
         "The AI model failed to produce a valid structured table. Please verify the document layout or paste the text directly.";
+    } else if (errMsg.includes("PDF_PAGE_RENDER_FAILED") || /canvas/i.test(errMsg)) {
+      statusCode = 400;
+      friendlyMessage =
+        "Could not render this scanned PDF for OCR. Try exporting it again or upload clear page images instead.";
     } else if (errMsg.includes("EMPTY_AI_RESPONSE")) {
       statusCode = 500;
       friendlyMessage = "The AI returned an empty response. Please try again.";
