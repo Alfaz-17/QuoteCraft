@@ -584,7 +584,7 @@ export default function OnboardingPage() {
 
                     {aiDetectedPalette && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-800 bg-teal-100/80 px-2 py-0.5 rounded-md">
-                        <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" /> AI Matched Colors
+                        <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" /> {aiDetectedPalette.source === "ai" ? "AI Matched Colors" : "Logo Colors Detected"}
                       </span>
                     )}
                   </div>

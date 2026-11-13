@@ -183,6 +183,23 @@ export default function SettingsPage() {
       setAiDetectedPalette(palette);
       setSelectedColor(palette.primaryColor);
       setSelectedSecondary(palette.secondaryColor);
+      const updatedBranding = {
+        ...state.branding,
+        logo: customSource || state.branding.logo,
+        primaryColor: palette.primaryColor,
+        secondaryColor: palette.secondaryColor,
+      };
+      dispatch({ type: "SET_BRANDING", payload: updatedBranding });
+      try {
+        localStorage.setItem("brandingProfile", JSON.stringify(updatedBranding));
+      } catch (storageError) {
+        console.warn("Could not save logo colors locally:", storageError);
+      }
+      void fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branding: updatedBranding }),
+      }).catch((syncError) => console.warn("Could not sync logo colors:", syncError));
       toastSuccess(`${palette.source === "ai" ? "AI matched" : "Detected"} logo colors: ${palette.primaryColor} (Primary) & ${palette.secondaryColor} (Accent).`);
     } catch (err) {
       console.warn("Color analysis error:", err);
@@ -639,7 +656,7 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                       <div className="text-left">
-                        <p className="text-xs font-extrabold text-slate-900">✨ AI Logo Match</p>
+                        <p className="text-xs font-extrabold text-slate-900">{aiDetectedPalette.source === "ai" ? "AI Logo Match" : "Logo Color Match"}</p>
                         <p className="text-[11px] text-teal-700 font-mono">{aiDetectedPalette.primaryColor} • {aiDetectedPalette.secondaryColor}</p>
                       </div>
                     </div>
@@ -1324,7 +1341,7 @@ export default function SettingsPage() {
                       <div className="overflow-hidden flex-1">
                         <div className="flex items-center gap-1">
                           <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" />
-                          <p className="text-xs font-black text-slate-900 truncate">AI Logo Match</p>
+                          <p className="text-xs font-black text-slate-900 truncate">{aiDetectedPalette.source === "ai" ? "AI Logo Match" : "Logo Color Match"}</p>
                         </div>
                         <p className="text-[11px] text-[#0F766E] font-mono font-bold truncate">
                           {aiDetectedPalette.primaryColor}

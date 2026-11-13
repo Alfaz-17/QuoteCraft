@@ -52,6 +52,23 @@ interface QuotationRecord {
   updatedAt: string;
 }
 
+function getSavedPdfBranding(): QuotationState["branding"] {
+  const defaults: QuotationState["branding"] = {
+    logo: null,
+    primaryColor: "#0F766E",
+    secondaryColor: "#F59E0B",
+    textColor: "#0F172A",
+    font: "Manrope",
+    layout: "marine",
+  };
+  try {
+    const saved = localStorage.getItem("brandingProfile");
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+  } catch {
+    return defaults;
+  }
+}
+
 export default function QuotationsPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
@@ -125,14 +142,7 @@ export default function QuotationsPage() {
     setDownloadingId(quote.id);
     try {
       const pdfState: QuotationState = {
-        branding: {
-          logo: null,
-          primaryColor: "#0F766E",
-          secondaryColor: "#F59E0B",
-          textColor: "#0F172A",
-          font: "Manrope",
-          layout: "marine",
-        },
+        branding: getSavedPdfBranding(),
         documentInfo: {
           type: (quote.type as "quotation" | "rfq" | "proforma") || "quotation",
           number: quote.number,
