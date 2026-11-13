@@ -1,17 +1,42 @@
 import { Pool } from "pg";
 
+function getPoolOptions() {
+  const connectionString = process.env.DATABASE_URL;
+  let normalizedConnectionString = connectionString;
+
+  // pg's newer connection-string parser can treat sslmode=require as
+  // verify-full, which rejects Supabase certificates. Supabase defines
+  // `require` as encrypted transport without CA verification. Ask pg to use
+  // libpq-compatible semantics while keeping that mode explicit.
+  if (connectionString) {
+    try {
+      const databaseUrl = new URL(connectionString);
+      if (databaseUrl.searchParams.get("sslmode")?.toLowerCase() === "require") {
+        databaseUrl.searchParams.set("uselibpqcompat", "true");
+        normalizedConnectionString = databaseUrl.toString();
+      }
+    } catch {
+      // Preserve the original value so pg can report a useful configuration error.
+    }
+  }
+
+  return {
+    connectionString: normalizedConnectionString,
+    ssl: { rejectUnauthorized: false },
+    // Vercel creates many short-lived instances; keep each instance's local
+    // pool small and let Supabase's pooler manage the shared connection budget.
+    max: 1,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 15000,
+  };
+}
+
 // Single connection pool reused across serverless invocations
 const globalForPg = globalThis as unknown as { pgPool: Pool | undefined };
 
 export const db: Pool =
   globalForPg.pgPool ??
-  new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // Required for Neon / Supabase
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 15000, // Increased to 15s to allow Neon cold starts
-  });
+  new Pool(getPoolOptions());
 
 if (process.env.NODE_ENV !== "production") {
   globalForPg.pgPool = db;

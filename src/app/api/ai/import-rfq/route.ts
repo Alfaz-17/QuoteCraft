@@ -270,10 +270,9 @@ export async function POST(req: NextRequest) {
     if (!groqApiKey) {
       return NextResponse.json(
         {
-          error:
-            "Groq AI extraction is not configured. Please set the GROQ_API_KEY environment variable on the server.",
+          error: "RFQ extraction is temporarily unavailable. Please try again later or contact support.",
         },
-        { status: 401 }
+        { status: 503 }
       );
     }
 
@@ -481,9 +480,9 @@ export async function POST(req: NextRequest) {
       "An unexpected error occurred during document analysis. Please try again or copy-paste the text.";
 
     if (errMsg.includes("GROQ_API_KEY_MISSING") || errMsg.includes("Invalid API Key")) {
-      statusCode = 401;
+      statusCode = 503;
       friendlyMessage =
-        "Groq API key is invalid or not configured on the server. Please check your environment variables.";
+        "RFQ extraction is temporarily unavailable. Please try again later or contact support.";
     } else if (
       errMsg.includes("rate_limit_exceeded") ||
       errMsg.includes("429") ||
